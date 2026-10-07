@@ -135,7 +135,7 @@ Anschließend ist die Anwendung unter `http://localhost:8080/` erreichbar.
 
 ### Fotografen-/Admin-Login
 
-Zugang für die Studio-/Backend-Verwaltung unter `http://localhost:8080/` (Login-Formular `view/public/login.php`):
+Zugang für die Studio-/Backend-Verwaltung unter `http://localhost:8080/` (Login-Formular `login.html`):
 
 | Benutzer | Login       | Passwort     |
 |----------|-------------|--------------|
