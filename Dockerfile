@@ -42,7 +42,6 @@ WORKDIR /var/www/html
 # --- "prod" stage (used by docker-compose.prod.yml / Produktion) ---
 # Baut auf "base" auf und kopiert den App-Code fest ins Image. Dadurch ist
 # das Image in sich geschlossen und unabhängig von Host-Dateirechten/
-# SELinux-Labels (siehe Troubleshooting-Abschnitt in der README zu
-# ".htaccess"-Fehlern).
+# SELinux-Labels.
 FROM base AS prod
 COPY --chown=www-data:www-data . /var/www/html

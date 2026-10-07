@@ -7,9 +7,10 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - .:/var/www/html
+      - .:/var/www/html:z
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
   db:
@@ -25,6 +26,12 @@ services:
       - ./photoffice_seed.sql:/docker-entrypoint-initdb.d/02-photoffice_seed.sql
       - db_data:/var/lib/mysql
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
