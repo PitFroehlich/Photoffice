@@ -2,7 +2,7 @@
 
 - **Date:** 2026-10-09
 - **Machine / Agent:** fin-de-nb-0061 / Claude Code
-- **Issue / PR:** #46 / (PR folgt)
+- **Issue / PR:** #46 / #49
 - **Branch:** feature/46-kontoseite
 
 ## Goal

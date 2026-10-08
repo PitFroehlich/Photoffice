@@ -1,6 +1,6 @@
 # Demo #46: Eigenes Konto – Profil und Passwort über das Benutzermenü, Keycloak-Kontoverwaltung abgeschaltet
 
-- **Issue / PR:** #46 / (PR folgt)
+- **Issue / PR:** #46 / #49
 - **Datum:** 2026-10-09
 - **Agent / Maschine:** Claude Code / fin-de-nb-0061
 
