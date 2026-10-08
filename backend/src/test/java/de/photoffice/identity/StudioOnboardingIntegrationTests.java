@@ -10,7 +10,6 @@ import de.photoffice.TestcontainersConfiguration;
 import de.photoffice.tenant.InitialStudioAdmin;
 import de.photoffice.tenant.Tenant;
 import de.photoffice.tenant.TenantManagement;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -33,11 +32,10 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.MountableFile;
 
 /**
  * Studio onboarding against a real Keycloak with the dev realm ({@code infra/keycloak/photoffice-realm.json}) and
- * Mailpit as SMTP server: organization, first studio admin, invitation e-mail, suspension.
+ * Mailpit as SMTP server: organization, first studio admin, invitation e-mail (Photoffice theme), suspension.
  */
 @SpringBootTest(properties = { "photoffice.onboarding.enabled=true", "photoffice.events.resubmission.interval=PT2S",
 		"photoffice.events.resubmission.min-age=PT0S" })
@@ -56,16 +54,7 @@ class StudioOnboardingIntegrationTests {
 		.waitingFor(Wait.forHttp("/readyz").forPort(8025));
 
 	@Container
-	static final GenericContainer<?> keycloak = new GenericContainer<>("quay.io/keycloak/keycloak:26.8")
-		.withNetwork(network)
-		.withCommand("start-dev", "--import-realm")
-		.withEnv("KC_BOOTSTRAP_ADMIN_USERNAME", "admin")
-		.withEnv("KC_BOOTSTRAP_ADMIN_PASSWORD", "admin")
-		.withCopyFileToContainer(
-				MountableFile.forHostPath(Path.of("../infra/keycloak/photoffice-realm.json").toAbsolutePath()),
-				"/opt/keycloak/data/import/photoffice-realm.json")
-		.withExposedPorts(8080)
-		.waitingFor(Wait.forHttp("/realms/photoffice").forPort(8080).forStatusCode(200));
+	static final GenericContainer<?> keycloak = DevKeycloakContainer.create().withNetwork(network);
 
 	@DynamicPropertySource
 	static void keycloakProperties(DynamicPropertyRegistry registry) {
@@ -102,9 +91,14 @@ class StudioOnboardingIntegrationTests {
 		assertThat(keycloakAdmin.organizationsOf(admin.id())).containsExactly(slug);
 		assertThat(admin.requiredActions()).contains(StudioOnboarding.UPDATE_PASSWORD);
 
-		// Invitation e-mail with Keycloak's action link (no password in the mail)
+		// Invitation e-mail with Keycloak's action link (no password in the mail), German Photoffice e-mail theme
 		Map<String, Object> mail = awaitMailTo(email);
-		assertThat((String) mail.get("Text")).contains(keycloakUrl() + "/realms/photoffice/login-actions/action-token");
+		assertThat(mail.get("Subject")).isEqualTo("Willkommen bei Photoffice – bitte richten Sie Ihren Zugang ein");
+		assertThat(((Map<?, ?>) mail.get("From")).get("Name")).isEqualTo("Photoffice");
+		assertThat((String) mail.get("Text")).contains("Hallo Ina Haber,")
+			.contains("Passwort festlegen")
+			.contains(keycloakUrl() + "/realms/photoffice/login-actions/action-token");
+		assertThat((String) mail.get("HTML")).contains(">Passwort festlegen</a>");
 
 		// After setting the password the admin is a member of the new studio with role studio-admin
 		completeInvitation(admin.id(), "Geheim-123");

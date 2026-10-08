@@ -4,6 +4,11 @@
 - **Datum:** 2026-10-08
 - **Agent / Maschine:** Claude Code / fin-de-nb-0061
 
+> **Hinweis:** Diese Demo zeigt den Stand von #24. Seit #36 sind die Keycloak-Seiten und Mails deutsch
+> (z. B. „Weiter“ statt „Click here to proceed“, „Geschafft!“ statt „Account updated“, siehe
+> `docs/demos/0036-keycloak-deutsch.md`). Seit #35 kommen Fehlermeldungen der Plattform-API auf Deutsch, und es gibt
+> eine Oberfläche dafür (`docs/demos/0035-plattform-oberflaeche.md`).
+
 ## Was wurde umgesetzt
 - Der Plattform-Betreiber registriert ein Studio zusammen mit der E-Mail des ersten Studio-Admins. Danach entsteht
   automatisch alles Weitere: die Keycloak-Organisation (Alias = Kürzel), der Benutzer mit der Rolle Studio-Admin

@@ -227,6 +227,23 @@ Never edit generated code.
   `KeycloakIntegrationTests`). The client `photoffice-dev-cli` (password grant) exists for development and tests only.
 - Tests: `TestTokens` builds Keycloak-like tokens for MockMvc.
 
+### Keycloak theme (issue #36, ADR 0009)
+- Keycloak login pages and e-mails are **German only** (realm: `internationalizationEnabled`, `supportedLocales` `de`,
+  `defaultLocale` `de`) and use the theme `photoffice` (`loginTheme`, `emailTheme`) from
+  `infra/keycloak/themes/photoffice/`.
+- `login/`: extends `keycloak.v2`; design only via `resources/css/photoffice.css` (PatternFly variables, Photoffice
+  colours, Inter from `resources/fonts/`, camera logo), texts via `messages/messages_de.properties`. Only `info.ftl` is
+  copied (welcome heading, button instead of link). Keep element ids (`#username`, `#password`, `#kc-login`,
+  `#password-new`, …) – E2E tests rely on them.
+- `email/`: extends `base`; own layout `html/template.ftl` (inline styles), `executeActions` (= invitation of a new
+  studio admin) and `password-reset` as HTML + text, texts in `messages/messages_de.properties`.
+- Mounted in `docker-compose.yml` and in the Keycloak test containers (`DevKeycloakContainer`). `start-dev` does not
+  cache themes: edit, reload the page. After pulling realm or theme changes run
+  `docker compose up -d --force-recreate keycloak` (the realm is only imported into a fresh container).
+- Upgrading Keycloak: compare the copied `info.ftl` with the new `base/login/info.ftl` and walk through the demo
+  `docs/demos/0036-keycloak-deutsch.md` once.
+- Deployment (#28): the theme directory must be shipped with Keycloak (mount or copy to `/opt/keycloak/themes/photoffice`).
+
 ### Feature recipe (reference: customers, issue #7)
 Copy the structure of the customer feature for new business features:
 1. **API:** add paths/schemas to `api/openapi.yaml` in an own `# --- <feature> (#nr) ---` block under `/studio/...`;

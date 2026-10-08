@@ -27,7 +27,10 @@ async function invitationLink(request: APIRequestContext, email: string): Promis
     })
     .toBeDefined();
   const message = await (await request.get(`${mailpit}/message/${messageId}`)).json();
-  expect(message.Text).not.toContain('Passwort');
+  // German Photoffice e-mail theme (issue #36); the mail only contains a link, never a password
+  expect(message.From.Name).toBe('Photoffice');
+  expect(message.Subject).toBe('Willkommen bei Photoffice – bitte richten Sie Ihren Zugang ein');
+  expect(message.Text).toContain('Hallo Maria Müller,');
   return message.Text.match(/https?:\/\/\S+\/login-actions\/action-token\S+/)[0];
 }
 
@@ -50,14 +53,16 @@ test('new studio: invited admin sets a password, logs in, loses access while sus
     })
     .toBe('COMPLETED');
 
-  // Invitation e-mail → set password
+  // Invitation e-mail → set password (German Keycloak pages in the Photoffice theme)
   await page.goto(await invitationLink(request, email));
-  await page.getByText('Click here to proceed').click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Willkommen bei Photoffice!');
+  await page.getByRole('link', { name: 'Weiter', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Passwort festlegen');
   await page.locator('#password-new').fill('Geheim-123');
   await page.locator('#password-confirm').fill('Geheim-123');
   await page.locator('[type=submit]').click();
-  await expect(page.getByText('Your account has been updated')).toBeVisible();
-  await page.getByText('Back to Application').click();
+  await expect(page.getByText('Ihr Zugang ist bereit.')).toBeVisible();
+  await page.getByRole('link', { name: 'Weiter zu Photoffice' }).click();
   await expect(page.getByRole('button', { name: 'Studio-Login' })).toBeVisible();
 
   // Login with e-mail and new password
