@@ -1,6 +1,6 @@
 # Demo #36: Keycloak auf Deutsch – Login-Seiten und E-Mails im Photoffice-Design
 
-- **Issue / PR:** #36 / –
+- **Issue / PR:** #36 / #38
 - **Datum:** 2026-10-08
 - **Agent / Maschine:** Claude Code / fin-de-nb-0061
 

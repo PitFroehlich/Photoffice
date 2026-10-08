@@ -2,7 +2,7 @@
 
 - **Date:** 2026-10-08
 - **Machine / Agent:** fin-de-nb-0061 / Claude Code
-- **Issue / PR:** #36 / –
+- **Issue / PR:** #36 / #38
 - **Branch:** feature/36-keycloak-deutsch
 
 ## Goal
