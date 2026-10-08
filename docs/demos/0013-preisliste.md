@@ -87,7 +87,7 @@ Testbenutzer: siehe AGENTS.md "Dev users" (Passwort = Benutzername).
 ### Schritt 7: Steuersatz ändern
 - **Was tun:** "Steuersatz ändern" → `7,5` → "Speichern". Danach wieder auf `19` zurückstellen.
 - **Was du siehst:** In "Allgemein" steht „7,5 %“, danach wieder „19 %“. Eingaben wie `19,123` werden mit
-  „Ungültiges Format“ abgelehnt.
+  „Prozentsatz von 0 bis 99,99 mit höchstens zwei Nachkommastellen, z. B. 19 oder 7“ abgelehnt.
 
 ### Schritt 8: Fotograf sieht die Preisliste nur
 - **Was tun:** Rechts oben Benutzermenü → "Abmelden"; als `foto-a` / `foto-a` anmelden → "Preisliste".

@@ -71,6 +71,6 @@ describe('PriceListSettingsForm', () => {
     await settle(fixture);
 
     httpTesting.expectNone({ method: 'PUT' });
-    expect(element.querySelector('mat-error')?.textContent).toContain('Ungültiges Format');
+    expect(element.querySelector('mat-error')?.textContent).toContain('höchstens zwei Nachkommastellen');
   });
 });

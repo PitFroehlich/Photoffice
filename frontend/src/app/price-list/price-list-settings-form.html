@@ -19,7 +19,7 @@
           <input matInput formControlName="vatRate" inputmode="decimal" autocomplete="off" />
           <span matTextSuffix>&nbsp;%</span>
           <mat-hint>z. B. 19; 0 für Kleinunternehmer</mat-hint>
-          <mat-error><app-field-error [control]="form.controls.vatRate" /></mat-error>
+          <mat-error><app-field-error [control]="form.controls.vatRate" patternHint="Prozentsatz von 0 bis 99,99 mit höchstens zwei Nachkommastellen, z. B. 19 oder 7" /></mat-error>
         </mat-form-field>
 
         <div class="form-actions">
