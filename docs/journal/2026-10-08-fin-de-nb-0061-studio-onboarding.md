@@ -26,10 +26,9 @@ erster Studio-Admin mit Einladung (kein Passwort per Mail), Konsistenz zwischen 
   Frontend 26 Unit, Playwright 10 (neu `studio-onboarding.spec.ts`; `loginAs` hat einen optionalen Passwort-Parameter).
 
 ## Open / Next steps
-- Oberfläche für den Plattform-Betreiber (Studios registrieren, sperren, Onboarding-Status) – noch kein Issue.
-- Keycloak-Theme/Locale Deutsch für Login-Seiten und Mails – noch kein Issue.
+- Oberfläche für den Plattform-Betreiber (Studios registrieren, sperren, Onboarding-Status, Onboarding-Fehler sichtbar, 404 statt leerem 401 bei ungültiger ID) – #35.
+- Keycloak-Theme/Locale Deutsch für Login-Seiten und Mails – #36.
 - Produktion: SMTP im Realm, Client-Secret, `FRONTEND_URL`, `KEYCLOAK_URL` (#28).
-- Dauerhaft fehlschlagendes Onboarding (z. B. E-Mail gehört schon zu einem anderen Studio) ist nur im Log sichtbar.
 
 ## Pitfalls
 - Keycloak verlangt **eindeutige Organisationsnamen**; parallele Anlage mit gleichem Namen endet sogar in HTTP 500.

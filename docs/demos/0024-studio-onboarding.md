@@ -110,10 +110,11 @@ Testbenutzer: siehe AGENTS.md "Dev users" (Passwort = Benutzername). Für die De
   (Pflichtfelder, Sperren/Freischalten, 404, nur Betreiber).
 
 ## Noch offen / Einschränkungen
-- Keine Oberfläche für den Plattform-Betreiber; Registrieren und Sperren nur über die API.
-- Die Keycloak-Seiten und die Mail sind noch englisch und nicht im Photoffice-Design (eigenes Theme/Locale fehlt).
+- Keine Oberfläche für den Plattform-Betreiber; Registrieren und Sperren nur über die API (#35).
+- Die Keycloak-Seiten und die Mail sind noch englisch und nicht im Photoffice-Design (#36).
 - Gehört die Admin-E-Mail schon zu einem anderen Studio, bleibt das Onboarding auf `PENDING` und wird wiederholt
-  (Fehlermeldung nur im Log).
+  (Fehlermeldung nur im Log, #35).
+- Abgelaufenes Token oder leere Studio-ID im Pfad: 401 ohne Body (in der Demo aufgefallen, #35).
 - Produktion braucht SMTP im Realm, ein echtes Client-Secret und die richtige Frontend-URL (#28).
 
 ## Aufräumen
