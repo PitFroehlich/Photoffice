@@ -15,12 +15,13 @@ Bestehende Features der Legacy-App erfassen, für eine Neuentwicklung priorisier
 - Folgefragen geklärt (Fragen 8–12): optionales Kundenkonto (F20), Zahlungsempfänger und Druck-Anbieter noch offen → austauschbare Schnittstellen, Downloads pro Bild und als Paket, Studio-Abos automatisch über Zahlungsanbieter.
 
 - `docs/decisions/0003-tech-stack.md`: Java + Spring Boot/Modulith, Angular, PostgreSQL mit RLS, S3 Object Storage, imgproxy (OSS) + Wasserzeichen-Vorschau per libvips (vips-ffm) im Backend, Keycloak, Bezahlung anbieter-agnostisch, EU-Cloud mit Containern.
+- GitHub-Labels `prio:P0–P2`, `area:backend/frontend/infra`, `adr` angelegt; Issues #4–#20 für P0–P2 erstellt (mit Abhängigkeiten). P3-Features (F9-PDF, F10, F12-EXIF, F20) noch ohne Issue.
 
 ## Open / Next steps
+- Start mit #4 (Projekt-Grundgerüst), dann #5/#6 (P0).
 - Noch offen: Wer kassiert (Studio/Plattform/Druck-Service)? Welcher Druck-Service-Anbieter?
 - Eigene ADRs vor Umsetzung: Zahlungsanbieter, Druck-Service-Anbieter, Orchestrierung (k3s vs. managed Kubernetes).
 - `AGENTS.md` um Setup/Konventionen des Neubaus ergänzen, sobald Code existiert.
-- Danach gemeinsam Issues für P0/P1 anlegen.
 
 ## Pitfalls
 - imgproxy OSS kann nur ein global konfiguriertes Wasserzeichen; `watermark_url`/`watermark_text` sind Pro-Features → Grund für Backend-Rendering der Wasserzeichen-Vorschau.
