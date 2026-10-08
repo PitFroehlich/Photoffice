@@ -11,9 +11,10 @@ Bestehende Features der Legacy-App erfassen, für eine Neuentwicklung priorisier
 ## Done
 - `docs/analysis/legacy-features.md`: Feature-Katalog (F1–F16) mit Legacy-Zustand, Priorisierung für den Neubau, Anforderungen aus Mandantenfähigkeit/Erweiterbarkeit, Anti-Patterns, offene fachliche Fragen.
 - `docs/decisions/0002-rewrite-multi-tenant.md`: Entscheidung des Nutzers – Neubau, Produkt für mehrere Studios, schrittweise Umsetzung, erweiterbar (z. B. Bezahldienst). Tech-Stack folgt in eigenem ADR.
+- Offene fachliche Fragen mit dem Nutzer geklärt und in Abschnitt 6 der Analyse dokumentiert: Studios unabhängig, Zugang per Galerie-Link mit Code, Abzüge + Downloads, externer Druck-Service, SaaS mit Abo nach Speicherplatz, `nurpreise` entfällt, keine öffentlichen Galerien/Rechnungen in V1. Neue Features F17–F19, Priorisierung angepasst.
 
 ## Open / Next steps
-- Offene fachliche Fragen (Abschnitt 6 der Analyse) mit dem Nutzer klären.
+- Folgefragen aus Abschnitt 6 klären (Kundenkonto zusätzlich zum Link? Druck-Service-Anbieter? Wer kassiert? Download-Preismodell? Abo-Abrechnung?).
 - Tech-Stack wählen (eigenes ADR).
 - Danach gemeinsam Issues für P0/P1 anlegen.
 

@@ -35,7 +35,7 @@ Legende Zustand: ✅ funktioniert · ⚠️ funktioniert mit Mängeln · ❌ kap
 ### F1 – Galerieverwaltung
 - **Fachlich:** Fotograf legt Galerien an (Kunden-Galerie oder "öffentliche" Galerie), benennt sie um, schaltet sie online/offline, setzt ein Verfallsdatum. Eine Galerie kann nur online gehen, wenn sie nicht abgelaufen ist und Preise existieren. Beim Online-Schalten kann optional eine Mail an den Kunden gehen (F8).
 - **Daten:** `gallerien` (`online`, `verfallsdatum`, `bildanzahl`, `nurpreise`), `kunden_has_gallerien` (n:m Kunde–Galerie).
-- **Legacy:** ✅ – Jahresauswahl fest auf 2010–2015 (`view/showbehaviors/galerieaendern_show_behavior.php:73`). Feld `nurpreise` ohne erkennbare Verwendung.
+- **Legacy:** ✅ – Jahresauswahl fest auf 2010–2015 (`view/showbehaviors/galerieaendern_show_behavior.php:73`). Feld `nurpreise` ohne erkennbare Verwendung (wird nicht übernommen, Abschnitt 6).
 - **Code:** `controller/allegalerien.php`, `neuegalerie.php`, `galerieaendern.php`, `einzelgalerie.php`, `model/classes/insertgalerie.php`.
 
 ### F2 – Bild-Upload und Bildverarbeitung
@@ -46,6 +46,7 @@ Legende Zustand: ✅ funktioniert · ⚠️ funktioniert mit Mängeln · ❌ kap
 
 ### F3 – Kunden-Login und Galerieansicht (Kundensicht)
 - **Fachlich:** Kunde meldet sich an, sieht Liste seiner Online-Galerien, öffnet eine Galerie, sieht Bilder (Thumbnails, Lightbox), markiert Bilder für die Bestellung. Zeigt pro Bild die bereits bestellte Anzahl.
+- **Neubau:** Zugang standardmäßig per **Galerie-Link mit Code**, ohne Kundenkonto (Abschnitt 6, Frage 2).
 - **Legacy:** ❌
   - Die Controller `kundenindex`, `kundenlogout`, `allekundengalerien`, `kundeeinzelgalerie`, `warenkorb`, `preisliste` und `onlineshop` referenzieren Klassen (`kundestandard_action_behavior`, `onlineshopstandard_action_behavior`), die in Commit b3060e9 bzw. 68849f8 gelöscht wurden → Fatal Error.
   - Login nur per **Passwort ohne Benutzername**; der erste Kunde mit passendem MD5-Hash wird eingeloggt (`model/classes/kundenlogincheck.php`).
@@ -119,6 +120,14 @@ Legende Zustand: ✅ funktioniert · ⚠️ funktioniert mit Mängeln · ❌ kap
 ### F16 – Lizenz-/Update-Prüfung
 - **Legacy:** ⬜ XML-RPC-Aufruf an photoffice.de, komplett auskommentiert (`model/classes/version.php`). Für den Neubau irrelevant (Lizenzierung wäre im SaaS-Modell Teil der Mandantenverwaltung).
 
+### Neue Features aus den fachlichen Entscheidungen (Abschnitt 6)
+
+Diese Features gibt es in der Legacy-App nicht.
+
+- **F17 – Digitale Downloads:** Kunde kauft Bilder als Datei und lädt sie herunter (gesicherter, ggf. zeitlich begrenzter Download-Link).
+- **F18 – Anbindung Druck-Service:** Bestellte Abzüge werden an einen externen Druck-Service übergeben; Status-Rückmeldung (in Produktion, versendet).
+- **F19 – Abos und Speicherkontingent:** Studios mieten das Produkt per Abo; Tarife unterscheiden sich im Speicherplatz. Verbrauch wird gemessen und begrenzt.
+
 ### Hilfsfunktionen (keine eigenständigen Features)
 Breadcrumb-Navigation (Tabelle `navigation`), Dashboard/Startseite des Studios, AJAX-Endpunkte für Session-State, Logout.
 
@@ -130,29 +139,34 @@ Kriterium: Wertschöpfungskette eines Studios – **Bilder ausliefern → Abzüg
 
 | Prio | Feature | Begründung |
 |---|---|---|
-| **P0** | **Mandanten, Authentifizierung, Rollen** (neu; ersetzt Logins aus F3/F10) | Grundlage für alles andere. Mandantenfähigkeit nachträglich einzubauen ist teuer; die Legacy-App zeigt, wie fehlende Autorisierung jede Funktion angreifbar macht. |
+| **P0** | **Mandanten, Studio-Login, Rollen** (neu; ersetzt Fotografen-Login aus F10) | Grundlage für alles andere. Mandantenfähigkeit nachträglich einzubauen ist teuer; die Legacy-App zeigt, wie fehlende Autorisierung jede Funktion angreifbar macht. |
 | **P1** | F1 Galerieverwaltung | Ohne Galerien kein Produkt. |
-| **P1** | F2 Bild-Upload und Bildverarbeitung | Bilder sind der Inhalt; Upload ist der Einstieg in jeden Arbeitsablauf. Originale müssen erhalten bleiben (spätere Downloads, Abzüge in hoher Auflösung). |
-| **P1** | F5 Kundenverwaltung | Galerien und Bestellungen hängen an Kunden. |
-| **P1** | F3 Kundensicht auf Galerien | Die zentrale Leistung für den Endkunden. |
-| **P1** | F7 Preisliste | Voraussetzung für Bestellungen (und in der Legacy-Logik für das Online-Schalten). |
-| **P1** | F4 Bestellprozess | Umsatzquelle des Studios; muss von Anfang an so gebaut sein, dass ein Bezahldienst später andocken kann. |
+| **P1** | F2 Bild-Upload und Bildverarbeitung | Bilder sind der Inhalt; Upload ist der Einstieg in jeden Arbeitsablauf. Originale müssen erhalten bleiben – Downloads (F17) und Druck-Service (F18) brauchen die volle Auflösung. |
+| **P1** | F3 Kundensicht per Galerie-Link mit Code | Die zentrale Leistung für den Endkunden; der Link-Zugang ist die gewünschte Standard-Anmeldung. |
+| **P1** | F5 Kundenverwaltung | Galerien und Bestellungen hängen an Kunden. Kann anfangs schlank sein (Name, E-Mail), da kein Kundenkonto nötig ist. |
+| **P1** | F7 Preisliste / Produkte | Voraussetzung für Bestellungen. Erweitert um Produkttyp "Download" (F17). |
+| **P1** | F4 Bestellprozess | Umsatzquelle des Studios; muss von Anfang an so gebaut sein, dass Bezahldienst und Druck-Service später andocken können. |
 | **P1** | F6 Bestellverwaltung | Ohne sie sind eingegangene Bestellungen für das Studio unsichtbar. |
-| **P2** | F8 E-Mail-Benachrichtigungen | Wichtig für den Ablauf, aber anfangs manuell überbrückbar. Sinnvoll als ereignisbasierter Mechanismus (Erweiterbarkeit). |
+| **P1** | F19 Speicherkontingent (Messung und Begrenzung) | Teil des Geschäftsmodells; Speicherverbrauch muss ab dem ersten Upload pro Studio erfasst werden, sonst fehlen später die Daten. Tarifverwaltung und Abo-Abrechnung können folgen (P2). |
+| **P2** | F17 Digitale Downloads | Gewünschtes Produkt; technisch einfacher als Abzüge (kein Versand), kann daher früh nach F4 kommen. |
+| **P2** | F18 Anbindung Druck-Service | Ohne sie müssen Abzüge vom Studio manuell weitergegeben werden. Abhängig von der Wahl des Anbieters. |
+| **P2** | F19 Tarife und Abo-Verwaltung | Voraussetzung für den kommerziellen Betrieb, aber nicht für die ersten Pilot-Studios. |
+| **P2** | F8 E-Mail-Benachrichtigungen | Nötig für den Galerie-Link-Versand und Bestellbestätigungen; anfangs manuell überbrückbar (Link kopieren). Sinnvoll als ereignisbasierter Mechanismus. |
 | **P2** | F11 Studio-Stammdaten und AGB | Rechtlich nötig für den Verkauf, fachlich einfach. Wird im Mandantenmodell zum "Studio-Profil". |
-| **P2** | F9 Bestell-PDF | Arbeitserleichterung; kann im ersten Schritt durch die Detailansicht ersetzt werden. |
-| **P3** | F12 Wasserzeichen | Schutz vor Bilderklau – für manche Studios wichtig, aber kein Blocker. |
+| **P3** | F9 Bestell-PDF | Mit externem Druck-Service weniger wichtig; Detailansicht reicht anfangs. |
+| **P3** | F10 Mehrere Benutzer pro Studio | Kleine Studios kommen mit einem Login aus; das Rollenmodell aus P0 muss es aber vorsehen. |
+| **P3** | F12 Wasserzeichen | Schutz der Vorschaubilder vor unbezahlter Nutzung – mit Downloads wichtiger, aber kein Blocker. |
 | **P3** | F12 EXIF-Anzeige | Nettes Extra; EXIF sollte aber schon beim Upload (F2) gespeichert werden. |
-| **P4** | F13 Öffentliche Galerien | Marketing-Funktion, in der Legacy-App nie fertig. |
-| **P4** | F15 Rechnungen | Nie umgesetzt; wird mit dem Bezahldienst relevant. |
+| – | F13 Öffentliche Galerien, F15 Rechnungen | Nicht in V1 (Entscheidung Abschnitt 6, Frage 7). |
 | – | F14 Onlineshop, F16 Lizenzprüfung | Nicht übernehmen (kein fachlicher Inhalt bzw. obsolet). |
 
 **Vorschlag für die Reihenfolge der Umsetzung (vertikale Schnitte):**
 1. P0 Mandant + Studio-Login
-2. F5 Kunden → F1 Galerien → F2 Upload (Studio kann Bilder bereitstellen)
-3. F3 Kundensicht (Kunde kann Bilder sehen) → erster nutzbarer Stand
+2. F5 Kunden → F1 Galerien → F2 Upload inkl. Speichermessung (Studio kann Bilder bereitstellen)
+3. F3 Kundensicht per Galerie-Link → erster nutzbarer Stand
 4. F7 Preisliste → F4 Bestellung → F6 Bestellverwaltung (Studio kann verkaufen)
-5. P2 und folgende
+5. F17 Downloads, F18 Druck-Service, F19 Abos, F8 Benachrichtigungen
+6. P3
 
 ---
 
@@ -161,10 +175,14 @@ Kriterium: Wertschöpfungskette eines Studios – **Bilder ausliefern → Abzüg
 Diese Punkte ergeben sich nicht aus dem Legacy-Code, sondern aus dem Ziel des Neubaus. Sie sollten bei der Technologie-Wahl berücksichtigt werden.
 
 - **Mandantentrennung:** Jede fachliche Entität (Kunde, Galerie, Bild, Preis, Bestellung, …) gehört genau einem Studio. Zugriffe müssen immer auf den Mandanten eingeschränkt sein – Legacy hat für `firma` nur eine Zeile und keine Trennung.
-- **Kunden-Identität:** Ein Endkunde gehört zu einem Studio (Legacy) – oder kann ein Kunde bei mehreren Studios sein? → offene Frage.
+- **Kunden-Identität:** Ein Endkunde gehört genau zu einem Studio (entschieden, Abschnitt 6). Zugang standardmäßig per Galerie-Link mit Code.
+- **Galerie-Link-Sicherheit:** Codes müssen schwer zu erraten sein, sollten widerrufbar sein und das Verfallsdatum der Galerie respektieren; Fehlversuche begrenzen.
+- **Hosting und Kontingente:** Wir betreiben die Plattform selbst. Speicherverbrauch pro Studio muss messbar sein (Originale + Ableitungen); Tarife legen Obergrenzen fest.
 - **Studio-spezifische Konfiguration:** Preislisten, Zahlungs-/Versandarten, AGB, Logo, Wasserzeichen, Mail-Absender, ggf. eigene Domain/Subdomain.
 - **Erweiterungspunkte:**
   - *Bezahldienst:* Bestellung als Zustandsmaschine (z. B. Warenkorb → bestellt → bezahlt → in Produktion → versendet/abgeschlossen) statt zweier Boolean-Flags; Zahlungsart als austauschbare Schnittstelle.
+  - *Druck-Service:* Übergabe von Druckaufträgen über eine austauschbare Schnittstelle (Anbieter noch offen), Status-Rückmeldungen fließen in die Zustandsmaschine der Bestellung.
+  - *Produkte:* Abzug und Download als unterschiedliche Produkttypen einer Bestellposition; weitere Typen (z. B. Fotobuch) sollen ergänzbar sein.
   - *Benachrichtigungen:* Domain-Events (z. B. `GalerieVeröffentlicht`, `BestellungEingegangen`) statt Mailversand direkt in der View-Logik.
   - *Bildverarbeitung:* austauschbare Pipeline (Formate, Größen, Wasserzeichen) und austauschbarer Speicher (lokal / Object Storage).
 - **Geldbeträge:** Als Ganzzahl in Cent oder als exakter Dezimaltyp mit 2 Nachkommastellen, Währung und Steuersatz mitdenken.
@@ -190,12 +208,24 @@ Diese Punkte ergeben sich nicht aus dem Legacy-Code, sondern aus dem Ziel des Ne
 
 ---
 
-## 6. Offene fachliche Fragen
+## 6. Fachliche Entscheidungen (geklärt am 2026-10-08)
 
-1. Kann ein Endkunde bei mehreren Studios Kunde sein (ein Login) – oder ist er pro Studio getrennt?
-2. Wie sollen Kunden Zugang zu Galerien bekommen: eigener Account, Galerie-Link mit Code, beides?
-3. Was soll ein Kunde bestellen können: nur Abzüge (Legacy), auch digitale Downloads?
-4. Wer produziert die Abzüge – das Studio selbst oder ein Labor (spätere Labor-Anbindung)?
-5. Welche Bedeutung hat das Galerie-Feld `nurpreise`? (Im Legacy-Code nicht ausgewertet.)
-6. Wie wird das Produkt abgerechnet (Abo pro Studio, Speicherplatz, Provision)? Beeinflusst Mandanten- und Bezahlmodell.
-7. Sind öffentliche Galerien (F13) und Rechnungen (F15) für die erste Version gewünscht?
+| # | Frage | Antwort | Konsequenz |
+|---|---|---|---|
+| 1 | Endkunde bei mehreren Studios? | Nein. Jedes Studio arbeitet unabhängig; Kunden-Logins gelten nur für ein Studio. | Kunden sind vollständig mandantengebunden (E-Mail eindeutig *pro Studio*, nicht global). Keine studioübergreifende Kundenidentität. |
+| 2 | Zugang zu Galerien? | Galerie-Link mit Code – schneller Zugang ohne Account. | Neues Kernfeature **Galerie-Zugangslink** (siehe F3). Der Link (+ Code) identifiziert Studio und Galerie. Ein Kundenkonto ist dafür nicht nötig. |
+| 3 | Abzüge oder Downloads? | Beides. | Neues Feature **F17 Digitale Downloads**. Produkte sind nicht mehr nur "Papier × Format", sondern Produkttypen (Abzug, Download). Originale müssen gespeichert werden (F2). |
+| 4 | Wer produziert die Abzüge? | Ein externer Druck-Service. | Neues Feature **F18 Anbindung Druck-Service**. Bestellungen werden an einen externen Dienst übergeben; Schnittstelle austauschbar halten. Bildauflösung für den Druck nötig → Originale behalten. |
+| 5 | Bedeutung von `nurpreise`? | Unbekannt. | Feld wird **nicht** übernommen. Falls später eine fachliche Bedeutung auftaucht, neu bewerten. |
+| 6 | Geschäftsmodell? | Wir hosten das Produkt (SaaS). Studios mieten es per Abo mit unterschiedlich viel Speicherplatz. | Neues Feature **F19 Abos und Speicherkontingent**: Tarife, Speicherverbrauch pro Studio messen, Upload bei überschrittenem Kontingent begrenzen. Plattform-Betreiber-Rolle wird nötig. |
+| 7 | Öffentliche Galerien, Rechnungen in V1? | Nein. | F13 und F15 sind nicht Teil der ersten Version. |
+
+### Offene Punkte aus den Antworten
+
+- **Kundenkonto zusätzlich zum Galerie-Link?** Antwort 1 spricht von Kunden-Logins, Antwort 2 von Zugang ohne Account.
+  Annahme bis zur Klärung: **Galerie-Link mit Code ist der Standard-Zugang**, ein optionales Kundenkonto (z. B. um mehrere Galerien eines Studios gesammelt zu sehen) ist eine spätere Erweiterung.
+  Für eine Bestellung werden ohnehin Name, E-Mail und ggf. Lieferadresse benötigt (Erfassung im Checkout).
+- **Welcher Druck-Service?** Konkreter Anbieter und dessen API (Bestellformat, Rückmeldung zum Versandstatus, Abrechnung) sind noch offen.
+- **Wer kassiert?** Zahlt der Endkunde an das Studio, an uns als Plattform, oder direkt beim Druck-Service? Bestimmt Bezahldienst und Rechnungsstellung.
+- **Preise für Downloads:** pro Bild, Paket, ganze Galerie? Auflösung (Web/voll)?
+- **Abo-Abrechnung der Studios:** manuell oder über einen Zahlungsanbieter mit wiederkehrenden Zahlungen?
