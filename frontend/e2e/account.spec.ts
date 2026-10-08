@@ -17,9 +17,17 @@ interface TestUser {
 }
 
 async function adminHeaders(request: APIRequestContext) {
-  const response = await request.post(`${keycloakUrl}/realms/master/protocol/openid-connect/token`, {
-    form: { grant_type: 'password', client_id: 'admin-cli', username: 'admin', password: 'admin' },
-  });
+  const response = await request.post(
+    `${keycloakUrl}/realms/master/protocol/openid-connect/token`,
+    {
+      form: {
+        grant_type: 'password',
+        client_id: 'admin-cli',
+        username: 'admin',
+        password: 'admin',
+      },
+    },
+  );
   return { Authorization: `Bearer ${(await response.json()).access_token}` };
 }
 
@@ -48,14 +56,15 @@ async function createUser(
   const realmRole = await (await request.get(`${adminApi}/roles/${role}`, { headers })).json();
   await request.post(`${adminApi}/users/${id}/role-mappings/realm`, { headers, data: [realmRole] });
   if (role === 'photographer') {
-    const [studioA] = await (
-      await request.get(`${adminApi}/organizations`, { headers, params: { search: 'studio-a', exact: true } })
+    const organizations: { id: string; alias: string }[] = await (
+      await request.get(`${adminApi}/organizations`, { headers })
     ).json();
+    const studioA = organizations.find((organization) => organization.alias === 'studio-a')!;
     const member = await request.post(`${adminApi}/organizations/${studioA.id}/members`, {
-      headers,
+      headers: { ...headers, 'Content-Type': 'application/json' },
       data: JSON.stringify(id),
     });
-    expect(member.ok()).toBe(true);
+    expect(member.ok(), await member.text()).toBe(true);
   }
   return { id, username, password };
 }
@@ -83,7 +92,8 @@ test.describe('own account', () => {
   test('studio user changes name and password via the user menu', async ({ page, request }) => {
     studioUser = await createUser(request, 'photographer');
     await loginAs(page, studioUser.username, studioUser.password);
-    await page.goto('/studio/kunden');
+    await page.getByRole('link', { name: 'Kunden' }).click();
+    await expect(page).toHaveURL(/\/studio\/kunden$/);
     await expect(page.locator('.user-name')).toHaveText('Karla Konto');
 
     // Edit profile: name editable, e-mail address read-only
@@ -123,7 +133,8 @@ test.describe('own account', () => {
   test('platform operator edits the profile from the platform area', async ({ page, request }) => {
     operator = await createUser(request, 'platform-admin');
     await loginAs(page, operator.username, operator.password);
-    await page.goto('/plattform/studios');
+    await page.getByRole('link', { name: 'Studios' }).click();
+    await expect(page).toHaveURL(/\/plattform\/studios$/);
 
     await openUserMenuItem(page, 'Profil bearbeiten');
     await page.locator('#firstName').fill('Kai');
