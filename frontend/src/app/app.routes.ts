@@ -1,5 +1,6 @@
 import { isDevMode } from '@angular/core';
 import { Routes } from '@angular/router';
+import { platformGuard } from './auth/platform.guard';
 import { studioGuard } from './auth/studio.guard';
 import { PublicShell } from './layout/public-shell';
 import { StartPage } from './start/start-page';
@@ -87,5 +88,26 @@ export const routes: Routes = [
         : []),
     ],
   },
+  // --- platform area (#35) ---
+  {
+    path: 'plattform',
+    canActivate: [platformGuard],
+    loadComponent: () => import('./layout/platform-shell').then((m) => m.PlatformShell),
+    // New platform pages: add a child route here and an entry in layout/platform-navigation.ts
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'studios' },
+      {
+        path: 'studios',
+        title: 'Studios',
+        loadComponent: () => import('./platform/studio-list').then((m) => m.StudioList),
+      },
+      {
+        path: 'studios/neu',
+        title: 'Studio registrieren',
+        loadComponent: () => import('./platform/studio-form').then((m) => m.StudioForm),
+      },
+    ],
+  },
+  // --- end platform area ---
   { path: '**', redirectTo: '' },
 ];

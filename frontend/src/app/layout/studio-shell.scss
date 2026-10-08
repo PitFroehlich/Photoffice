@@ -19,7 +19,8 @@
   font: var(--mat-sys-title-large);
 }
 
-.studio-name {
+.studio-name,
+.area-name {
   font: var(--mat-sys-title-medium);
   color: var(--mat-sys-on-surface-variant);
   padding-left: 0.75rem;
@@ -63,6 +64,7 @@
 
 @media (max-width: 840px) {
   .studio-name,
+  .area-name,
   .user-name {
     display: none;
   }

@@ -19,8 +19,14 @@ import { SkipLink } from './skip-link';
       </a>
       <span class="spacer"></span>
       @if (auth.isLoggedIn()) {
-        <a matButton="tonal" routerLink="/studio">Zum Studio-Bereich</a>
+        @if (auth.isPlatformAdmin() && !auth.isStudioUser()) {
+          <a matButton="tonal" routerLink="/plattform">Zur Plattform-Verwaltung</a>
+        } @else {
+          <a matButton="tonal" routerLink="/studio">Zum Studio-Bereich</a>
+        }
       } @else {
+        <!-- Entry for the platform operator; the guard of /plattform starts the login -->
+        <a matButton routerLink="/plattform" class="platform-login">Plattform-Login</a>
         <button matButton="filled" type="button" (click)="auth.login()">Studio-Login</button>
       }
     </mat-toolbar>
@@ -43,6 +49,9 @@ import { SkipLink } from './skip-link';
     }
     .spacer {
       flex: 1;
+    }
+    .platform-login {
+      margin-right: 0.5rem;
     }
     main {
       outline: none;

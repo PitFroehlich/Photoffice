@@ -1,11 +1,16 @@
 <section class="hero">
   <h1>Ihre Bilder. Ihre Kunden. Ein Ort.</h1>
   <p class="lead">
-    Photoffice ist die Plattform für Fotostudios: Galerien für Kunden bereitstellen, Abzüge und Downloads verkaufen,
-    Bestellungen abwickeln.
+    Photoffice ist die Plattform für Fotostudios: Galerien für Kunden bereitstellen, Abzüge und
+    Downloads verkaufen, Bestellungen abwickeln.
   </p>
   <div class="actions">
-    @if (auth.isLoggedIn()) {
+    @if (auth.isLoggedIn() && auth.isPlatformAdmin() && !auth.isStudioUser()) {
+      <a matButton="filled" routerLink="/plattform">
+        <mat-icon svgIcon="domain" />
+        Zur Plattform-Verwaltung
+      </a>
+    } @else if (auth.isLoggedIn()) {
       <a matButton="filled" routerLink="/studio">
         <mat-icon svgIcon="dashboard" />
         Zum Studio-Bereich

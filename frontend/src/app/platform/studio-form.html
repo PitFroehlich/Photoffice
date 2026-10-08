@@ -1,0 +1,58 @@
+<app-page-header
+  title="Studio registrieren"
+  subtitle="Keycloak-Organisation und erster Studio-Admin werden danach automatisch angelegt."
+/>
+
+<mat-card appearance="outlined" class="card">
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <fieldset>
+        <legend>Studio</legend>
+        <div class="row">
+          <mat-form-field>
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" autocomplete="off" />
+            <mat-error><app-field-error [control]="form.controls.name" /></mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Kürzel</mat-label>
+            <input matInput formControlName="slug" autocomplete="off" spellcheck="false" />
+            <mat-hint>Eindeutig; wird aus dem Namen vorgeschlagen</mat-hint>
+            <mat-error
+              ><app-field-error [control]="form.controls.slug" [patternHint]="hints.slug"
+            /></mat-error>
+          </mat-form-field>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Erster Studio-Admin</legend>
+        <mat-form-field class="full">
+          <mat-label>E-Mail</mat-label>
+          <input matInput type="email" formControlName="adminEmail" autocomplete="off" />
+          <mat-hint>Erhält eine Einladung zum Setzen des Passworts</mat-hint>
+          <mat-error
+            ><app-field-error [control]="form.controls.adminEmail" [patternHint]="hints.email"
+          /></mat-error>
+        </mat-form-field>
+        <div class="row">
+          <mat-form-field>
+            <mat-label>Vorname</mat-label>
+            <input matInput formControlName="adminFirstName" autocomplete="off" />
+            <mat-error><app-field-error [control]="form.controls.adminFirstName" /></mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Nachname</mat-label>
+            <input matInput formControlName="adminLastName" autocomplete="off" />
+            <mat-error><app-field-error [control]="form.controls.adminLastName" /></mat-error>
+          </mat-form-field>
+        </div>
+      </fieldset>
+
+      <div class="form-actions">
+        <a matButton routerLink="/plattform/studios">Abbrechen</a>
+        <button matButton="filled" type="submit" [disabled]="saving()">Registrieren</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

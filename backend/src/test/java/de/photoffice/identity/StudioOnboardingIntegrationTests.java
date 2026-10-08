@@ -153,7 +153,12 @@ class StudioOnboardingIntegrationTests {
 			.until(() -> jdbc.queryForObject(
 					"SELECT coalesce(max(completion_attempts), 0) FROM event_publication WHERE serialized_event LIKE ?",
 					Integer.class, "%" + slug + "%") >= 2);
-		assertThat(tenantManagement.findById(tenant.id()).orElseThrow().onboarded()).isFalse();
+		Tenant failed = tenantManagement.findById(tenant.id()).orElseThrow();
+		assertThat(failed.onboarded()).isFalse();
+		// The reason is recorded for the platform operator although the listener's transaction was rolled back
+		assertThat(failed.onboardingError()).hasValue("Die E-Mail-Adresse " + email + " gehört bereits zu Studio „"
+				+ otherStudio + "“. Ein Benutzer kann nur zu einem Studio gehören.");
+		assertThat(failed.onboardingFailedAt()).isPresent();
 		assertThat(keycloakAdmin.organizationsOf(userId)).containsExactly(otherStudio);
 
 		// Conflict resolved: the next resubmission (EventResubmission, every 2 s here) completes the onboarding
@@ -163,6 +168,7 @@ class StudioOnboardingIntegrationTests {
 			.toBodilessEntity();
 		awaitOnboarded(tenant);
 		assertThat(keycloakAdmin.organizationsOf(userId)).containsExactly(slug);
+		assertThat(tenantManagement.findById(tenant.id()).orElseThrow().onboardingError()).isEmpty();
 	}
 
 	@Test

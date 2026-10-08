@@ -26,10 +26,10 @@ test('studio admin of studio B sees studio B', async ({ page }) => {
   await expect(page.locator('.studio-name')).toHaveText('Studio B');
 });
 
-test('platform operator has no studio', async ({ page }) => {
+test('platform operator is led to the platform area (#35)', async ({ page }) => {
   await loginAs(page, 'operator');
 
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Kein Zugriff');
+  await expect(page).toHaveURL(/\/plattform\/studios$/);
 });
 
 test('studio area requires login', async ({ page }) => {
