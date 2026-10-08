@@ -1,0 +1,171 @@
+<app-page-header
+  title="Studio-Profil"
+  subtitle="Stammdaten, die Ihre Kunden später in der Galerie, im Checkout und im Impressum sehen"
+>
+  <a matButton="outlined" routerLink="/studio/rechtstexte" actions>Rechtstexte</a>
+</app-page-header>
+
+@if (loading()) {
+  <app-loading-indicator />
+} @else {
+  <mat-card appearance="outlined" class="card">
+    <mat-card-content>
+      @if (!canEdit()) {
+        <p class="read-only-hint" role="note">
+          Nur Studio-Administratoren können das Studio-Profil ändern.
+        </p>
+      }
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <fieldset>
+          <legend>Studio</legend>
+          <mat-form-field class="full">
+            <mat-label>Anzeigename</mat-label>
+            <input matInput formControlName="displayName" autocomplete="organization" />
+            <mat-hint>So erscheint Ihr Studio bei Ihren Kunden</mat-hint>
+            <mat-error
+              ><app-field-error [control]="form.controls.displayName" [patternHint]="hints.name"
+            /></mat-error>
+          </mat-form-field>
+        </fieldset>
+
+        <fieldset>
+          <legend>Adresse</legend>
+          <mat-form-field class="full">
+            <mat-label>Straße und Hausnummer</mat-label>
+            <input matInput formControlName="street" autocomplete="off" />
+            <mat-error
+              ><app-field-error [control]="form.controls.street" [patternHint]="hints.street"
+            /></mat-error>
+          </mat-form-field>
+          <div class="row postal">
+            <mat-form-field>
+              <mat-label>PLZ</mat-label>
+              <input
+                matInput
+                formControlName="postalCode"
+                autocomplete="off"
+                inputmode="numeric"
+                maxlength="5"
+              />
+              <mat-error
+                ><app-field-error
+                  [control]="form.controls.postalCode"
+                  [patternHint]="postalCodeHint()"
+              /></mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Ort</mat-label>
+              <input matInput formControlName="city" autocomplete="off" />
+              <mat-error
+                ><app-field-error [control]="form.controls.city" [patternHint]="hints.city"
+              /></mat-error>
+            </mat-form-field>
+          </div>
+          <mat-form-field class="country">
+            <mat-label>Land</mat-label>
+            <mat-select formControlName="country">
+              @for (country of countries; track country[0]) {
+                <mat-option [value]="country[0]">{{ country[1] }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </fieldset>
+
+        <fieldset>
+          <legend>Kontakt</legend>
+          <div class="row">
+            <mat-form-field>
+              <mat-label>E-Mail</mat-label>
+              <input matInput type="email" formControlName="email" autocomplete="off" />
+              <mat-error
+                ><app-field-error [control]="form.controls.email" [patternHint]="hints.email"
+              /></mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Telefon</mat-label>
+              <input
+                matInput
+                type="tel"
+                formControlName="phone"
+                autocomplete="off"
+                inputmode="tel"
+              />
+              <mat-error
+                ><app-field-error [control]="form.controls.phone" [patternHint]="hints.phone"
+              /></mat-error>
+            </mat-form-field>
+          </div>
+          <mat-form-field class="full">
+            <mat-label>Website</mat-label>
+            <input matInput formControlName="website" autocomplete="off" inputmode="url" />
+            <mat-hint>Ohne https:// wird es beim Speichern ergänzt</mat-hint>
+            <mat-error
+              ><app-field-error [control]="form.controls.website" [patternHint]="hints.website"
+            /></mat-error>
+          </mat-form-field>
+        </fieldset>
+
+        <fieldset>
+          <legend>Steuern</legend>
+          <div class="row">
+            <mat-form-field>
+              <mat-label>Steuernummer</mat-label>
+              <input matInput formControlName="taxNumber" autocomplete="off" />
+              <mat-error
+                ><app-field-error
+                  [control]="form.controls.taxNumber"
+                  [patternHint]="hints.taxNumber"
+              /></mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>USt-IdNr. / UID</mat-label>
+              <input matInput formControlName="vatId" autocomplete="off" />
+              <mat-error
+                ><app-field-error [control]="form.controls.vatId" [patternHint]="hints.vatId"
+              /></mat-error>
+            </mat-form-field>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Bankverbindung</legend>
+          <p class="section-hint">
+            Kontoinhaber und IBAN bitte gemeinsam angeben; die BIC ist optional.
+          </p>
+          <mat-form-field class="full">
+            <mat-label>Kontoinhaber</mat-label>
+            <input matInput formControlName="accountHolder" autocomplete="off" />
+            <mat-error
+              ><app-field-error [control]="form.controls.accountHolder" [patternHint]="hints.name"
+            /></mat-error>
+          </mat-form-field>
+          <div class="row bank">
+            <mat-form-field>
+              <mat-label>IBAN</mat-label>
+              <input matInput formControlName="iban" autocomplete="off" />
+              <mat-error
+                ><app-field-error [control]="form.controls.iban" [patternHint]="hints.iban"
+              /></mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>BIC</mat-label>
+              <input matInput formControlName="bic" autocomplete="off" maxlength="11" />
+              <mat-error
+                ><app-field-error [control]="form.controls.bic" [patternHint]="hints.bic"
+              /></mat-error>
+            </mat-form-field>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          @if (updatedAt(); as updated) {
+            <span class="updated-at">Zuletzt gespeichert: {{ formatDateTime(updated) }} Uhr</span>
+          }
+          @if (canEdit()) {
+            <button matButton="filled" type="submit" [disabled]="saving()">Speichern</button>
+          }
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}
