@@ -62,8 +62,8 @@
               >
               <p class="onboarding-error">{{ studio.onboardingError }}</p>
               <p class="onboarding-hint">
-                Letzter Versuch {{ studio.onboardingFailedAt | date: 'dd.MM.yyyy, HH:mm' }} Uhr –
-                wird automatisch wiederholt.
+                Letzter Versuch {{ dateTime(studio.onboardingFailedAt) }} Uhr – wird automatisch
+                wiederholt.
               </p>
             } @else {
               <span class="badge pending"
@@ -75,7 +75,7 @@
         <ng-container matColumnDef="createdAt">
           <th mat-header-cell *matHeaderCellDef>Angelegt am</th>
           <td mat-cell *matCellDef="let studio" class="nowrap">
-            {{ studio.createdAt | date: 'dd.MM.yyyy, HH:mm' }}
+            {{ dateTime(studio.createdAt) }}
           </td>
         </ng-container>
         <ng-container matColumnDef="actions">

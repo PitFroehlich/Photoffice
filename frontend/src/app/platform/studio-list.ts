@@ -1,5 +1,4 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,6 +20,15 @@ import {
   PageHeader,
 } from '../shared/ui';
 
+// Intl instead of DatePipe: DatePipe would pull Angular's common pipes into the initial bundle
+const dateTimeFormat = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
 /** How often the list is reloaded while an onboarding is still running (it completes in the background). */
 export const ONBOARDING_POLL_INTERVAL_MS = 3000;
 /** Polling stops this long after the last load or action of the user (failed onboardings may stay pending). */
@@ -34,7 +42,6 @@ const ONBOARDING_POLL_DURATION_MS = 2 * 60 * 1000;
   selector: 'app-studio-list',
   imports: [
     RouterLink,
-    DatePipe,
     MatTableModule,
     MatButtonModule,
     MatIconModule,
@@ -84,6 +91,11 @@ export class StudioList implements OnInit {
 
   protected refresh(): void {
     void this.load();
+  }
+
+  /** "08.10.2026, 14:33" (local time). */
+  protected dateTime(iso: string | undefined): string {
+    return iso ? dateTimeFormat.format(new Date(iso)) : '';
   }
 
   protected onboardingFailed(studio: TenantResponse): boolean {
