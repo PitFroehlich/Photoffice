@@ -102,6 +102,7 @@
 /* Buttons: fully rounded like the Material 3 buttons of the app */
 .pf-v5-c-button {
     --pf-v5-c-button--BorderRadius: 999px;
+    --pf-v5-c-button--after--BorderRadius: 999px; /* outline of secondary buttons ("Abbrechen") */
     font-weight: 500;
 }
 
@@ -129,6 +130,27 @@
     --pf-v5-c-form-control--hover--after--BorderBottomColor: var(--po-primary);
     --pf-v5-c-form-control--focus--after--BorderBottomColor: var(--po-primary);
     --pf-v5-c-form-control--m-expanded--after--BorderBottomColor: var(--po-primary);
+}
+
+/* Fields the user may not change (e-mail address on "Profil bearbeiten", issue #46): visibly read-only */
+span.pf-v5-c-form-control:has(> input:disabled) {
+    background-color: var(--po-surface-container);
+}
+
+span.pf-v5-c-form-control:has(> input:disabled)::after {
+    border-bottom-color: transparent;
+}
+
+input.pf-v5-c-form-control:disabled {
+    color: var(--po-on-surface-variant);
+    cursor: default;
+}
+
+/* Hints below user profile fields (annotation inputHelperTextAfter in the realm's user profile) */
+[id^='form-help-text-after-'] {
+    margin-top: var(--pf-v5-global--spacer--xs);
+    font-size: var(--pf-v5-global--FontSize--sm);
+    color: var(--po-on-surface-variant);
 }
 
 /* Info pages (invitation link, account updated): space above the action button */

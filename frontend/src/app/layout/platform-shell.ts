@@ -13,6 +13,7 @@ import { map } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { provideStudioUiDefaults } from '../shared/ui';
 import { platformNavigation } from './platform-navigation';
+import { accountActions } from './account-actions';
 import { SkipLink } from './skip-link';
 
 /**
@@ -69,6 +70,15 @@ import { SkipLink } from './skip-link';
           <div class="menu-detail">Plattform-Betreiber</div>
         </div>
         <mat-divider />
+        <button mat-menu-item type="button" (click)="account.start('UPDATE_PROFILE')">
+          <mat-icon svgIcon="person_edit" />
+          <span>Profil bearbeiten</span>
+        </button>
+        <button mat-menu-item type="button" (click)="account.start('UPDATE_PASSWORD')">
+          <mat-icon svgIcon="password" />
+          <span>Passwort ändern</span>
+        </button>
+        <mat-divider />
         <button mat-menu-item type="button" (click)="auth.logout()">
           <mat-icon svgIcon="logout" />
           <span>Abmelden</span>
@@ -119,6 +129,7 @@ import { SkipLink } from './skip-link';
 export class PlatformShell {
   protected readonly auth = inject(AuthService);
   protected readonly navigation = platformNavigation;
+  protected readonly account = accountActions();
 
   protected readonly isSmallScreen = toSignal(
     inject(BreakpointObserver)

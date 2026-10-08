@@ -13,6 +13,7 @@ import { map } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { LoadingIndicator, provideStudioUiDefaults } from '../shared/ui';
 import { StudioSession, roleLabels } from '../studio/studio-session';
+import { accountActions } from './account-actions';
 import { SkipLink } from './skip-link';
 import { studioNavigation } from './studio-navigation';
 
@@ -46,6 +47,7 @@ export class StudioShell implements OnInit {
   protected readonly auth = inject(AuthService);
   protected readonly session = inject(StudioSession);
   protected readonly navigation = studioNavigation;
+  protected readonly account = accountActions();
 
   protected readonly isSmallScreen = toSignal(
     inject(BreakpointObserver)
