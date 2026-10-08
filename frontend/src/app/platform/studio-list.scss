@@ -2,6 +2,26 @@
   width: 100%;
 }
 
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 1rem;
+
+  app-search-field {
+    flex: 1 1 18rem;
+    max-width: 24rem;
+  }
+
+  .filter {
+    width: 12rem;
+  }
+}
+
+.show-failed {
+  color: var(--mat-sys-error);
+}
+
 .name {
   font-weight: 500;
 }

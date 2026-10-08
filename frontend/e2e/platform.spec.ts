@@ -19,6 +19,12 @@ async function loginAsOperator(page: Page): Promise<void> {
 
 const row = (page: Page, slug: string) => page.locator(`tr[data-slug="${slug}"]`);
 
+/** The list is paged (#45) and test studios pile up locally: search for the studio to find its row. */
+async function searchFor(page: Page, term: string): Promise<void> {
+  await page.getByLabel('Name, Kürzel oder Admin-E-Mail suchen').fill(term);
+  await expect(page).toHaveURL(new RegExp(`suche=${encodeURIComponent(term)}`));
+}
+
 async function register(page: Page, name: string, slug: string, adminEmail: string): Promise<void> {
   await page.getByRole('link', { name: 'Studio registrieren' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Studio registrieren');
@@ -35,9 +41,12 @@ test('platform operator lands in the platform area and sees the studios', async 
 
   await expect(page.locator('.area-name')).toHaveText('Plattform-Verwaltung');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Studios');
+  // "Studio " + letter only matches the names of the dev studios (slugs and e-mails contain no blank)
+  await searchFor(page, 'Studio A');
   await expect(row(page, 'studio-a')).toContainText('Studio A');
   await expect(row(page, 'studio-a')).toContainText('Aktiv');
   await expect(row(page, 'studio-a')).toContainText('Abgeschlossen');
+  await searchFor(page, 'Studio B');
   await expect(row(page, 'studio-b')).toContainText('Studio B');
 
   await page.getByRole('button', { name: 'Benutzermenü' }).click();
@@ -78,8 +87,10 @@ test('register a studio, onboarding completes, suspend and reactivate it', async
   await page.getByRole('link', { name: 'Abbrechen' }).click();
 
   await register(page, name, slug, `inhaber@${slug}.test`);
-  await expect(page).toHaveURL(/\/plattform\/studios$/);
+  // The list shows the new studio (search for its slug, #45)
+  await expect(page).toHaveURL(new RegExp(`/plattform/studios\\?suche=${slug}$`));
   await expect(page.getByText(`„${name}“ wurde registriert.`)).toBeVisible();
+  await searchFor(page, slug);
   // The list reloads by itself until the onboarding (in the background) is complete
   await expect(row(page, slug)).toContainText('Abgeschlossen', { timeout: 30_000 });
   await expect(row(page, slug)).toContainText('Aktiv');
@@ -101,6 +112,7 @@ test('failed onboarding is shown with its reason and can be retried', async ({ p
 
   // admin@studio-a.test is the admin of Studio A – a user can only belong to one studio
   await register(page, 'Konflikt-Studio', slug, 'admin@studio-a.test');
+  await searchFor(page, slug);
   await expect(row(page, slug)).toContainText('Fehlgeschlagen', { timeout: 30_000 });
   await expect(row(page, slug)).toContainText(
     'Die E-Mail-Adresse admin@studio-a.test gehört bereits zu Studio „Studio A“ (studio-a).',
@@ -119,6 +131,7 @@ test('correct the admin of a failed onboarding, rename the studio, then only the
   await loginAsOperator(page);
 
   await register(page, 'Korrektur-Studio', slug, 'admin@studio-a.test');
+  await searchFor(page, slug);
   await expect(row(page, slug)).toContainText('Fehlgeschlagen', { timeout: 30_000 });
 
   // Issue #42: straight from the failure message to the form
@@ -136,7 +149,8 @@ test('correct the admin of a failed onboarding, rename the studio, then only the
   await page.getByLabel('Name', { exact: true }).fill('Korrektur-Studio Neu');
   await page.getByRole('button', { name: 'Speichern' }).click();
 
-  await expect(page).toHaveURL(/\/plattform\/studios$/);
+  // Back to the list with the search kept in the URL
+  await expect(page).toHaveURL(/\/plattform\/studios\?suche=/);
   await expect(
     page.getByText(
       '„Korrektur-Studio Neu“ wurde gespeichert. Das Onboarding wird mit den neuen Daten erneut versucht.',

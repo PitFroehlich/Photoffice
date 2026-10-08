@@ -852,16 +852,58 @@ paths:
     get:
       tags: [platform]
       operationId: listTenants
-      summary: Alle Studios, sortiert nach Name
+      summary: Studios, gefiltert und seitenweise, sortiert nach Name (#45)
+      parameters:
+        - name: search
+          in: query
+          description: Sucht in Name, Kürzel und E-Mail des ersten Admins (Groß-/Kleinschreibung egal)
+          schema:
+            type: string
+            maxLength: 100
+        - name: status
+          in: query
+          description: Nur Studios mit diesem Status
+          schema:
+            type: string
+            enum: [ACTIVE, SUSPENDED]
+        - name: onboarding
+          in: query
+          description: |
+            Nur Studios mit diesem Onboarding-Stand: PENDING = noch nicht abgeschlossen (auch fehlgeschlagene),
+            FAILED = nicht abgeschlossen und letzter Versuch fehlgeschlagen, COMPLETED = abgeschlossen.
+          schema:
+            type: string
+            enum: [PENDING, FAILED, COMPLETED]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TenantResponse'
+                $ref: '#/components/schemas/TenantPage'
+        '400':
+          description: Ungültiger Parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Nicht angemeldet
+        '403':
+          description: Keine Berechtigung (nur Plattform-Betreiber)
     post:
       tags: [platform]
       operationId: createTenant
@@ -1640,6 +1682,27 @@ components:
           maxLength: 100
           description: Nur zusammen mit adminEmail
     # --- end edit studio ---
+    # --- studio list search (#45) ---
+    TenantPage:
+      type: object
+      required: [items, page, size, totalElements, failedOnboardings]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantResponse'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        failedOnboardings:
+          type: integer
+          format: int64
+          description: Anzahl aller Studios mit fehlgeschlagenem Onboarding (unabhängig von Suche und Filtern)
+    # --- end studio list search ---
     ProblemDetail:
       description: Fehlerbeschreibung nach RFC 9457
       type: object

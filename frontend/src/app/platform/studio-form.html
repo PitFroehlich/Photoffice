@@ -77,7 +77,7 @@
         </fieldset>
 
         <div class="form-actions">
-          <a matButton routerLink="/plattform/studios">Abbrechen</a>
+          <a matButton routerLink="/plattform/studios" [queryParams]="listQuery">Abbrechen</a>
           <button matButton="filled" type="submit" [disabled]="saving()">
             {{ editing() ? 'Speichern' : 'Registrieren' }}
           </button>

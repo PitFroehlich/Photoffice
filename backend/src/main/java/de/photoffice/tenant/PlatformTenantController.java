@@ -2,13 +2,15 @@ package de.photoffice.tenant;
 
 import de.photoffice.api.PlatformApi;
 import de.photoffice.api.model.CreateTenantRequest;
+import de.photoffice.api.model.TenantPage;
 import de.photoffice.api.model.TenantResponse;
 import de.photoffice.api.model.UpdateTenantRequest;
 import java.time.ZoneOffset;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -57,6 +59,20 @@ class PlatformTenantController implements PlatformApi {
 		return ResponseEntity.ok(toResponse(tenant));
 	}
 
+	/** Query parameters with enum values arrive as strings (generated interface). */
+	private static <E extends Enum<E>> E parse(Class<E> type, String parameter, String value) {
+		if (value == null || value.isBlank()) {
+			return null;
+		}
+		try {
+			return Enum.valueOf(type, value);
+		}
+		catch (IllegalArgumentException ex) {
+			throw new IllegalArgumentException("Ungültiger Wert „" + value + "“ für den Parameter „" + parameter
+					+ "“ – erlaubt: " + Arrays.toString(type.getEnumConstants()) + ".");
+		}
+	}
+
 	private static Optional<InitialStudioAdmin> initialAdmin(UpdateTenantRequest request) {
 		if (request.getAdminEmail() == null) {
 			if (request.getAdminFirstName() != null || request.getAdminLastName() != null) {
@@ -85,8 +101,13 @@ class PlatformTenantController implements PlatformApi {
 	}
 
 	@Override
-	public ResponseEntity<List<TenantResponse>> listTenants() {
-		return ResponseEntity.ok(tenantManagement.findAll().stream().map(PlatformTenantController::toResponse).toList());
+	public ResponseEntity<TenantPage> listTenants(String search, String status, String onboarding, Integer page,
+			Integer size) {
+		Page<Tenant> result = tenantManagement.search(search, parse(TenantStatus.class, "status", status),
+				parse(OnboardingFilter.class, "onboarding", onboarding), page, size);
+		return ResponseEntity.ok(new TenantPage(result.map(PlatformTenantController::toResponse).getContent(),
+				result.getNumber(), result.getSize(), result.getTotalElements(),
+				tenantManagement.countFailedOnboardings()));
 	}
 
 	@ExceptionHandler

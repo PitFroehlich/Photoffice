@@ -3,28 +3,68 @@
     <mat-icon svgIcon="refresh" />
     Aktualisieren
   </button>
-  <a matButton="filled" routerLink="neu" actions>
+  <a matButton="filled" routerLink="neu" [state]="{ listQuery: listQuery() }" actions>
     <mat-icon svgIcon="add_business" />
     Studio registrieren
   </a>
 </app-page-header>
 
+<div class="filters">
+  <app-search-field
+    label="Name, Kürzel oder Admin-E-Mail suchen"
+    [initialValue]="search()"
+    (search)="onSearch($event)"
+  />
+  <mat-form-field class="filter">
+    <mat-label>Status</mat-label>
+    <mat-select [value]="status()" (valueChange)="onStatus($event)">
+      <mat-option value="">Alle</mat-option>
+      @for (filter of statusFilters; track filter.url) {
+        <mat-option [value]="filter.url">{{ filter.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field class="filter">
+    <mat-label>Onboarding</mat-label>
+    <mat-select [value]="onboarding()" (valueChange)="onOnboarding($event)">
+      <mat-option value="">Alle</mat-option>
+      @for (filter of onboardingFilters; track filter.url) {
+        <mat-option [value]="filter.url">{{ filter.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  @if (result()?.failedOnboardings && onboarding() !== 'fehlgeschlagen') {
+    <button matButton type="button" class="show-failed" (click)="showFailed()">
+      <mat-icon svgIcon="error" />
+      Nur fehlgeschlagene anzeigen
+    </button>
+  }
+</div>
+
 @if (loading()) {
   <app-loading-indicator />
 }
 
-@if (studios(); as list) {
-  @if (list.length === 0) {
-    <app-empty-state
-      icon="storefront"
-      title="Noch keine Studios"
-      message="Registrieren Sie das erste Studio."
-    >
-      <a matButton="filled" routerLink="neu">Erstes Studio registrieren</a>
-    </app-empty-state>
+@if (result(); as page) {
+  @if (page.totalElements === 0) {
+    @if (filtered()) {
+      <app-empty-state
+        icon="search_off"
+        title="Keine Treffer"
+        message="Passen Sie Suchbegriff oder Filter an."
+      />
+    } @else {
+      <app-empty-state
+        icon="storefront"
+        title="Noch keine Studios"
+        message="Registrieren Sie das erste Studio."
+      >
+        <a matButton="filled" routerLink="neu">Erstes Studio registrieren</a>
+      </app-empty-state>
+    }
   } @else {
     <div class="table-scroll">
-      <table mat-table [dataSource]="list" class="table">
+      <table mat-table [dataSource]="page.items" class="table">
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef>Name</th>
           <td mat-cell *matCellDef="let studio" class="name">{{ studio.name }}</td>
@@ -65,7 +105,7 @@
                 Letzter Versuch {{ dateTime(studio.onboardingFailedAt) }} Uhr – wird automatisch
                 wiederholt.
               </p>
-              <a class="correct-link" [routerLink]="studio.id"
+              <a class="correct-link" [routerLink]="studio.id" [state]="{ listQuery: listQuery() }"
                 >Daten korrigieren<span class="cdk-visually-hidden">: {{ studio.name }}</span></a
               >
             } @else {
@@ -101,6 +141,7 @@
             <a
               matIconButton
               [routerLink]="studio.id"
+              [state]="{ listQuery: listQuery() }"
               [attr.aria-label]="studio.name + ' bearbeiten'"
               matTooltip="Bearbeiten"
             >
@@ -136,5 +177,12 @@
         <tr mat-row *matRowDef="let row; columns: columns" [attr.data-slug]="row.slug"></tr>
       </table>
     </div>
+    <mat-paginator
+      [length]="page.totalElements"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      (page)="onPage($event)"
+    />
   }
 }

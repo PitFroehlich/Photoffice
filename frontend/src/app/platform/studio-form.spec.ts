@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Location } from '@angular/common';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { TenantResponse } from '../api/models';
 import { NotificationService, provideStudioUiDefaults } from '../shared/ui';
@@ -81,7 +82,10 @@ describe('StudioForm', () => {
     expect(notifications.success).toHaveBeenCalledWith(
       expect.stringContaining('„Fotostudio Müller“ wurde registriert.'),
     );
-    expect(navigate).toHaveBeenCalledWith(['/plattform/studios']);
+    // The list shows the new studio
+    expect(navigate).toHaveBeenCalledWith(['/plattform/studios'], {
+      queryParams: { suche: 'fotostudio-mueller' },
+    });
   });
 
   it('keeps a slug edited by the user', async () => {
@@ -155,7 +159,8 @@ describe('StudioForm (edit)', () => {
     adminFirstName: 'Anna',
   };
 
-  async function render(studio: TenantResponse) {
+  /** @param navigationState history state of the navigation to the form (e.g. the list view to return to) */
+  async function render(studio: TenantResponse, navigationState?: unknown) {
     notifications.success.mockReset();
     notifications.error.mockReset();
     await TestBed.configureTestingModule({
@@ -173,6 +178,9 @@ describe('StudioForm (edit)', () => {
       ],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);
+    if (navigationState) {
+      TestBed.inject(Location).replaceState('/plattform/studios/' + studio.id, '', navigationState);
+    }
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const fixture = TestBed.createComponent(StudioForm);
     fixture.detectChanges();
@@ -228,7 +236,7 @@ describe('StudioForm (edit)', () => {
     expect(notifications.success).toHaveBeenCalledWith(
       '„Konflikt-Studio Neu“ wurde gespeichert. Das Onboarding wird mit den neuen Daten erneut versucht.',
     );
-    expect(navigate).toHaveBeenCalledWith(['/plattform/studios']);
+    expect(navigate).toHaveBeenCalledWith(['/plattform/studios'], { queryParams: {} });
   });
 
   it('only changes the name after onboarding completed', async () => {
@@ -253,6 +261,25 @@ describe('StudioForm (edit)', () => {
     request.flush({ ...failedStudio, name: 'Neuer Name', onboardingStatus: 'COMPLETED' });
     await settle(fixture);
     expect(notifications.success).toHaveBeenCalledWith('„Neuer Name“ wurde gespeichert.');
+  });
+
+  it('returns to the list view (search, filters, page) it came from', async () => {
+    const { fixture, element, navigate } = await render(failedStudio, {
+      listQuery: { suche: 'konflikt', seite: 2 },
+    });
+    const cancel = element.querySelector('a[href^="/plattform/studios"]') as HTMLAnchorElement;
+    expect(cancel.getAttribute('href')).toBe('/plattform/studios?suche=konflikt&seite=2');
+
+    submit(element);
+    await settle(fixture);
+    httpTesting
+      .expectOne({ method: 'PATCH', url: '/api/platform/tenants/id-k' })
+      .flush(failedStudio);
+    await settle(fixture);
+
+    expect(navigate).toHaveBeenCalledWith(['/plattform/studios'], {
+      queryParams: { suche: 'konflikt', seite: 2 },
+    });
   });
 
   it('shows a conflict as notification', async () => {
@@ -298,7 +325,7 @@ describe('StudioForm (edit)', () => {
     await settle(fixture);
 
     expect(notifications.error).toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith(['/plattform/studios']);
+    expect(navigate).toHaveBeenCalledWith(['/plattform/studios'], { queryParams: {} });
   });
 });
 

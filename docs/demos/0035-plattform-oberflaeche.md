@@ -61,7 +61,7 @@ Hinweis: Die Keycloak-Anmeldeseiten werden in #36 eingedeutscht; die Schritte ne
 ### Schritt 6: Studio registrieren
 - **Was tun:** Kürzel `fotostudio-sonnenschein`, Vorname `Sonja`, Nachname `Schein` eingeben und
   **„Registrieren“** klicken. (Gibt es das Kürzel schon aus einem früheren Durchlauf, hänge `-2` an.)
-- **Was du siehst:** Zurück in der Liste, unten rechts die Meldung „„Fotostudio Sonnenschein“ wurde registriert.
+- **Was du siehst:** Zurück in der Liste (seit #45 gefiltert auf das neue Kürzel), unten rechts die Meldung „„Fotostudio Sonnenschein“ wurde registriert.
   inhaber@sonnenschein.test erhält eine Einladung, sobald das Onboarding abgeschlossen ist.“ In der Zeile
   „Fotostudio Sonnenschein“ steht kurz „Läuft“, nach wenigen Sekunden – ohne Neuladen – „Abgeschlossen“.
   Optional: In Mailpit (http://localhost:8025) liegt die Einladung an `inhaber@sonnenschein.test`.

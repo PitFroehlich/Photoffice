@@ -5,9 +5,11 @@ import {
   TestRequest,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
-import { TenantResponse } from '../api/models';
+import { MatPaginatorIntl } from '@angular/material/paginator';
+import { Router, provideRouter } from '@angular/router';
+import { TenantPage, TenantResponse } from '../api/models';
 import { ConfirmService, NotificationService } from '../shared/ui';
+import { GermanPaginatorIntl } from '../shared/ui/german-paginator-intl';
 import { settle } from '../../testing/settle';
 import { iconTesting } from '../../testing/test-providers';
 import { ONBOARDING_POLL_INTERVAL_MS, StudioList } from './studio-list';
@@ -32,6 +34,17 @@ const failed = studio({
   onboardingFailedAt: '2026-10-08T10:05:00Z',
 });
 
+const isFailed = (s: TenantResponse) => s.onboardingStatus === 'PENDING' && !!s.onboardingError;
+
+const pageOf = (items: TenantResponse[], overrides: Partial<TenantPage> = {}): TenantPage => ({
+  items,
+  page: 0,
+  size: 25,
+  totalElements: items.length,
+  failedOnboardings: items.filter(isFailed).length,
+  ...overrides,
+});
+
 describe('StudioList', () => {
   let httpTesting: HttpTestingController;
   const confirm = vi.fn();
@@ -49,6 +62,7 @@ describe('StudioList', () => {
         provideRouter([]),
         { provide: ConfirmService, useValue: { confirm } },
         { provide: NotificationService, useValue: notifications },
+        { provide: MatPaginatorIntl, useClass: GermanPaginatorIntl },
       ],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);
@@ -64,10 +78,13 @@ describe('StudioList', () => {
       (request) => request.url === '/api/platform/tenants' && request.method === 'GET',
     );
 
-  async function render(studios: TenantResponse[]) {
+  const flushList = (studios: TenantResponse[], overrides: Partial<TenantPage> = {}) =>
+    expectList().flush(pageOf(studios, overrides));
+
+  async function render(studios: TenantResponse[], overrides: Partial<TenantPage> = {}) {
     const fixture = TestBed.createComponent(StudioList);
     fixture.detectChanges();
-    expectList().flush(studios);
+    flushList(studios, overrides);
     await settle(fixture);
     return { fixture, element: fixture.nativeElement as HTMLElement };
   }
@@ -114,10 +131,7 @@ describe('StudioList', () => {
       .expectOne({ method: 'POST', url: '/api/platform/tenants/id-f/onboarding/retry' })
       .flush(failed);
     await settle(fixture);
-    expectList().flush([
-      studio(),
-      { ...failed, onboardingStatus: 'COMPLETED', onboardingError: undefined },
-    ]);
+    flushList([studio(), { ...failed, onboardingStatus: 'COMPLETED', onboardingError: undefined }]);
     await settle(fixture);
 
     expect(notifications.success).toHaveBeenCalledWith(
@@ -148,7 +162,7 @@ describe('StudioList', () => {
     httpTesting.expectNone({ method: 'GET' });
 
     vi.advanceTimersByTime(ONBOARDING_POLL_INTERVAL_MS);
-    expectList().flush([studio()]);
+    flushList([studio()]);
     await settle(fixture);
 
     expect(row(element, 'studio-a').textContent).toContain('Abgeschlossen');
@@ -167,7 +181,7 @@ describe('StudioList', () => {
       .expectOne({ method: 'POST', url: '/api/platform/tenants/id-a/suspend' })
       .flush(studio({ status: 'SUSPENDED' }));
     await settle(fixture);
-    expectList().flush([studio({ status: 'SUSPENDED' })]);
+    flushList([studio({ status: 'SUSPENDED' })]);
     await settle(fixture);
 
     expect(notifications.success).toHaveBeenCalledWith('„Studio A“ ist gesperrt.');
@@ -197,7 +211,7 @@ describe('StudioList', () => {
       .expectOne({ method: 'POST', url: '/api/platform/tenants/id-a/reactivate' })
       .flush(studio());
     await settle(fixture);
-    expectList().flush([studio()]);
+    flushList([studio()]);
     await settle(fixture);
 
     expect(notifications.success).toHaveBeenCalledWith('„Studio A“ ist wieder freigeschaltet.');
@@ -219,6 +233,94 @@ describe('StudioList', () => {
 
     expect(notifications.error).toHaveBeenCalled();
     expect(notifications.success).not.toHaveBeenCalled();
+  });
+
+  it('searches on the server, starts at the first page and keeps the state in the URL', async () => {
+    const { fixture, element } = await render([studio()], { totalElements: 60 });
+    // Go to the second page first
+    (
+      element.querySelector('button.mat-mdc-paginator-navigation-next') as HTMLButtonElement
+    ).click();
+    const second = expectList();
+    expect(second.request.params.get('page')).toBe('1');
+    second.flush(pageOf([studio()], { page: 1, totalElements: 60 }));
+    await settle(fixture);
+
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const input = element.querySelector('app-search-field input') as HTMLInputElement;
+    input.value = 'Müller';
+    input.dispatchEvent(new Event('input'));
+    vi.advanceTimersByTime(300);
+
+    const request = expectList();
+    expect(request.request.params.get('search')).toBe('Müller');
+    expect(request.request.params.get('page')).toBe('0');
+    expect(request.request.params.get('size')).toBe('25');
+    request.flush(pageOf([], { failedOnboardings: 2 }));
+    await settle(fixture);
+
+    expect(TestBed.inject(Router).url).toBe('/?suche=M%C3%BCller');
+    expect(element.querySelector('app-empty-state')?.textContent).toContain('Keine Treffer');
+    expect(element.querySelector('app-page-header')?.textContent).toContain(
+      '0 Treffer für „Müller“ (insgesamt 2 mit fehlgeschlagenem Onboarding)',
+    );
+  });
+
+  it('shows only failed onboardings on request', async () => {
+    const { fixture, element } = await render([studio(), failed]);
+
+    (element.querySelector('button.show-failed') as HTMLButtonElement).click();
+    const request = expectList();
+    expect(request.request.params.get('onboarding')).toBe('FAILED');
+    request.flush(pageOf([failed]));
+    await settle(fixture);
+
+    expect(TestBed.inject(Router).url).toBe('/?onboarding=fehlgeschlagen');
+    expect(element.querySelectorAll('tr[mat-row]').length).toBe(1);
+    expect(element.querySelector('button.show-failed')).toBeNull();
+    expect(element.querySelector('app-page-header')?.textContent).toContain('1 Studio gefunden');
+  });
+
+  it('restores search, filters and page from the URL', async () => {
+    await TestBed.inject(Router).navigateByUrl(
+      '/?suche=studio&status=gesperrt&onboarding=offen&seite=2&anzahl=10',
+    );
+    const fixture = TestBed.createComponent(StudioList);
+    fixture.detectChanges();
+
+    const request = expectList();
+    expect(request.request.params.get('search')).toBe('studio');
+    expect(request.request.params.get('status')).toBe('SUSPENDED');
+    expect(request.request.params.get('onboarding')).toBe('PENDING');
+    expect(request.request.params.get('page')).toBe('2');
+    expect(request.request.params.get('size')).toBe('10');
+    request.flush(
+      pageOf([studio({ status: 'SUSPENDED' })], { page: 2, size: 10, totalElements: 21 }),
+    );
+    await settle(fixture);
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect((element.querySelector('app-search-field input') as HTMLInputElement).value).toBe(
+      'studio',
+    );
+    expect(element.querySelector('.mat-mdc-paginator-range-label')?.textContent).toContain(
+      '21 – 21 von 21',
+    );
+  });
+
+  it('goes to the last existing page if the requested one is empty', async () => {
+    await TestBed.inject(Router).navigateByUrl('/?seite=5');
+    const fixture = TestBed.createComponent(StudioList);
+    fixture.detectChanges();
+
+    expectList().flush(pageOf([], { page: 5, totalElements: 30 }));
+    await settle(fixture);
+    const request = expectList();
+    expect(request.request.params.get('page')).toBe('1');
+    request.flush(pageOf([studio()], { page: 1, totalElements: 30 }));
+    await settle(fixture);
+
+    expect(TestBed.inject(Router).url).toBe('/?seite=1');
   });
 
   it('invites to register the first studio when there are none', async () => {

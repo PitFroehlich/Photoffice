@@ -4,10 +4,15 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.modulith.events.FailedEventPublications;
 import org.springframework.modulith.events.ResubmissionOptions;
 import org.springframework.stereotype.Service;
@@ -23,6 +28,8 @@ public class TenantManagement {
 
 	/** Lowercase letters, digits and inner hyphens, 3 to 63 characters (usable as subdomain). */
 	static final Pattern SLUG_FORMAT = Pattern.compile("^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$");
+
+	private static final Sort BY_NAME = Sort.by("name", "slug");
 
 	private final TenantRepository tenants;
 
@@ -115,9 +122,32 @@ public class TenantManagement {
 		return tenant;
 	}
 
+	/**
+	 * Studios sorted by name for the platform operator.
+	 *
+	 * @param term searched in name, slug and e-mail of the first admin; blank = all
+	 * @param status optional
+	 * @param onboarding optional
+	 */
 	@Transactional(readOnly = true)
-	public List<Tenant> findAll() {
-		return tenants.findAllByOrderByNameAsc();
+	public Page<Tenant> search(String term, TenantStatus status, OnboardingFilter onboarding, int page, int size) {
+		List<Specification<Tenant>> conditions = new ArrayList<>();
+		if (term != null && !term.isBlank()) {
+			conditions.add(TenantRepository.matches(term));
+		}
+		if (status != null) {
+			conditions.add(TenantRepository.hasStatus(status));
+		}
+		if (onboarding != null) {
+			conditions.add(TenantRepository.onboarding(onboarding));
+		}
+		return tenants.findAll(Specification.allOf(conditions), PageRequest.of(page, size, BY_NAME));
+	}
+
+	/** Studios whose onboarding failed (and is retried). */
+	@Transactional(readOnly = true)
+	public long countFailedOnboardings() {
+		return tenants.count(TenantRepository.onboarding(OnboardingFilter.FAILED));
 	}
 
 	@Transactional(readOnly = true)
