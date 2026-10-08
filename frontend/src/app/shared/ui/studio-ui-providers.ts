@@ -1,4 +1,5 @@
 import { Provider } from '@angular/core';
+import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { GermanPaginatorIntl } from './german-paginator-intl';
@@ -11,5 +12,7 @@ export function provideStudioUiDefaults(): Provider[] {
   return [
     { provide: MatPaginatorIntl, useClass: GermanPaginatorIntl },
     { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline', subscriptSizing: 'dynamic' } },
+    // Show validation errors while typing (dirty), not only after leaving the field
+    { provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher },
   ];
 }

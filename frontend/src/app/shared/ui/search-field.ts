@@ -35,6 +35,8 @@ import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 })
 export class SearchField implements OnInit {
   readonly label = input('Suchen');
+  /** Initial term, e.g. restored from the URL. Does not emit. */
+  readonly initialValue = input('');
   readonly debounceMs = input(300);
   readonly search = output<string>();
 
@@ -42,6 +44,7 @@ export class SearchField implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
+    this.term.setValue(this.initialValue(), { emitEvent: false });
     this.term.valueChanges
       .pipe(
         debounceTime(this.debounceMs()),

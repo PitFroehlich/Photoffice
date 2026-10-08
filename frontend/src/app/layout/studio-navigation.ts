@@ -5,6 +5,8 @@ export interface NavigationItem {
   /** Material Symbols name (outlined), see provideUiDefaults */
   icon: string;
   link: string;
+  /** Highlight only on exactly this URL (default: also on sub pages). */
+  exact?: boolean;
 }
 
 /**
@@ -12,7 +14,8 @@ export interface NavigationItem {
  * app.routes.ts under "studio").
  */
 export const studioNavigation: NavigationItem[] = [
-  { label: 'Übersicht', icon: 'dashboard', link: '/studio' },
+  { label: 'Übersicht', icon: 'dashboard', link: '/studio', exact: true },
+  { label: 'Kunden', icon: 'group', link: '/studio/kunden' },
   // Showcase of the shared UI building blocks – development builds only
   ...(isDevMode() ? [{ label: 'UI-Bausteine', icon: 'widgets', link: '/studio/ui-bausteine' }] : []),
 ];

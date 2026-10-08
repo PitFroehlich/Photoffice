@@ -35,3 +35,6 @@ Thumbs.db
 
 # Claude Code local settings (machine-specific)
 .claude/settings.local.json
+
+# Git worktrees of parallel Claude Code sessions
+.claude/worktrees/

@@ -21,6 +21,21 @@ export const routes: Routes = [
         title: 'Übersicht',
         loadComponent: () => import('./studio/studio-home').then((m) => m.StudioHome),
       },
+      {
+        path: 'kunden',
+        title: 'Kunden',
+        loadComponent: () => import('./customers/customer-list').then((m) => m.CustomerList),
+      },
+      {
+        path: 'kunden/neu',
+        title: 'Neuer Kunde',
+        loadComponent: () => import('./customers/customer-form').then((m) => m.CustomerForm),
+      },
+      {
+        path: 'kunden/:id',
+        title: 'Kunde bearbeiten',
+        loadComponent: () => import('./customers/customer-form').then((m) => m.CustomerForm),
+      },
       ...(isDevMode()
         ? [
             {

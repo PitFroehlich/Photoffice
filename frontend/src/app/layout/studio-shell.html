@@ -49,7 +49,7 @@
             [routerLink]="item.link"
             routerLinkActive
             #active="routerLinkActive"
-            [routerLinkActiveOptions]="{ exact: true }"
+            [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
             [activated]="active.isActive"
             (click)="isSmallScreen() && sidenav.close()"
           >
