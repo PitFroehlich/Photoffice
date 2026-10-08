@@ -1,0 +1,34 @@
+<app-page-header
+  title="Steuersatz"
+  subtitle="Alle Preise der Preisliste sind Endpreise in Euro inkl. dieser Umsatzsteuer"
+/>
+
+@if (loading()) {
+  <app-loading-indicator />
+} @else {
+  <mat-card appearance="outlined" class="card">
+    <mat-card-content>
+      @if (!canEdit()) {
+        <p class="read-only-hint" role="note">
+          Nur Studio-Administratoren können die Preisliste ändern.
+        </p>
+      }
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <mat-form-field class="price-field">
+          <mat-label>Umsatzsteuer</mat-label>
+          <input matInput formControlName="vatRate" inputmode="decimal" autocomplete="off" />
+          <span matTextSuffix>&nbsp;%</span>
+          <mat-hint>z. B. 19; 0 für Kleinunternehmer</mat-hint>
+          <mat-error><app-field-error [control]="form.controls.vatRate" patternHint="Prozentsatz von 0 bis 99,99 mit höchstens zwei Nachkommastellen, z. B. 19 oder 7" /></mat-error>
+        </mat-form-field>
+
+        <div class="form-actions">
+          <a matButton routerLink="/studio/preisliste">Abbrechen</a>
+          <button matButton="filled" type="submit" [disabled]="saving() || !canEdit()">
+            Speichern
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}

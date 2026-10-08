@@ -1,5 +1,3 @@
-import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-
 /**
  * Format rules for customer fields – identical to the backend (CustomerData.java).
  * Values are checked trimmed, so surrounding spaces don't produce an error.
@@ -22,11 +20,3 @@ export const customerHints = {
   city: 'Nur Buchstaben, Leerzeichen und - . \' ( ) /',
   street: 'Straße mit Hausnummer, z. B. Lindenstraße 4 oder Am Markt 1/2',
 };
-
-/** Like Validators.pattern, but on the trimmed value; empty values are left to Validators.required. */
-export function trimmedPattern(pattern: RegExp): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = String(control.value ?? '').trim();
-    return value === '' || pattern.test(value) ? null : { pattern: { requiredPattern: String(pattern) } };
-  };
-}

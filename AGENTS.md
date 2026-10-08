@@ -56,6 +56,12 @@ must live in this repository or on GitHub.
 - **Backend modules:** one Spring Modulith module per domain (e.g. `customer`, `gallery`); don't edit another
   module's internals – use its public API or events, or ask in the other issue.
 - **Before the PR:** `git fetch && git rebase origin/main`, run backend + frontend tests again.
+- **ADR numbers** collide like migration numbers did: two branches may both take the next free number. Check
+  `docs/decisions/` on `origin/main` right before the PR; if your number is taken, renumber your ADR and its
+  references (the earlier merged ADR keeps its number).
+- **After a rebase, also check semantic conflicts:** changed method signatures or behaviour from other merged issues
+  (e.g. `TenantManagement.register(...)` gained a first studio admin in #24) don't show up as Git conflicts – compile
+  and run all tests.
 - Stay inside the scope of your issue; create a new issue for anything else you find.
 
 ### Demo after every finished issue (mandatory)
@@ -94,7 +100,7 @@ no screenshots**:
 | `docs/` | Analysis, ADRs, journal, demos |
 | `legacy/` | Old PHP 5.6 application – reference only, see `legacy/AGENTS.md` |
 
-Decisions behind the stack: `docs/decisions/0003-tech-stack.md`, `0004-local-s3-seaweedfs.md`, `0005-ui-angular-material.md`, `0006-liquibase.md`, `0007-studio-onboarding-keycloak.md`.
+Decisions behind the stack: `docs/decisions/0003-tech-stack.md`, `0004-local-s3-seaweedfs.md`, `0005-ui-angular-material.md`, `0006-liquibase.md`, `0007-studio-onboarding-keycloak.md`; domain model decisions: `0008-preismodell.md` (price list).
 
 ---
 
@@ -164,6 +170,8 @@ cd frontend && npx playwright install chromium   # once per machine / Playwright
 cd frontend && npm run e2e
 ```
 Keycloak with organizations asks for username and password on two separate pages (see `e2e/studio-login.spec.ts`).
+E2E tests must not rely on seed data that users may change during demos, and generated test values must satisfy
+the validation rules (e.g. names without digits). If runs are flaky right after a rebuild, use `--workers=1`.
 
 Rules:
 - Every feature comes with tests. Integration tests use **Testcontainers** (`TestcontainersConfiguration`), not mocks of the database.
@@ -177,6 +185,8 @@ Rules:
 1. Change `api/openapi.yaml`.
 2. Backend: `./mvnw compile` generates interfaces/models into `de.photoffice.api` (`target/generated-sources`); controllers implement the generated `*Api` interfaces.
 3. Frontend: `npm run generate:api` (runs automatically before `start`/`build`/`test`) generates the client into `src/app/api/` (git-ignored). Call endpoints via `inject(Api).invoke(<fn>)`.
+   Code in the initial bundle (public pages, guards, `StudioSession`) imports functions directly from `api/fn/...`, not from the
+   `api/functions` barrel – generated functions have side effects (`fn.PATH = ...`), so the barrel would pull every endpoint into `main`.
 Never edit generated code.
 
 ### Backend (Spring Modulith)
@@ -186,7 +196,8 @@ Never edit generated code.
 - Database: schema only via Liquibase changesets in `backend/src/main/resources/db/changelog/changes/`
   (see "Parallel work", ADR 0006); Hibernate runs with `ddl-auto: validate`. Use `splitStatements:false` for
   changesets containing `$$` function bodies. Test data for local development: `db/changelog/devdata/` with `context:dev`.
-- Money: never floating point.
+- Money: never floating point – gross prices as integer cents (`priceCents`), see ADR 0008. Jackson rejects decimal numbers
+  for integer fields (`accept-float-as-int: false`), so `4.9` is a 400, not silently 4.
 
 ### Multi-tenancy (module `tenant`, issue #5)
 - A studio is a **tenant**. Every business table has a `tenant_id UUID NOT NULL` column and is secured in its
@@ -210,6 +221,8 @@ Never edit generated code.
   organization whose tenant is `ACTIVE`; that tenant is bound to the request (`OrganizationTenantResolver`).
 - URL rules in `SecurityConfiguration`: `/api/platform/**` platform admin, `/api/studio/**` active studio member,
   public endpoints explicitly listed, **everything else is denied** – new endpoint groups must be added there.
+  Role restrictions within the studio also live there, e.g. price list (#13): `GET` for all studio members,
+  changes only `STUDIO_ADMIN` (the frontend hides edit actions via `canEditPriceList()`).
 - Realm configuration is code: `infra/keycloak/photoffice-realm.json` (dev realm, imported by compose and by
   `KeycloakIntegrationTests`). The client `photoffice-dev-cli` (password grant) exists for development and tests only.
 - Tests: `TestTokens` builds Keycloak-like tokens for MockMvc.

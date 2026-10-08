@@ -9,6 +9,10 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  jackson:
+    deserialization:
+      # 4.9 for an integer field (e.g. priceCents) is an error, not silently 4 (#13)
+      accept-float-as-int: false
   jpa:
     open-in-view: false
     hibernate:

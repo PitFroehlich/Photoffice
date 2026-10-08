@@ -1,0 +1,54 @@
+<app-page-header [title]="title()" subtitle="Versandkosten für Bestellungen mit Abzügen" />
+
+@if (loading()) {
+  <app-loading-indicator />
+} @else {
+  <mat-card appearance="outlined" class="card">
+    <mat-card-content>
+      @if (!canEdit()) {
+        <p class="read-only-hint" role="note">
+          Nur Studio-Administratoren können die Preisliste ändern.
+        </p>
+      }
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <mat-form-field>
+          <mat-label>Name</mat-label>
+          <input
+            matInput
+            formControlName="name"
+            autocomplete="off"
+            placeholder="z. B. Standardversand"
+          />
+          <mat-error
+            ><app-field-error [control]="form.controls.name" [patternHint]="hints.name"
+          /></mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="price-field">
+          <mat-label>Kosten</mat-label>
+          <input
+            matInput
+            formControlName="price"
+            inputmode="decimal"
+            autocomplete="off"
+            placeholder="0,00"
+          />
+          <span matTextSuffix>&nbsp;€</span>
+          <mat-hint>Inkl. USt.; 0,00 z. B. für Abholung</mat-hint>
+          <mat-error><app-field-error [control]="form.controls.price" /></mat-error>
+        </mat-form-field>
+
+        <mat-slide-toggle formControlName="active" class="toggle"
+          >Kunden anbieten (aktiv)</mat-slide-toggle
+        >
+
+        <div class="form-actions">
+          <a matButton routerLink="/studio/preisliste">Abbrechen</a>
+          <button matButton="filled" type="submit" [disabled]="saving() || !canEdit()">
+            Speichern
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}

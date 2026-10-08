@@ -3,7 +3,8 @@ import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Api } from '../api/api';
-import { getSystemInfo } from '../api/functions';
+// Initial bundle: import the function directly, not via the api/functions barrel (see AGENTS.md)
+import { getSystemInfo } from '../api/fn/system/get-system-info';
 import { SystemInfo } from '../api/models';
 import { AuthService } from '../auth/auth.service';
 

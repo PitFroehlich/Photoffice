@@ -3,8 +3,11 @@ package de.photoffice.identity;
 import java.util.function.Supplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
+import org.springframework.security.authorization.AuthorizationManagers;
 import org.springframework.security.authorization.AuthorizationResult;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,10 +26,14 @@ class SecurityConfiguration {
 
 	@Bean
 	SecurityFilterChain apiSecurity(HttpSecurity http, StudioMembership studioMembership) throws Exception {
+		AuthorizationManager<RequestAuthorizationContext> studioMember = activeStudioMember(studioMembership);
 		http.authorizeHttpRequests(requests -> requests
 			.requestMatchers("/actuator/health/**", "/actuator/info", "/api/system/info").permitAll()
 			.requestMatchers("/api/platform/**").hasRole(Roles.PLATFORM_ADMIN)
-			.requestMatchers("/api/studio/**").access(activeStudioMember(studioMembership))
+			// Price list (#13): every studio member reads, only studio administrators change prices
+			.requestMatchers(HttpMethod.GET, "/api/studio/price-list/**").access(studioMember)
+			.requestMatchers("/api/studio/price-list/**").access(AuthorizationManagers.allOf(studioMember, AuthorityAuthorizationManager.hasRole(Roles.STUDIO_ADMIN)))
+			.requestMatchers("/api/studio/**").access(studioMember)
 			.anyRequest().denyAll())
 			.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
