@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { ConfirmService, NotificationService } from '../shared/ui';
+import { ConfirmService, NotificationService, provideStudioUiDefaults } from '../shared/ui';
 import { settle } from '../../testing/settle';
 import { iconTesting } from '../../testing/test-providers';
 import { CustomerForm } from './customer-form';
@@ -106,5 +106,55 @@ describe('CustomerForm', () => {
     request.flush({ id: 'c1' });
     await settle(fixture);
     expect(notifications.success).toHaveBeenCalledWith('„Julia Becker“ wurde gespeichert.');
+  });
+});
+
+describe('CustomerForm validation rules', () => {
+  async function renderNew() {
+    await TestBed.configureTestingModule({
+      imports: [CustomerForm, iconTesting],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({}) } } },
+        { provide: ConfirmService, useValue: { confirm: vi.fn() } },
+        { provide: NotificationService, useValue: { success: vi.fn(), error: vi.fn() } },
+        provideStudioUiDefaults(),
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(CustomerForm);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  async function errorFor(fixture: Awaited<ReturnType<typeof renderNew>>, name: string, value: string) {
+    const element = fixture.nativeElement as HTMLElement;
+    const input = element.querySelector(`[formcontrolname="${name}"]`) as HTMLInputElement;
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    return input.closest('mat-form-field')?.querySelector('mat-error')?.textContent?.trim() ?? null;
+  }
+
+  it('shows field-specific hints while typing', async () => {
+    const fixture = await renderNew();
+
+    expect(await errorFor(fixture, 'phone', 'abc')).toContain('Nur Ziffern');
+    expect(await errorFor(fixture, 'postalCode', '12a')).toBe('4 oder 5 Ziffern');
+    expect(await errorFor(fixture, 'firstName', 'Julia2')).toContain('Nur Buchstaben');
+    expect(await errorFor(fixture, 'email', 'julia@example')).toContain('gültige E-Mail-Adresse');
+    expect(await errorFor(fixture, 'city', '10115 Berlin')).toContain('Nur Buchstaben');
+    expect(await errorFor(fixture, 'street', '12345')).toContain('Straße und Hausnummer');
+  });
+
+  it('accepts realistic values, also with surrounding spaces', async () => {
+    const fixture = await renderNew();
+
+    expect(await errorFor(fixture, 'phone', '+49 (30) 123-456')).toBeNull();
+    expect(await errorFor(fixture, 'postalCode', '10969')).toBeNull();
+    expect(await errorFor(fixture, 'firstName', ' Zoë ')).toBeNull();
+    expect(await errorFor(fixture, 'city', 'Frankfurt (Oder)')).toBeNull();
+    expect(await errorFor(fixture, 'street', 'Lindenstraße 4a')).toBeNull();
   });
 });

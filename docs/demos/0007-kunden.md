@@ -34,11 +34,19 @@
 - **Was tun:** "Neuer Kunde" → Vorname `Erika`, Nachname `Muster`, E-Mail `erika@example.test`, Ort `Görlitz` → "Speichern".
 - **Was du siehst:** Meldung "„Erika Muster“ wurde angelegt.", zurück in der Liste mit "13 Kunden" und "Muster, Erika".
 
-### Schritt 4: Pflichtfelder und doppelte E-Mail
-- **Was tun:** "Neuer Kunde" → sofort "Speichern". Dann Vorname `Doppelt`, Nachname `Becker`,
+### Schritt 4: Eingaben werden geprüft
+- **Was tun:** "Neuer Kunde" → sofort "Speichern". Dann nacheinander tippen: Vorname `Julia2`, Telefon `abc`,
+  PLZ `12a`, E-Mail `julia@example`.
+- **Was du siehst:** Zuerst "Pflichtfeld" unter Vorname, Nachname und E-Mail. Beim Tippen erscheint sofort ein
+  passender Hinweis: "Nur Buchstaben, Leerzeichen, Bindestrich, Apostroph und Punkt", "Nur Ziffern, Leerzeichen und
+  + - / ( ), mindestens 5 Zeichen", "4 oder 5 Ziffern", "Bitte eine gültige E-Mail-Adresse eingeben, z. B.
+  name@beispiel.de". "Speichern" schickt nichts ab, solange Fehler da sind. Das Backend prüft dieselben Regeln.
+
+### Schritt 4b: Doppelte E-Mail
+- **Was tun:** Felder korrigieren: Vorname `Doppelt`, Telefon und PLZ leeren, Nachname `Becker`,
   E-Mail `JULIA.BECKER@example.test` → "Speichern". Danach "Abbrechen".
-- **Was du siehst:** Zuerst "Pflichtfeld" unter Vorname, Nachname und E-Mail. Danach unter E-Mail:
-  "Ein Kunde mit der E-Mail-Adresse julia.becker@example.test existiert bereits." – Groß-/Kleinschreibung zählt nicht.
+- **Was du siehst:** Unter E-Mail: "Ein Kunde mit der E-Mail-Adresse julia.becker@example.test existiert bereits."
+  – Groß-/Kleinschreibung zählt nicht.
 
 ### Schritt 5: Kunden bearbeiten
 - **Was tun:** In der Liste auf "Becker, Julia" klicken; Telefon ändern auf `0171 7654321` → "Speichern".
@@ -60,14 +68,16 @@
   Studio A sind für Studio B nicht vorhanden.
 
 ## Automatisch abgesichert
-- Backend (49 Tests): u. a. Anlegen/Lesen/Ändern/Löschen, Suche inkl. Sonderzeichen, Seitenwechsel, doppelte E-Mail,
+- Backend (89 Tests): u. a. Anlegen/Lesen/Ändern/Löschen, Suche inkl. Sonderzeichen, Seitenwechsel, doppelte E-Mail,
   Validierung, und 3 Tests zur Trennung der Studios.
-- Frontend: 9 Unit-Tests für Liste/Formular; Playwright (4 Kunden-Szenarien inkl. Studio-Trennung).
+- Formatregeln: 40 Backend-Prüfungen mit realistischen und unsinnigen Werten, Frontend-Tests und ein Playwright-Szenario.
+- Frontend: 11 Unit-Tests für Liste/Formular; Playwright (5 Kunden-Szenarien inkl. Studio-Trennung).
 
 ## Noch offen / Einschränkungen
 - Zuordnung von Kunden zu Galerien folgt mit #8 (das Löschen eines Kunden meldet bereits ein Ereignis dafür).
 - Optionales Kundenkonto (F20) später – das Datenmodell ist darauf vorbereitet.
 - Keine Warnung bei ungespeicherten Änderungen beim Verlassen des Formulars.
+- PLZ-Regel deckt Deutschland, Österreich und die Schweiz ab (4–5 Ziffern); Kunden aus anderen Ländern bräuchten eine Länderauswahl.
 
 ## Aufräumen
 Frontend und Backend beenden (Strg+C), `docker compose down`.

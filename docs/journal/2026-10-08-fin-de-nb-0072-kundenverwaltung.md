@@ -16,9 +16,15 @@ Studio verwaltet seine Endkunden (Legacy F5), mandantengetrennt.
 - Tests: Backend 49 (inkl. 3 Isolationstests – erfüllt das offene Kriterium aus #6), Frontend 35 Unit, 13 E2E.
 - AGENTS.md: "Feature recipe" mit Kunden als Referenz. Demo #7.
 
+- Nach Feedback des Nutzers in der Demo: Formatprüfung aller Felder (Name, E-Mail mit Domain-Endung, Telefon, PLZ, Ort, Straße) in Frontend (`customer-validators.ts`) und Backend (`CustomerData`), feldspezifische Hinweise, Fehler schon beim Tippen (`ShowOnDirtyErrorStateMatcher`).
+- Zweite Claude-Session (Hintergrund, eigener Worktree unter `.claude/worktrees/`, in `.gitignore`) bearbeitet #13.
+
 ## Open / Next steps
 - #8 Galerien ist frei (Kunden-Zuordnung, auf `CustomerDeleted` reagieren).
 
 ## Pitfalls
+- Nur Pflichtfeld-/Längenprüfung reicht nicht – der Nutzer erwartet Formatprüfung pro Feld (jetzt im Feature-Rezept).
+- `Validators.email` akzeptiert `a@b`; eigene Regel mit Domain-Endung verwenden.
+- Prozess-PID beim Start in eine Datei schreiben und darüber beenden; `pgrep -f` trifft sonst die eigene Shell, wenn der Startbefehl im selben Aufruf steht.
 - Constraint-Verletzungen an Query-Parametern (generierte `@Max` etc.) kamen als 500 – jetzt 400 über `ApiExceptionHandler`.
 - LIKE-Suche: `%`/`_` aus der Eingabe escapen (`escape '\'`), sonst findet `%` alles.

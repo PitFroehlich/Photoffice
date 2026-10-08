@@ -217,6 +217,9 @@ Copy the structure of the customer feature for new business features:
    (studio B can neither see nor change studio A's data) with `TestTokens`.
 5. **Frontend:** list page (`PageHeader`, `SearchField`, table, paginator, `EmptyState`, state in the URL) and
    form page (create/edit, `FieldError`, 409 → error at the field, `ConfirmService` before delete);
+   **validate the format of every field** (not only required/length) with the same rules in frontend and backend
+   (see `customer-validators.ts` / `CustomerData.java`), `trimmedPattern(...)` + field-specific `[patternHint]`;
+   errors show while typing (`ShowOnDirtyErrorStateMatcher` in the studio defaults);
    child routes under `studio` + navigation entry.
 6. **Frontend tests:** unit tests with `HttpTestingController`; Playwright spec in `frontend/e2e/` incl. a
    cross-studio check; then the guided demo.

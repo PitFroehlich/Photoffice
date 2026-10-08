@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Api } from '../api/api';
 import { createCustomer, deleteCustomer, getCustomer, updateCustomer } from '../api/functions';
 import { Customer, CustomerInput } from '../api/models';
+import { customerHints, customerPatterns, trimmedPattern } from './customer-validators';
 import {
   ConfirmService,
   FieldError,
@@ -44,19 +45,20 @@ export class CustomerForm implements OnInit {
   private readonly confirmService = inject(ConfirmService);
   private readonly notifications = inject(NotificationService);
 
+  protected readonly hints = customerHints;
   protected readonly customerId = signal<string | undefined>(undefined);
   protected readonly loading = signal(false);
   protected readonly saving = signal(false);
   protected readonly title = signal('Neuer Kunde');
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    firstName: ['', [Validators.required, Validators.maxLength(100)]],
-    lastName: ['', [Validators.required, Validators.maxLength(100)]],
-    email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
-    phone: ['', Validators.maxLength(50)],
-    street: ['', Validators.maxLength(200)],
-    postalCode: ['', Validators.maxLength(20)],
-    city: ['', Validators.maxLength(100)],
+    firstName: ['', [Validators.required, Validators.maxLength(100), trimmedPattern(customerPatterns.name)]],
+    lastName: ['', [Validators.required, Validators.maxLength(100), trimmedPattern(customerPatterns.name)]],
+    email: ['', [Validators.required, Validators.maxLength(254), trimmedPattern(customerPatterns.email)]],
+    phone: ['', [Validators.maxLength(30), trimmedPattern(customerPatterns.phone)]],
+    street: ['', [Validators.maxLength(200), trimmedPattern(customerPatterns.street)]],
+    postalCode: ['', [Validators.maxLength(5), trimmedPattern(customerPatterns.postalCode)]],
+    city: ['', [Validators.maxLength(100), trimmedPattern(customerPatterns.city)]],
     notes: ['', Validators.maxLength(2000)],
   });
 

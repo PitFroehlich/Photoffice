@@ -4,7 +4,7 @@ import { AbstractControl, ValidationErrors } from '@angular/forms';
 import { map, startWith, switchMap } from 'rxjs';
 
 /** German message for the first validation error of a control. */
-export function validationMessage(errors: ValidationErrors | null): string | null {
+export function validationMessage(errors: ValidationErrors | null, patternHint?: string): string | null {
   if (!errors) {
     return null;
   }
@@ -12,7 +12,7 @@ export function validationMessage(errors: ValidationErrors | null): string | nul
     return 'Pflichtfeld';
   }
   if (errors['email']) {
-    return 'Bitte eine gültige E-Mail-Adresse eingeben';
+    return patternHint ?? 'Bitte eine gültige E-Mail-Adresse eingeben';
   }
   if (errors['minlength']) {
     return `Mindestens ${errors['minlength'].requiredLength} Zeichen`;
@@ -27,7 +27,7 @@ export function validationMessage(errors: ValidationErrors | null): string | nul
     return `Höchstens ${errors['max'].max}`;
   }
   if (errors['pattern']) {
-    return 'Ungültiges Format';
+    return patternHint ?? 'Ungültiges Format';
   }
   if (errors['server']) {
     return String(errors['server']);
@@ -38,6 +38,7 @@ export function validationMessage(errors: ValidationErrors | null): string | nul
 /**
  * Validation message inside <mat-error>:
  * <mat-error><app-field-error [control]="form.controls.email" /></mat-error>
+ * Format errors: pass a field-specific hint, e.g. [patternHint]="'4 oder 5 Ziffern'".
  */
 @Component({
   selector: 'app-field-error',
@@ -45,6 +46,8 @@ export function validationMessage(errors: ValidationErrors | null): string | nul
 })
 export class FieldError {
   readonly control = input.required<AbstractControl>();
+  /** Message for format errors (pattern/email) instead of the generic one. */
+  readonly patternHint = input<string>();
 
   // Follows every validity change of the control (the component is only re-rendered on signal changes)
   private readonly errors = toSignal(
@@ -54,5 +57,5 @@ export class FieldError {
     { initialValue: null },
   );
 
-  protected readonly message = computed(() => validationMessage(this.errors()));
+  protected readonly message = computed(() => validationMessage(this.errors(), this.patternHint()));
 }

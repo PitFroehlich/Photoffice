@@ -155,6 +155,10 @@ class CustomerApiTests {
 				{"firstName": "Anna", "lastName": "Zander", "email": "no-email"}""").andExpect(status().isBadRequest());
 		create("""
 				{"firstName": "   ", "lastName": "Zander", "email": "a@example.test"}""").andExpect(status().isBadRequest());
+		create("""
+				{"firstName": "Anna", "lastName": "Zander", "email": "a@example.test", "phone": "abc"}""")
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.detail").value("Telefon: nur Ziffern, Leerzeichen und + - / ( ), mindestens 5 Zeichen"));
 		mockMvc.perform(get("/api/studio/customers?size=1000").with(studioAdmin(studio)))
 			.andExpect(status().isBadRequest());
 	}

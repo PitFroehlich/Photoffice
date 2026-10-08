@@ -72,3 +72,20 @@ test('studio B does not see the customers of studio A', async ({ page }) => {
   await expect(page.getByText('Der Kunde wurde nicht gefunden.')).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Kunden');
 });
+
+test('format rules are checked while typing', async ({ page }) => {
+  await openCustomers(page);
+  await page.getByRole('link', { name: 'Neuer Kunde' }).click();
+
+  await page.getByLabel('Vorname').fill('Julia2');
+  await expect(page.getByText('Nur Buchstaben, Leerzeichen, Bindestrich, Apostroph und Punkt')).toBeVisible();
+  await page.getByLabel('Telefon').fill('abc');
+  await expect(page.getByText('Nur Ziffern, Leerzeichen und + - / ( ), mindestens 5 Zeichen')).toBeVisible();
+  await page.getByLabel('PLZ').fill('12a');
+  await expect(page.getByText('4 oder 5 Ziffern')).toBeVisible();
+  await page.getByLabel('E-Mail').fill('julia@example');
+  await expect(page.getByText('Bitte eine gültige E-Mail-Adresse eingeben, z. B. name@beispiel.de')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Speichern' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Neuer Kunde');
+});
