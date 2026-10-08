@@ -1,6 +1,11 @@
 import { computed, signal } from '@angular/core';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { AuthService, PLATFORM_ADMIN, STUDIO_ROLES } from '../app/auth/auth.service';
+import {
+  AccountActionResult,
+  AuthService,
+  PLATFORM_ADMIN,
+  STUDIO_ROLES,
+} from '../app/auth/auth.service';
 import { StudioSession } from '../app/studio/studio-session';
 
 /** Icons without HTTP requests in unit tests. Add to `imports` of the testing module. */
@@ -21,6 +26,8 @@ export function fakeAuthService(loggedIn = false, roles: string[] = ['studio-adm
     hasValidAccessToken: () => state(),
     login: vi.fn(),
     logout: vi.fn(),
+    startAccountAction: vi.fn(),
+    takeAccountActionResult: vi.fn<() => AccountActionResult | undefined>(),
   };
 }
 

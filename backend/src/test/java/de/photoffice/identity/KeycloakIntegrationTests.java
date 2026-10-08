@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import de.photoffice.TestcontainersConfiguration;
 import de.photoffice.tenant.InitialStudioAdmin;
 import de.photoffice.tenant.TenantManagement;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -29,7 +31,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 /**
  * End-to-end check of the Keycloak realm in {@code infra/keycloak/photoffice-realm.json} against the backend:
  * real tokens (organization claim, realm roles, audience) must lead to the right studio; the login pages use the
- * German Photoffice theme (issue #36).
+ * German Photoffice theme (issue #36); the Keycloak account console is switched off and users may change their name
+ * but not their e-mail address (issue #46, ADR 0013).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -126,15 +129,92 @@ class KeycloakIntegrationTests {
 			.contains("/login/photoffice/css/photoffice.css");
 	}
 
+	@Test
+	void accountConsoleIsSwitchedOff() {
+		// Neither the console nor its REST API – not even with a token of a dev user (admin-cli allows the password
+		// grant in every realm and its tokens would otherwise be accepted by the account REST API)
+		String userToken = accessToken("admin-a", "admin-cli");
+		for (String path : List.of("/account", "/account/", "/account/credentials")) {
+			HttpStatusCode status = RestClient.create()
+				.get()
+				.uri(issuerUri() + path)
+				.header(HttpHeaders.AUTHORIZATION, "Bearer " + userToken)
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange((request, response) -> response.getStatusCode());
+			assertThat(status.value()).as(path).isEqualTo(404);
+		}
+	}
+
+	@Test
+	void defaultRolesGrantNoAccountManagement() {
+		List<?> composites = adminApi().get()
+			.uri("/roles/default-roles-photoffice/composites")
+			.retrieve()
+			.body(List.class);
+		List<String> names = composites.stream().map(role -> String.valueOf(((Map<?, ?>) role).get("name"))).toList();
+
+		assertThat(names).doesNotContain("manage-account", "view-profile").contains("offline_access");
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void usersMayChangeTheirNameButNotTheirEmailAddress() {
+		Map<String, Object> profile = adminApi().get().uri("/users/profile").retrieve().body(Map.class);
+		var attributes = (List<Map<String, Object>>) profile.get("attributes");
+
+		assertThat(editableBy(attributes, "email")).containsExactly("admin");
+		assertThat(editableBy(attributes, "username")).containsExactly("admin");
+		assertThat(editableBy(attributes, "firstName")).contains("user", "admin");
+		assertThat(editableBy(attributes, "lastName")).contains("user", "admin");
+	}
+
+	@SuppressWarnings("unchecked")
+	private static List<String> editableBy(List<Map<String, Object>> attributes, String name) {
+		return attributes.stream()
+			.filter(attribute -> name.equals(attribute.get("name")))
+			.map(attribute -> (List<String>) ((Map<String, Object>) attribute.get("permissions")).get("edit"))
+			.findFirst()
+			.orElseThrow();
+	}
+
+	/** Admin REST API of the realm with the bootstrap admin (admin / admin, master realm). */
+	private static RestClient adminApi() {
+		var form = new LinkedMultiValueMap<String, String>();
+		form.add("grant_type", "password");
+		form.add("client_id", "admin-cli");
+		form.add("username", "admin");
+		form.add("password", "admin");
+		Map<?, ?> token = RestClient.create()
+			.post()
+			.uri(keycloakUrl() + "/realms/master/protocol/openid-connect/token")
+			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+			.body(form)
+			.retrieve()
+			.body(Map.class);
+		assertThat(token).isNotNull();
+		return RestClient.builder()
+			.baseUrl(keycloakUrl() + "/admin/realms/photoffice")
+			.defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.get("access_token"))
+			.build();
+	}
+
+	private static String keycloakUrl() {
+		return "http://" + keycloak.getHost() + ":" + keycloak.getMappedPort(8080);
+	}
+
 	private static String issuerUri() {
-		return "http://" + keycloak.getHost() + ":" + keycloak.getMappedPort(8080) + "/realms/photoffice";
+		return keycloakUrl() + "/realms/photoffice";
 	}
 
 	/** Dev realm users have their username as password; the dev-cli client allows the password grant. */
 	private static String accessToken(String username) {
+		return accessToken(username, "photoffice-dev-cli");
+	}
+
+	private static String accessToken(String username, String clientId) {
 		var form = new LinkedMultiValueMap<String, String>();
 		form.add("grant_type", "password");
-		form.add("client_id", "photoffice-dev-cli");
+		form.add("client_id", clientId);
 		form.add("username", username);
 		form.add("password", username);
 		Map<?, ?> response = RestClient.create()

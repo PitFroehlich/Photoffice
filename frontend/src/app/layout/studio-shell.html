@@ -24,6 +24,15 @@
         <div class="menu-detail">{{ roleLabel() }} · {{ user.studio.name }}</div>
       </div>
       <mat-divider />
+      <button mat-menu-item type="button" (click)="account.start('UPDATE_PROFILE')">
+        <mat-icon svgIcon="person_edit" />
+        <span>Profil bearbeiten</span>
+      </button>
+      <button mat-menu-item type="button" (click)="account.start('UPDATE_PASSWORD')">
+        <mat-icon svgIcon="password" />
+        <span>Passwort ändern</span>
+      </button>
+      <mat-divider />
       <button mat-menu-item type="button" (click)="logout()">
         <mat-icon svgIcon="logout" />
         <span>Abmelden</span>

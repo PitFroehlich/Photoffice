@@ -32,8 +32,63 @@
       {
         "name": "photographer",
         "description": "Fotograf/Mitarbeiter eines Studios"
+      },
+      {
+        "name": "default-roles-photoffice",
+        "description": "Standardrollen – ohne Rollen der Keycloak-Kontoverwaltung (Client account), siehe ADR 0013"
       }
-    ]
+    ],
+    "client": {
+      "account": [
+        {
+          "name": "view-profile",
+          "description": "${role_view-profile}"
+        },
+        {
+          "name": "manage-account",
+          "description": "${role_manage-account}",
+          "composite": true,
+          "composites": {
+            "client": {
+              "account": ["manage-account-links"]
+            }
+          }
+        },
+        {
+          "name": "manage-account-links",
+          "description": "${role_manage-account-links}"
+        },
+        {
+          "name": "view-applications",
+          "description": "${role_view-applications}"
+        },
+        {
+          "name": "view-consent",
+          "description": "${role_view-consent}"
+        },
+        {
+          "name": "manage-consent",
+          "description": "${role_manage-consent}",
+          "composite": true,
+          "composites": {
+            "client": {
+              "account": ["view-consent"]
+            }
+          }
+        },
+        {
+          "name": "delete-account",
+          "description": "${role_delete-account}"
+        },
+        {
+          "name": "view-groups",
+          "description": "${role_view-groups}"
+        }
+      ]
+    }
+  },
+  "defaultRole": {
+    "name": "default-roles-photoffice"
   },
   "clients": [
     {
@@ -125,6 +180,37 @@
       "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": true,
+      "fullScopeAllowed": false
+    },
+    {
+      "clientId": "account",
+      "name": "${client_account}",
+      "description": "Keycloak-Kontoverwaltung (REST-API) – abgeschaltet: Profil und Passwort ändert man über das Benutzermenü der App (ADR 0013)",
+      "enabled": false,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "rootUrl": "${authBaseUrl}",
+      "baseUrl": "/realms/photoffice/account/",
+      "redirectUris": [
+        "/realms/photoffice/account/*"
+      ],
+      "fullScopeAllowed": false
+    },
+    {
+      "clientId": "account-console",
+      "name": "${client_account-console}",
+      "description": "Keycloak-Kontoverwaltung (Oberfläche) – abgeschaltet, siehe Client account (ADR 0013)",
+      "enabled": false,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "rootUrl": "${authBaseUrl}",
+      "baseUrl": "/realms/photoffice/account/",
+      "redirectUris": [
+        "/realms/photoffice/account/*"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
       "fullScopeAllowed": false
     }
   ],
@@ -289,5 +375,18 @@
         }
       ]
     }
-  ]
+  ],
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"annotations\":{\"inputHelperTextAfter\":\"${photofficeEmailReadOnlyHint}\"},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+          ]
+        }
+      }
+    ]
+  }
 }
