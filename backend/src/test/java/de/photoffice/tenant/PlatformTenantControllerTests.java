@@ -3,7 +3,6 @@ package de.photoffice.tenant;
 import static de.photoffice.identity.TestTokens.platformAdmin;
 import static de.photoffice.identity.TestTokens.studioAdmin;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -54,9 +53,10 @@ class PlatformTenantControllerTests {
 			.andExpect(jsonPath("$.status").value("ACTIVE"))
 			.andExpect(jsonPath("$.onboardingStatus").value("PENDING"));
 
-		mockMvc.perform(get("/api/platform/tenants").with(platformAdmin()))
+		mockMvc.perform(get("/api/platform/tenants").param("search", slug).with(platformAdmin()))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$[?(@.slug == '%s')]", slug).exists());
+			.andExpect(jsonPath("$.totalElements").value(1))
+			.andExpect(jsonPath("$.items[0].slug").value(slug));
 	}
 
 	@Test
@@ -242,16 +242,16 @@ class PlatformTenantControllerTests {
 		TenantId tenantId = TenantId.of(UUID.fromString(id));
 
 		tenantManagement.recordOnboardingFailure(tenantId, "Keycloak ist nicht erreichbar.");
-		mockMvc.perform(get("/api/platform/tenants").with(platformAdmin()))
-			.andExpect(jsonPath("$[?(@.slug == '%s')].onboardingStatus", slug).value("PENDING"))
-			.andExpect(jsonPath("$[?(@.slug == '%s')].onboardingError", slug).value("Keycloak ist nicht erreichbar."))
-			.andExpect(jsonPath("$[?(@.slug == '%s')].onboardingFailedAt", slug).isNotEmpty());
+		mockMvc.perform(get("/api/platform/tenants").param("search", slug).with(platformAdmin()))
+			.andExpect(jsonPath("$.items[0].onboardingStatus").value("PENDING"))
+			.andExpect(jsonPath("$.items[0].onboardingError").value("Keycloak ist nicht erreichbar."))
+			.andExpect(jsonPath("$.items[0].onboardingFailedAt").isNotEmpty());
 
 		tenantManagement.markOnboarded(tenantId);
-		mockMvc.perform(get("/api/platform/tenants").with(platformAdmin()))
-			.andExpect(jsonPath("$[?(@.slug == '%s')].onboardingStatus", slug).value("COMPLETED"))
-			.andExpect(jsonPath("$[?(@.slug == '%s')].onboardingError", slug).value(contains(nullValue())))
-			.andExpect(jsonPath("$[?(@.slug == '%s')].onboardingFailedAt", slug).value(contains(nullValue())));
+		mockMvc.perform(get("/api/platform/tenants").param("search", slug).with(platformAdmin()))
+			.andExpect(jsonPath("$.items[0].onboardingStatus").value("COMPLETED"))
+			.andExpect(jsonPath("$.items[0].onboardingError").value(nullValue()))
+			.andExpect(jsonPath("$.items[0].onboardingFailedAt").value(nullValue()));
 
 		// A late failure report (duplicate delivery) does not bring the error back
 		tenantManagement.recordOnboardingFailure(tenantId, "zu spät");

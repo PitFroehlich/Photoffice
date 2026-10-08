@@ -2,7 +2,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Location } from '@angular/common';
+import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -46,6 +47,10 @@ export class StudioForm implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly notifications = inject(NotificationService);
+
+  /** Search, filters and page of the list the user came from (navigation state), to return to the same view. */
+  protected readonly listQuery: Params =
+    (inject(Location).getState() as { listQuery?: Params } | null)?.listQuery ?? {};
 
   protected readonly hints = studioHints;
   protected readonly saving = signal(false);
@@ -108,7 +113,7 @@ export class StudioForm implements OnInit {
       this.showStudio(await this.api.invoke(getTenant, { tenantId: id }));
     } catch (error) {
       this.notifications.error(error);
-      void this.router.navigate(['/plattform/studios']);
+      void this.router.navigate(['/plattform/studios'], { queryParams: this.listQuery });
     } finally {
       this.loading.set(false);
     }
@@ -124,10 +129,12 @@ export class StudioForm implements OnInit {
     try {
       if (studio) {
         await this.update(studio);
+        void this.router.navigate(['/plattform/studios'], { queryParams: this.listQuery });
       } else {
-        await this.register();
+        const slug = await this.register();
+        // Show the new studio (the list is paged and sorted by name)
+        void this.router.navigate(['/plattform/studios'], { queryParams: { suche: slug } });
       }
-      void this.router.navigate(['/plattform/studios']);
     } catch (error) {
       if (!studio && error instanceof HttpErrorResponse && error.status === 409) {
         // Slug already taken: show it at the field
@@ -141,7 +148,8 @@ export class StudioForm implements OnInit {
     }
   }
 
-  private async register(): Promise<void> {
+  /** @returns the slug of the new studio */
+  private async register(): Promise<string> {
     const value = this.form.getRawValue();
     const body: CreateTenantRequest = {
       name: value.name.trim(),
@@ -152,6 +160,7 @@ export class StudioForm implements OnInit {
     this.notifications.success(
       `„${body.name}“ wurde registriert. ${body.adminEmail} erhält eine Einladung, sobald das Onboarding abgeschlossen ist.`,
     );
+    return body.slug;
   }
 
   private async update(studio: TenantResponse): Promise<void> {

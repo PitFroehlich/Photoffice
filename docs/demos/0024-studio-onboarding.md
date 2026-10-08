@@ -42,6 +42,7 @@ Testbenutzer: siehe AGENTS.md "Dev users" (Passwort = Benutzername). Für die De
   ```
 - **Was du siehst:** Die Dev-Studios „Studio A“ und „Studio B“, jeweils mit `"status": "ACTIVE"` und
   `"onboardingStatus": "COMPLETED"`.
+  (Seit #45 liefert die Liste eine Seite: die Studios stehen in `items`, dazu `page`, `size`, `totalElements`.)
 
 ### Schritt 2: Neues Studio registrieren
 - **Was tun:**

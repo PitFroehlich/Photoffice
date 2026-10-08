@@ -48,8 +48,8 @@ test('new studio: invited admin sets a password, logs in, loses access while sus
   const studio = await created.json();
   await expect
     .poll(async () => {
-      const studios = await (await request.get(`${backend}/platform/tenants`, { headers: auth })).json();
-      return studios.find((s: { id: string }) => s.id === studio.id).onboardingStatus;
+      const current = await request.get(`${backend}/platform/tenants/${studio.id}`, { headers: auth });
+      return (await current.json()).onboardingStatus;
     })
     .toBe('COMPLETED');
 
