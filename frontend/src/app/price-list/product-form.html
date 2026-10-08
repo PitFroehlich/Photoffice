@@ -28,7 +28,7 @@
                 autocomplete="off"
                 placeholder="z. B. Matt"
               />
-              <mat-error><app-field-error [control]="form.controls.paperType" /></mat-error>
+              <mat-error><app-field-error [control]="form.controls.paperType" [patternHint]="hints.paperType" /></mat-error>
             </mat-form-field>
             <mat-form-field>
               <mat-label>Format</mat-label>
@@ -38,7 +38,7 @@
                 autocomplete="off"
                 placeholder="z. B. 13 × 18 cm"
               />
-              <mat-error><app-field-error [control]="form.controls.printFormat" /></mat-error>
+              <mat-error><app-field-error [control]="form.controls.printFormat" [patternHint]="hints.printFormat" /></mat-error>
             </mat-form-field>
           </div>
         } @else {

@@ -19,7 +19,7 @@
             autocomplete="off"
             placeholder="z. B. Standardversand"
           />
-          <mat-error><app-field-error [control]="form.controls.name" /></mat-error>
+          <mat-error><app-field-error [control]="form.controls.name" [patternHint]="hints.name" /></mat-error>
         </mat-form-field>
 
         <mat-form-field class="price-field">

@@ -7,5 +7,6 @@ export { LoadingIndicator } from './loading-indicator';
 export { NotificationService } from './notification.service';
 export { PageHeader } from './page-header';
 export { SearchField } from './search-field';
+export { trimmedPattern } from './validators';
 export { provideStudioUiDefaults } from './studio-ui-providers';
 export { provideUiDefaults } from './ui-providers';

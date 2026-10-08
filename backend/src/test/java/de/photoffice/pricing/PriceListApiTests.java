@@ -140,7 +140,15 @@ class PriceListApiTests {
 		send(post(BASE + "/products"), """
 				{"type": "PRINT", "paperType": "MATT", "printFormat": "13 × 18 CM", "priceCents": 100}""")
 			.andExpect(status().isConflict())
-			.andExpect(jsonPath("$.detail").value("Den Abzug „MATT, 13 × 18 CM“ gibt es bereits."));
+			.andExpect(jsonPath("$.detail").value("Den Abzug „MATT, 13 × 18 cm“ gibt es bereits."));
+		// Differently written but equal formats are the same print
+		send(post(BASE + "/products"), """
+				{"type": "PRINT", "paperType": "Matt", "printFormat": "13x18", "priceCents": 100}""")
+			.andExpect(status().isConflict());
+		send(post(BASE + "/products"), """
+				{"type": "PRINT", "paperType": "Matt", "printFormat": "13", "priceCents": 100}""")
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.detail").value("Format: Breite x Höhe in cm (z. B. 13 x 18 oder 10,5 x 15) oder DIN A0 bis A6"));
 		send(put(BASE + "/products/" + glossy), """
 				{"type": "PRINT", "paperType": "matt", "printFormat": "13 × 18 cm", "priceCents": 290}""")
 			.andExpect(status().isConflict());

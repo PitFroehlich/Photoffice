@@ -1,6 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { trimmedPattern } from '../shared/ui/validators';
+import { priceListHints, priceListPatterns } from './price-list-validators';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -39,6 +41,7 @@ import { canEditPriceList } from './price-list-labels';
   styleUrl: './price-list-form.scss',
 })
 export class ShippingMethodForm implements OnInit {
+  protected readonly hints = priceListHints;
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -51,7 +54,7 @@ export class ShippingMethodForm implements OnInit {
   protected readonly title = signal('Neue Versandart');
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    name: ['', [Validators.required, Validators.maxLength(100)]],
+    name: ['', [Validators.required, Validators.maxLength(100), trimmedPattern(priceListPatterns.name)]],
     price: ['', [Validators.required, priceValidator]],
     active: [true],
   });

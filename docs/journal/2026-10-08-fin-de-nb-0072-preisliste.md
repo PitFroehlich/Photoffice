@@ -41,3 +41,10 @@ Währung/Steuersatz; nur gültige Kombinationen für Kunden.
   Barrel-Import im Initial-Bundle zieht alle Endpunkte in `main`.
 - Template-Typprüfung: `let row` in `mat-table` ist `any` – `Record<Enum, string>[row.x]` schlägt fehl; Methode nutzen.
 - Worktree-Agent: Heredocs/Compound-Kommandos werden blockiert, Dateien mit dem Write-Tool anlegen.
+
+## Nachtrag (Hauptsession, nach Rebase auf main mit #7)
+- Worktree der zweiten Session entfernt, `feature/13-preisliste` auf `main` rebased (ohne Konflikte).
+- Formatprüfung nach dem Standard aus #7 ergänzt: Format (Breite × Höhe in cm oder DIN A0–A6, **einheitlich gespeichert** als „13 × 18 cm“/„DIN A4“, damit „13x18“ und „13 × 18 cm“ als dasselbe erkannt werden), Papiertyp, Namen von Paketen/Versandarten – Backend `PriceListTexts`, Frontend `price-list-validators.ts`, gleiche Testfälle auf beiden Seiten.
+- `trimmedPattern` nach `shared/ui/validators.ts` verschoben (vorher im Kunden-Feature).
+- E2E: alle 22 grün (inkl. der 8 Preislisten-Tests, erstmals ausgeführt). Kunden-E2E robuster gemacht (eindeutige Namen ohne Ziffern; nicht mehr von in Demos geänderten Seed-Daten abhängig).
+- Parallele Playwright-Worker gegen den Dev-Server waren nach einem Branch-Wechsel instabil → bei Problemen `--workers=1`.

@@ -37,17 +37,20 @@ Testbenutzer: siehe AGENTS.md "Dev users" (Passwort = Benutzername).
   (10 Bilder, 69,00 €), „Ganze Galerie“ (149,00 €). "Versandarten": „Abholung im Studio 0,00 €“,
   „Standardversand 4,90 €“, „Expressversand 12,90 €“ (inaktiv).
 
-### Schritt 2: Abzug anlegen (Betrag mit Komma)
-- **Was tun:** "Abzug hinzufügen" → Papier `Matt`, Format `9 × 13 cm`, Preis `1,5` → "Speichern".
-- **Was du siehst:** Meldung „„Abzug Matt, 9 × 13 cm“ wurde angelegt.“, zurück in der Preisliste. Die neue Zeile
-  steht nach Preis sortiert ganz oben: „Matt | 9 × 13 cm | 1,50 € | Aktiv“.
+### Schritt 2: Abzug anlegen (Kurzschreibweise und Betrag mit Komma)
+- **Was tun:** "Abzug hinzufügen" → Papier `Matt`, Format `9x13`, Preis `1,5` → "Speichern".
+- **Was du siehst:** Meldung „„Abzug Matt, 9 × 13 cm“ wurde angelegt.“, zurück in der Preisliste. Das Format wurde
+  einheitlich als „9 × 13 cm“ gespeichert. Die neue Zeile steht nach Preis sortiert ganz oben:
+  „Matt | 9 × 13 cm | 1,50 € | Aktiv“.
 
 ### Schritt 3: Ungültige Eingaben und doppelte Kombination
-- **Was tun:** "Abzug hinzufügen" → sofort "Speichern". Dann Papier `matt`, Format `13 × 18 cm`, Preis `2,999`
-  → "Speichern". Preis auf `3` ändern → "Speichern". Danach "Abbrechen".
-- **Was du siehst:** Zuerst „Pflichtfeld“ unter allen drei Feldern. Dann unter Preis: „Bitte einen Betrag zwischen
-  0,00 und 100.000,00 eingeben, z. B. 12,90“. Nach der Korrektur unter Format: „Den Abzug „matt, 13 × 18 cm“ gibt
-  es bereits.“ (Groß-/Kleinschreibung zählt nicht).
+- **Was tun:** "Abzug hinzufügen" → sofort "Speichern". Dann tippen: Papier `308`, Format `13`, Preis `2,999`.
+  Danach korrigieren: Papier `matt`, Format `13x18`, Preis `3` → "Speichern". Danach "Abbrechen".
+- **Was du siehst:** Zuerst „Pflichtfeld“ unter allen drei Feldern. Beim Tippen sofort: unter Papier „Beginnt mit
+  einem Buchstaben; …“, unter Format „Breite x Höhe in cm (z. B. 13 x 18 oder 10,5 x 15) oder DIN A0 bis A6“, unter
+  Preis „Bitte einen Betrag zwischen 0,00 und 100.000,00 eingeben, z. B. 12,90“. Nach der Korrektur unter Format:
+  „Den Abzug „matt, 13 × 18 cm“ gibt es bereits.“ – „13x18“ und „13 × 18 cm“ sind dasselbe Format,
+  Groß-/Kleinschreibung zählt nicht.
 
 ### Schritt 4: Abzug ändern und deaktivieren
 - **Was tun:** In "Abzüge" auf „Matt“ in der Zeile „9 × 13 cm“ klicken → Preis `1,75`, Schalter „Kunden anbieten

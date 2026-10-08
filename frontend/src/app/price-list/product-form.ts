@@ -1,6 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { trimmedPattern } from '../shared/ui/validators';
+import { priceListHints, priceListPatterns } from './price-list-validators';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -44,6 +46,7 @@ import { canEditPriceList, productLabel, resolutionLabels } from './price-list-l
   styleUrl: './price-list-form.scss',
 })
 export class ProductForm implements OnInit {
+  protected readonly hints = priceListHints;
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -61,8 +64,8 @@ export class ProductForm implements OnInit {
   ][];
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    paperType: ['', [Validators.required, Validators.maxLength(50)]],
-    printFormat: ['', [Validators.required, Validators.maxLength(50)]],
+    paperType: ['', [Validators.required, Validators.maxLength(50), trimmedPattern(priceListPatterns.paperType)]],
+    printFormat: ['', [Validators.required, Validators.maxLength(50), trimmedPattern(priceListPatterns.printFormat)]],
     resolution: ['' as DownloadResolution | '', Validators.required],
     price: ['', [Validators.required, priceValidator]],
     active: [true],

@@ -18,8 +18,8 @@ public record ProductData(ProductType type, String paperType, String printFormat
 		priceCents = requireValidCents(priceCents);
 		switch (type) {
 			case PRINT -> {
-				paperType = required(paperType, "Für einen Abzug ist der Papiertyp Pflicht.");
-				printFormat = required(printFormat, "Für einen Abzug ist das Format Pflicht.");
+				paperType = PriceListTexts.paperType(required(paperType, "Für einen Abzug ist der Papiertyp Pflicht."));
+				printFormat = PriceListTexts.printFormat(required(printFormat, "Für einen Abzug ist das Format Pflicht."));
 				if (resolution != null) {
 					throw new IllegalArgumentException("Ein Abzug hat keine Download-Auflösung.");
 				}

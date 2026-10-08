@@ -164,6 +164,8 @@ cd frontend && npx playwright install chromium   # once per machine / Playwright
 cd frontend && npm run e2e
 ```
 Keycloak with organizations asks for username and password on two separate pages (see `e2e/studio-login.spec.ts`).
+E2E tests must not rely on seed data that users may change during demos, and generated test values must satisfy
+the validation rules (e.g. names without digits). If runs are flaky right after a rebuild, use `--workers=1`.
 
 Rules:
 - Every feature comes with tests. Integration tests use **Testcontainers** (`TestcontainersConfiguration`), not mocks of the database.

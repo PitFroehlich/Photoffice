@@ -10,7 +10,7 @@ public record DownloadPackageData(String name, DownloadPackageKind kind, Integer
 		DownloadResolution resolution, int priceCents, boolean active) {
 
 	public DownloadPackageData {
-		name = required(name, "Der Name des Pakets ist Pflicht.");
+		name = PriceListTexts.name(required(name, "Der Name des Pakets ist Pflicht."), "Name des Pakets");
 		if (kind == null) {
 			throw new IllegalArgumentException("Die Art des Pakets fehlt.");
 		}

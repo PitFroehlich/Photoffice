@@ -10,7 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Api } from '../api/api';
 import { createCustomer, deleteCustomer, getCustomer, updateCustomer } from '../api/functions';
 import { Customer, CustomerInput } from '../api/models';
-import { customerHints, customerPatterns, trimmedPattern } from './customer-validators';
+import { customerHints, customerPatterns } from './customer-validators';
 import {
   ConfirmService,
   FieldError,
@@ -18,6 +18,7 @@ import {
   NotificationService,
   PageHeader,
   apiErrorMessage,
+  trimmedPattern,
 } from '../shared/ui';
 
 /** Create (/studio/kunden/neu) or edit (/studio/kunden/:id) a customer. */

@@ -2,6 +2,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { trimmedPattern } from '../shared/ui/validators';
+import { priceListHints, priceListPatterns } from './price-list-validators';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -47,6 +49,7 @@ import { canEditPriceList, packageKindLabels, resolutionLabels } from './price-l
   styleUrl: './price-list-form.scss',
 })
 export class DownloadPackageForm implements OnInit {
+  protected readonly hints = priceListHints;
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -64,7 +67,7 @@ export class DownloadPackageForm implements OnInit {
   ][];
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    name: ['', [Validators.required, Validators.maxLength(100)]],
+    name: ['', [Validators.required, Validators.maxLength(100), trimmedPattern(priceListPatterns.name)]],
     kind: ['IMAGE_COUNT' as DownloadPackageKind, Validators.required],
     imageCount: [10, [Validators.required, Validators.min(2), Validators.max(10000)]],
     resolution: ['FULL' as DownloadResolution, Validators.required],

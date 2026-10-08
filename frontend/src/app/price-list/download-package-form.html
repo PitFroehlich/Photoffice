@@ -19,7 +19,7 @@
             autocomplete="off"
             placeholder="z. B. 10 Downloads"
           />
-          <mat-error><app-field-error [control]="form.controls.name" /></mat-error>
+          <mat-error><app-field-error [control]="form.controls.name" [patternHint]="hints.name" /></mat-error>
         </mat-form-field>
 
         <div class="row">
