@@ -1,6 +1,6 @@
 # Demo #13: Preisliste und Produkte
 
-- **Issue / PR:** #13 / (siehe PR zu #13)
+- **Issue / PR:** #13 / #34
 - **Datum:** 2026-10-08
 - **Agent / Maschine:** Claude Code (zweite Session) / fin-de-nb-0072
 

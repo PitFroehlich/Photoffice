@@ -2,7 +2,7 @@
 
 - **Date:** 2026-10-08
 - **Machine / Agent:** fin-de-nb-0072 / Claude Code (zweite Session, parallel zur Hauptsession)
-- **Issue / PR:** #13 / (siehe PR zu #13)
+- **Issue / PR:** #13 / #34
 - **Branch:** feature/13-preisliste (basiert auf `feature/7-kundenverwaltung`, da PR #32 noch nicht gemergt war)
 
 ## Goal
