@@ -16,6 +16,7 @@ export interface NavigationItem {
 export const studioNavigation: NavigationItem[] = [
   { label: 'Übersicht', icon: 'dashboard', link: '/studio', exact: true },
   { label: 'Kunden', icon: 'group', link: '/studio/kunden' },
+  { label: 'Preisliste', icon: 'sell', link: '/studio/preisliste' },
   // Showcase of the shared UI building blocks – development builds only
   ...(isDevMode() ? [{ label: 'UI-Bausteine', icon: 'widgets', link: '/studio/ui-bausteine' }] : []),
 ];

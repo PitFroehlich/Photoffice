@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Api } from '../api/api';
-import { getCurrentStudioUser } from '../api/functions';
+// Initial bundle: import the function directly, not via the api/functions barrel (see AGENTS.md)
+import { getCurrentStudioUser } from '../api/fn/studio/get-current-studio-user';
 import { CurrentStudioUser } from '../api/models';
 
 export const roleLabels: Record<string, string> = {

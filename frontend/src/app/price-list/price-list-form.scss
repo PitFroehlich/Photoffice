@@ -1,0 +1,40 @@
+// Shared by all price list forms (product, package, shipping method, settings)
+.card {
+  max-width: 40rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+mat-form-field {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.price-field {
+  max-width: 14rem;
+}
+
+.toggle {
+  display: block;
+  margin: 0 0 1.5rem;
+}
+
+.read-only-hint {
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-medium);
+  margin: 0 0 1rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

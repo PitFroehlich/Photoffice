@@ -16,6 +16,8 @@ tags:
     description: Funktionen für angemeldete Studio-Benutzer (Mandant aus dem Login)
   - name: customers
     description: Endkunden des Studios (Mandant aus dem Login)
+  - name: price-list
+    description: Preisliste des Studios – Produkte, Download-Pakete, Versandarten (Mandant aus dem Login)
   - name: platform
     description: Verwaltung der Studios (Mandanten) durch den Plattform-Betreiber
 paths:
@@ -184,6 +186,376 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
   # --- end customers ---
+  # --- price list (#13) ---
+  /studio/price-list:
+    get:
+      tags: [price-list]
+      operationId: getPriceList
+      summary: Komplette Preisliste des Studios (inkl. inaktiver Einträge)
+      description: |
+        Die Preisliste eines Studios ist klein (einige Dutzend Einträge) und wird daher ohne Paging als Ganzes
+        geliefert. Lesen dürfen alle Studio-Benutzer, ändern nur Studio-Administratoren.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceList'
+  /studio/price-list/settings:
+    put:
+      tags: [price-list]
+      operationId: updatePriceListSettings
+      summary: Steuersatz der Preisliste ändern (nur Studio-Administratoren)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriceListSettingsInput'
+      responses:
+        '200':
+          description: Geändert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceListSettings'
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Nur Studio-Administratoren dürfen die Preisliste ändern
+  /studio/price-list/products:
+    post:
+      tags: [price-list]
+      operationId: createProduct
+      summary: Produkt (Abzug oder Download) mit Einzelpreis anlegen (nur Studio-Administratoren)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Angelegt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Ungültige Eingabe (z. B. Felder passen nicht zum Produkttyp)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Nur Studio-Administratoren dürfen die Preisliste ändern
+        '409':
+          description: Das Produkt (Papier × Format bzw. Auflösung) gibt es bereits
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /studio/price-list/products/{productId}:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [price-list]
+      operationId: getProduct
+      summary: Einzelnes Produkt lesen
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Nicht gefunden (auch für Produkte anderer Studios)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    put:
+      tags: [price-list]
+      operationId: updateProduct
+      summary: Produkt ändern (nur Studio-Administratoren; der Produkttyp ist unveränderlich)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Geändert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Nur Studio-Administratoren dürfen die Preisliste ändern
+        '404':
+          description: Nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Das Produkt gibt es bereits
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      tags: [price-list]
+      operationId: deleteProduct
+      summary: Produkt löschen (nur Studio-Administratoren)
+      responses:
+        '204':
+          description: Gelöscht
+        '403':
+          description: Nur Studio-Administratoren dürfen die Preisliste ändern
+        '404':
+          description: Nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /studio/price-list/download-packages:
+    post:
+      tags: [price-list]
+      operationId: createDownloadPackage
+      summary: Download-Paket anlegen (nur Studio-Administratoren)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DownloadPackageInput'
+      responses:
+        '201':
+          description: Angelegt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DownloadPackage'
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Nur Studio-Administratoren dürfen die Preisliste ändern
+        '409':
+          description: Ein Paket mit diesem Namen gibt es bereits
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /studio/price-list/download-packages/{packageId}:
+    parameters:
+      - name: packageId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [price-list]
+      operationId: getDownloadPackage
+      summary: Einzelnes Download-Paket lesen
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DownloadPackage'
+        '404':
+          description: Nicht gefunden (auch für Pakete anderer Studios)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    put:
+      tags: [price-list]
+      operationId: updateDownloadPackage
+      summary: Download-Paket ändern (nur Studio-Administratoren)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DownloadPackageInput'
+      responses:
+        '200':
+          description: Geändert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DownloadPackage'
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Nur Studio-Administratoren dürfen die Preisliste ändern
+        '404':
+          description: Nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Ein Paket mit diesem Namen gibt es bereits
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      tags: [price-list]
+      operationId: deleteDownloadPackage
+      summary: Download-Paket löschen (nur Studio-Administratoren)
+      responses:
+        '204':
+          description: Gelöscht
+        '403':
+          description: Nur Studio-Administratoren dürfen die Preisliste ändern
+        '404':
+          description: Nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /studio/price-list/shipping-methods:
+    post:
+      tags: [price-list]
+      operationId: createShippingMethod
+      summary: Versandart anlegen (nur Studio-Administratoren)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShippingMethodInput'
+      responses:
+        '201':
+          description: Angelegt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingMethod'
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Nur Studio-Administratoren dürfen die Preisliste ändern
+        '409':
+          description: Eine Versandart mit diesem Namen gibt es bereits
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /studio/price-list/shipping-methods/{shippingMethodId}:
+    parameters:
+      - name: shippingMethodId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [price-list]
+      operationId: getShippingMethod
+      summary: Einzelne Versandart lesen
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingMethod'
+        '404':
+          description: Nicht gefunden (auch für Versandarten anderer Studios)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    put:
+      tags: [price-list]
+      operationId: updateShippingMethod
+      summary: Versandart ändern (nur Studio-Administratoren)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShippingMethodInput'
+      responses:
+        '200':
+          description: Geändert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingMethod'
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Nur Studio-Administratoren dürfen die Preisliste ändern
+        '404':
+          description: Nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Eine Versandart mit diesem Namen gibt es bereits
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      tags: [price-list]
+      operationId: deleteShippingMethod
+      summary: Versandart löschen (nur Studio-Administratoren)
+      responses:
+        '204':
+          description: Gelöscht
+        '403':
+          description: Nur Studio-Administratoren dürfen die Preisliste ändern
+        '404':
+          description: Nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  # --- end price list ---
   /platform/tenants:
     get:
       tags: [platform]
@@ -357,6 +729,184 @@ components:
           type: integer
           format: int64
     # --- end customers ---
+    # --- price list (#13) ---
+    ProductType:
+      description: |
+        Produkttyp. PRINT = Abzug (Papiertyp × Format), DOWNLOAD = digitale Datei in einer Auflösung.
+        Weitere Typen (z. B. Fotobuch) können ergänzt werden.
+      type: string
+      enum: [PRINT, DOWNLOAD]
+    DownloadResolution:
+      description: WEB = verkleinert für Bildschirm/Social Media, FULL = volle Auflösung des Originals
+      type: string
+      enum: [WEB, FULL]
+    DownloadPackageKind:
+      description: IMAGE_COUNT = feste Anzahl Bilder einer Galerie, WHOLE_GALLERY = alle Bilder einer Galerie
+      type: string
+      enum: [IMAGE_COUNT, WHOLE_GALLERY]
+    PriceListSettingsInput:
+      type: object
+      required: [vatRatePercent]
+      properties:
+        vatRatePercent:
+          description: Umsatzsteuersatz in Prozent (höchstens zwei Nachkommastellen), z. B. 19 oder 0 für Kleinunternehmer
+          type: number
+          minimum: 0
+          maximum: 99.99
+          example: 19
+    PriceListSettings:
+      description: Alle Preise der Liste sind Bruttopreise (inkl. Umsatzsteuer) in dieser Währung.
+      type: object
+      required: [currency, vatRatePercent]
+      properties:
+        currency:
+          description: Währung aller Preise (vorerst nur EUR)
+          type: string
+          enum: [EUR]
+        vatRatePercent:
+          type: number
+          example: 19
+    ProductInput:
+      type: object
+      required: [type, priceCents]
+      properties:
+        type:
+          $ref: '#/components/schemas/ProductType'
+        paperType:
+          description: Nur bei PRINT (Pflicht), z. B. "Matt"
+          type: string
+          maxLength: 50
+        printFormat:
+          description: Nur bei PRINT (Pflicht), z. B. "13 × 18 cm"
+          type: string
+          maxLength: 50
+        resolution:
+          $ref: '#/components/schemas/DownloadResolution'
+        priceCents:
+          description: Bruttopreis in Cent (ganzzahlig, nie Gleitkomma)
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 10000000
+          example: 290
+        active:
+          description: Nur aktive Produkte werden Kunden angeboten
+          type: boolean
+          default: true
+    Product:
+      allOf:
+        - $ref: '#/components/schemas/ProductInput'
+        - type: object
+          required: [id, active, createdAt, updatedAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    DownloadPackageInput:
+      type: object
+      required: [name, kind, resolution, priceCents]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: 10 Downloads
+        kind:
+          $ref: '#/components/schemas/DownloadPackageKind'
+        imageCount:
+          description: Nur bei IMAGE_COUNT (Pflicht), Anzahl der enthaltenen Bilder
+          type: integer
+          format: int32
+          minimum: 2
+          maximum: 10000
+        resolution:
+          $ref: '#/components/schemas/DownloadResolution'
+        priceCents:
+          description: Bruttopreis in Cent (ganzzahlig, nie Gleitkomma)
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 10000000
+          example: 4900
+        active:
+          description: Nur aktive Pakete werden Kunden angeboten
+          type: boolean
+          default: true
+    DownloadPackage:
+      allOf:
+        - $ref: '#/components/schemas/DownloadPackageInput'
+        - type: object
+          required: [id, active, createdAt, updatedAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    ShippingMethodInput:
+      type: object
+      required: [name, priceCents]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Standardversand
+        priceCents:
+          description: Versandkosten brutto in Cent (ganzzahlig, nie Gleitkomma)
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 10000000
+          example: 490
+        active:
+          description: Nur aktive Versandarten werden Kunden angeboten
+          type: boolean
+          default: true
+    ShippingMethod:
+      allOf:
+        - $ref: '#/components/schemas/ShippingMethodInput'
+        - type: object
+          required: [id, active, createdAt, updatedAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    PriceList:
+      type: object
+      required: [settings, products, downloadPackages, shippingMethods]
+      properties:
+        settings:
+          $ref: '#/components/schemas/PriceListSettings'
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        downloadPackages:
+          type: array
+          items:
+            $ref: '#/components/schemas/DownloadPackage'
+        shippingMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShippingMethod'
+    # --- end price list ---
     CurrentStudioUser:
       type: object
       required: [username, roles, studio]

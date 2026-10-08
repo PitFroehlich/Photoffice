@@ -26,6 +26,9 @@ export function validationMessage(errors: ValidationErrors | null, patternHint?:
   if (errors['max']) {
     return `Höchstens ${errors['max'].max}`;
   }
+  if (errors['price']) {
+    return 'Bitte einen Betrag zwischen 0,00 und 100.000,00 eingeben, z. B. 12,90';
+  }
   if (errors['pattern']) {
     return patternHint ?? 'Ungültiges Format';
   }

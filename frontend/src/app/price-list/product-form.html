@@ -1,0 +1,83 @@
+<app-page-header
+  [title]="title()"
+  [subtitle]="
+    type() === 'PRINT'
+      ? 'Abzug: Papier × Format mit Einzelpreis'
+      : 'Download: Bild als Datei mit Einzelpreis'
+  "
+/>
+
+@if (loading()) {
+  <app-loading-indicator />
+} @else {
+  <mat-card appearance="outlined" class="card">
+    <mat-card-content>
+      @if (!canEdit()) {
+        <p class="read-only-hint" role="note">
+          Nur Studio-Administratoren können die Preisliste ändern.
+        </p>
+      }
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        @if (type() === 'PRINT') {
+          <div class="row">
+            <mat-form-field>
+              <mat-label>Papier</mat-label>
+              <input
+                matInput
+                formControlName="paperType"
+                autocomplete="off"
+                placeholder="z. B. Matt"
+              />
+              <mat-error><app-field-error [control]="form.controls.paperType" /></mat-error>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Format</mat-label>
+              <input
+                matInput
+                formControlName="printFormat"
+                autocomplete="off"
+                placeholder="z. B. 13 × 18 cm"
+              />
+              <mat-error><app-field-error [control]="form.controls.printFormat" /></mat-error>
+            </mat-form-field>
+          </div>
+        } @else {
+          <mat-form-field>
+            <mat-label>Auflösung</mat-label>
+            <mat-select formControlName="resolution">
+              @for (option of resolutions; track option[0]) {
+                <mat-option [value]="option[0]">{{ option[1] }}</mat-option>
+              }
+            </mat-select>
+            <mat-error><app-field-error [control]="form.controls.resolution" /></mat-error>
+          </mat-form-field>
+        }
+
+        <mat-form-field class="price-field">
+          <mat-label>{{ type() === 'PRINT' ? 'Preis' : 'Preis je Bild' }}</mat-label>
+          <input
+            matInput
+            formControlName="price"
+            inputmode="decimal"
+            autocomplete="off"
+            placeholder="0,00"
+          />
+          <span matTextSuffix>&nbsp;€</span>
+          <mat-hint>Endpreis inkl. USt.</mat-hint>
+          <mat-error><app-field-error [control]="form.controls.price" /></mat-error>
+        </mat-form-field>
+
+        <mat-slide-toggle formControlName="active" class="toggle"
+          >Kunden anbieten (aktiv)</mat-slide-toggle
+        >
+
+        <div class="form-actions">
+          <a matButton routerLink="/studio/preisliste">Abbrechen</a>
+          <button matButton="filled" type="submit" [disabled]="saving() || !canEdit()">
+            Speichern
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}
