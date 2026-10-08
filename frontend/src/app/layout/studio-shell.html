@@ -1,0 +1,80 @@
+<app-skip-link />
+<mat-toolbar class="toolbar">
+  @if (isSmallScreen()) {
+    <button matIconButton type="button" aria-label="Navigation öffnen" (click)="sidenav.toggle()">
+      <mat-icon svgIcon="menu" />
+    </button>
+  }
+  <a routerLink="/studio" class="brand">
+    <mat-icon svgIcon="photo_camera" aria-hidden="true" />
+    <span>Photoffice</span>
+  </a>
+  @if (session.user(); as user) {
+    <span class="studio-name">{{ user.studio.name }}</span>
+  }
+  <span class="spacer"></span>
+  @if (session.user(); as user) {
+    <button matButton type="button" class="user-button" [matMenuTriggerFor]="userMenu" aria-label="Benutzermenü">
+      <mat-icon svgIcon="account_circle" />
+      <span class="user-name">{{ user.displayName || user.username }}</span>
+    </button>
+    <mat-menu #userMenu="matMenu" xPosition="before">
+      <div class="menu-header">
+        <div class="menu-name">{{ user.displayName || user.username }}</div>
+        <div class="menu-detail">{{ roleLabel() }} · {{ user.studio.name }}</div>
+      </div>
+      <mat-divider />
+      <button mat-menu-item type="button" (click)="logout()">
+        <mat-icon svgIcon="logout" />
+        <span>Abmelden</span>
+      </button>
+    </mat-menu>
+  } @else if (session.status() === 'denied') {
+    <button matButton type="button" (click)="logout()">Abmelden</button>
+  }
+</mat-toolbar>
+
+<mat-sidenav-container class="container">
+  <mat-sidenav
+    #sidenav
+    [mode]="isSmallScreen() ? 'over' : 'side'"
+    [opened]="!isSmallScreen() && session.status() === 'ready'"
+    class="sidenav"
+  >
+    <nav aria-label="Studio-Navigation">
+      <mat-nav-list>
+        @for (item of navigation; track item.link) {
+          <a
+            mat-list-item
+            [routerLink]="item.link"
+            routerLinkActive
+            #active="routerLinkActive"
+            [routerLinkActiveOptions]="{ exact: true }"
+            [activated]="active.isActive"
+            (click)="isSmallScreen() && sidenav.close()"
+          >
+            <mat-icon matListItemIcon [svgIcon]="item.icon" />
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
+      </mat-nav-list>
+    </nav>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <main id="main-content" tabindex="-1" class="content">
+      @switch (session.status()) {
+        @case ('ready') {
+          <router-outlet />
+        }
+        @case ('denied') {
+          <h1>Kein Zugriff</h1>
+          <p class="error">Ihr Benutzerkonto ist keinem aktiven Studio zugeordnet.</p>
+        }
+        @default {
+          <app-loading-indicator />
+        }
+      }
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

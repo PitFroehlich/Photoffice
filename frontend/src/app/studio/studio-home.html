@@ -1,10 +1,18 @@
-@if (user(); as user) {
-  <h1>{{ user.studio.name }}</h1>
-  <p class="welcome">
-    Angemeldet als {{ user.displayName || user.username }}
-    ({{ user.roles.length ? roleLabel(user.roles[0]) : '' }})
-  </p>
-} @else if (accessDenied()) {
-  <h1>Kein Zugriff</h1>
-  <p class="error">Ihr Benutzerkonto ist keinem aktiven Studio zugeordnet.</p>
+@if (session.user(); as user) {
+  <app-page-header title="Übersicht" [subtitle]="user.studio.name" />
+
+  <mat-card appearance="outlined" class="welcome-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar svgIcon="waving_hand" aria-hidden="true" />
+      <mat-card-title class="welcome">Willkommen, {{ user.displayName || user.username }}</mat-card-title>
+      <mat-card-subtitle>Sie arbeiten im Studio „{{ user.studio.name }}“.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-chip-set aria-label="Ihre Rollen">
+        @for (role of roles(); track role) {
+          <mat-chip>{{ role }}</mat-chip>
+        }
+      </mat-chip-set>
+    </mat-card-content>
+  </mat-card>
 }

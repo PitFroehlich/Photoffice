@@ -27,9 +27,15 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "*.svg",
+                "input": "node_modules/@material-symbols/svg-400/outlined",
+                "output": "icons"
               }
             ],
             "styles": [
+              "node_modules/@fontsource-variable/inter/index.css",
               "src/styles.scss"
             ]
           },
