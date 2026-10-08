@@ -1,0 +1,8 @@
+<h1>Photoffice</h1>
+<p>Galerien und Bestellungen für Fotostudios.</p>
+<p><a routerLink="/studio">Zum Studio-Bereich</a></p>
+@if (systemInfo(); as info) {
+  <p class="system-info">Backend: {{ info.name }} {{ info.version }}</p>
+} @else if (backendError()) {
+  <p class="system-info error">Backend nicht erreichbar</p>
+}

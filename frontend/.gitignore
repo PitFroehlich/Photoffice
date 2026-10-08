@@ -45,3 +45,7 @@ Thumbs.db
 
 # Aus ../api/openapi.yaml generierter API-Client (npm run generate:api)
 /src/app/api/
+
+# Playwright
+/test-results/
+/playwright-report/

@@ -15,6 +15,13 @@ spring:
       ddl-auto: validate
   flyway:
     locations: classpath:db/migration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Keycloak-Realm; lokal aus docker-compose.yml
+          issuer-uri: ${OIDC_ISSUER_URI:http://localhost:8180/realms/photoffice}
+          audiences: photoffice-api
   modulith:
     events:
       jdbc:

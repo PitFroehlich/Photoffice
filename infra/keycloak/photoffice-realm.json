@@ -2,16 +2,242 @@
   "realm": "photoffice",
   "enabled": true,
   "displayName": "Photoffice",
+  "organizationsEnabled": true,
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "sslRequired": "external",
+  "roles": {
+    "realm": [
+      {
+        "name": "platform-admin",
+        "description": "Plattform-Betreiber: verwaltet Studios"
+      },
+      {
+        "name": "studio-admin",
+        "description": "Inhaber/Administrator eines Studios"
+      },
+      {
+        "name": "photographer",
+        "description": "Fotograf/Mitarbeiter eines Studios"
+      }
+    ]
+  },
   "clients": [
+    {
+      "clientId": "photoffice-api",
+      "name": "Photoffice API (Audience)",
+      "enabled": true,
+      "bearerOnly": true,
+      "publicClient": false,
+      "standardFlowEnabled": false
+    },
     {
       "clientId": "photoffice-frontend",
       "name": "Photoffice Frontend",
+      "enabled": true,
       "publicClient": true,
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
-      "redirectUris": ["http://localhost:4200/*"],
-      "webOrigins": ["http://localhost:4200"],
-      "attributes": { "pkce.code.challenge.method": "S256" }
+      "redirectUris": [
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "basic",
+        "email",
+        "organization"
+      ],
+      "protocolMappers": [
+        {
+          "name": "audience photoffice-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "photoffice-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ],
+      "fullScopeAllowed": false
+    },
+    {
+      "clientId": "photoffice-dev-cli",
+      "name": "Nur Entwicklung/Tests: Token per Passwort (Direct Access Grant)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "basic",
+        "email",
+        "organization"
+      ],
+      "protocolMappers": [
+        {
+          "name": "audience photoffice-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "photoffice-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ],
+      "fullScopeAllowed": false
+    }
+  ],
+  "scopeMappings": [
+    {
+      "client": "photoffice-frontend",
+      "roles": [
+        "platform-admin",
+        "studio-admin",
+        "photographer"
+      ]
+    },
+    {
+      "client": "photoffice-dev-cli",
+      "roles": [
+        "platform-admin",
+        "studio-admin",
+        "photographer"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "operator",
+      "email": "operator@photoffice.test",
+      "emailVerified": true,
+      "firstName": "Paula",
+      "lastName": "Plattform",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "operator",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "default-roles-photoffice",
+        "platform-admin"
+      ]
+    },
+    {
+      "username": "admin-a",
+      "email": "admin@studio-a.test",
+      "emailVerified": true,
+      "firstName": "Anna",
+      "lastName": "Admin",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin-a",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "default-roles-photoffice",
+        "studio-admin"
+      ]
+    },
+    {
+      "username": "foto-a",
+      "email": "foto@studio-a.test",
+      "emailVerified": true,
+      "firstName": "Felix",
+      "lastName": "Foto",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "foto-a",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "default-roles-photoffice",
+        "photographer"
+      ]
+    },
+    {
+      "username": "admin-b",
+      "email": "admin@studio-b.test",
+      "emailVerified": true,
+      "firstName": "Bernd",
+      "lastName": "Admin",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin-b",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "default-roles-photoffice",
+        "studio-admin"
+      ]
+    }
+  ],
+  "organizations": [
+    {
+      "name": "Studio A",
+      "alias": "studio-a",
+      "enabled": true,
+      "domains": [
+        {
+          "name": "studio-a.test",
+          "verified": false
+        }
+      ],
+      "members": [
+        {
+          "username": "admin-a",
+          "membershipType": "MANAGED"
+        },
+        {
+          "username": "foto-a",
+          "membershipType": "MANAGED"
+        }
+      ]
+    },
+    {
+      "name": "Studio B",
+      "alias": "studio-b",
+      "enabled": true,
+      "domains": [
+        {
+          "name": "studio-b.test",
+          "verified": false
+        }
+      ],
+      "members": [
+        {
+          "username": "admin-b",
+          "membershipType": "MANAGED"
+        }
+      ]
     }
   ]
 }

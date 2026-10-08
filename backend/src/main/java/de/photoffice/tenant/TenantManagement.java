@@ -44,6 +44,11 @@ public class TenantManagement {
 	}
 
 	@Transactional(readOnly = true)
+	public Optional<Tenant> findBySlug(String slug) {
+		return tenants.findBySlug(slug);
+	}
+
+	@Transactional(readOnly = true)
 	public Optional<Tenant> findById(TenantId id) {
 		return tenants.findById(id.value());
 	}

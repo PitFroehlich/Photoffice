@@ -1,5 +1,6 @@
 package de.photoffice.tenant;
 
+import static de.photoffice.identity.TestTokens.platformAdmin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -34,7 +35,7 @@ class PlatformTenantControllerTests {
 			.andExpect(jsonPath("$.name").value("Fotostudio Müller"))
 			.andExpect(jsonPath("$.status").value("ACTIVE"));
 
-		mockMvc.perform(get("/api/platform/tenants"))
+		mockMvc.perform(get("/api/platform/tenants").with(platformAdmin()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$[?(@.slug == '%s')]", slug).exists());
 	}
@@ -52,8 +53,13 @@ class PlatformTenantControllerTests {
 		create("Not A Slug!", "Studio").andExpect(status().isBadRequest());
 	}
 
+	@Test
+	void requiresAuthentication() throws Exception {
+		mockMvc.perform(get("/api/platform/tenants")).andExpect(status().isUnauthorized());
+	}
+
 	private ResultActions create(String slug, String name) throws Exception {
-		return mockMvc.perform(post("/api/platform/tenants").contentType(MediaType.APPLICATION_JSON)
+		return mockMvc.perform(post("/api/platform/tenants").with(platformAdmin()).contentType(MediaType.APPLICATION_JSON)
 			.content("""
 					{"slug": "%s", "name": "%s"}""".formatted(slug, name)));
 	}
