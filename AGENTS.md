@@ -23,6 +23,7 @@ must live in this repository or on GitHub.
 | Who is working on what (tasks) | GitHub Issues + label `in-progress` |
 | What was done in a session and why | `docs/journal/` (one file per session) |
 | Architecture decisions | `docs/decisions/` (ADRs) |
+| What a finished issue looks like | `docs/demos/` (one demo per issue) |
 
 ### At the start of a session
 1. `git fetch --all --prune` and `git pull` on the current branch.
@@ -40,11 +41,37 @@ must live in this repository or on GitHub.
 4. Never push directly to `main`; open a PR with `Closes #<nr>` in the description.
 5. If blocked, set label `blocked` and explain why in an issue comment.
 6. Significant architecture/technology decisions get an ADR in `docs/decisions/`.
+7. Several agents work in parallel – follow "Parallel work" below.
+
+### Parallel work
+- **Flyway migrations:** name new migrations with a timestamp, `V<yyyyMMddHHmm>__<description>.sql`
+  (e.g. `V202610081430__customer.sql`), never "next number" – two branches would both create `V3`.
+  `spring.flyway.out-of-order` is enabled, so a migration merged later with an older timestamp still runs.
+  Never change a migration that is already on `main`.
+- **Shared files** – keep changes small and local, rebase on `main` right before opening the PR and again
+  if `main` moved: `api/openapi.yaml` (add paths/schemas in your own block, don't reorder), `SecurityConfiguration`
+  (one `requestMatchers` line per endpoint group), `AGENTS.md` (own subsection), `app.routes.ts`, `pom.xml`,
+  `package.json` (don't upgrade unrelated dependencies).
+- **Backend modules:** one Spring Modulith module per domain (e.g. `customer`, `gallery`); don't edit another
+  module's internals – use its public API or events, or ask in the other issue.
+- **Before the PR:** `git fetch && git rebase origin/main`, run backend + frontend tests again.
+- Stay inside the scope of your issue; create a new issue for anything else you find.
+
+### Demo after every finished issue (mandatory)
+When an issue is done, show what was built – for the user in the conversation **and** in the repository:
+1. Create `docs/demos/<issue-nr>-<short-topic>.md` from the template in `docs/demos/README.md`:
+   what was implemented, how to try it (users, URLs, commands), screenshots of the UI, API examples with real output.
+2. Screenshots: run the app locally (compose + backend profile `dev` + frontend) and capture with Playwright
+   into `docs/demos/<issue-nr>-<short-topic>/` (PNG, ~1100 px wide). Backend-only issues show `curl` calls with output instead.
+3. Link the demo in the PR description and in the closing comment of the issue.
+4. In the conversation: present the screenshots/outputs and summarise what changed and what is still open.
 
 ### At the end of a session
 1. Write a journal entry `docs/journal/YYYY-MM-DD-<hostname>-<topic>.md` (see `docs/journal/README.md`).
-2. Commit and push your branch; open/update the PR.
-3. Update the issue (comment with status; remove `in-progress` if you stop working on it unfinished).
+2. If the issue is finished: create the demo (see above).
+3. Commit and push your branch; open/update the PR.
+4. Update the issue (comment with status; remove `in-progress` if you stop working on it unfinished).
+5. Stop everything you started locally (backend, `ng serve`, `docker compose down`).
 
 ---
 
@@ -57,10 +84,10 @@ must live in this repository or on GitHub.
 | `frontend/` | Angular 22 SPA (npm) |
 | `docker-compose.yml` | Local infrastructure: PostgreSQL, SeaweedFS (S3), Keycloak, imgproxy |
 | `infra/` | Configuration for the local infrastructure (Keycloak realm, S3 credentials) |
-| `docs/` | Analysis, ADRs, journal |
+| `docs/` | Analysis, ADRs, journal, demos |
 | `legacy/` | Old PHP 5.6 application – reference only, see `legacy/AGENTS.md` |
 
-Decisions behind the stack: `docs/decisions/0003-tech-stack.md`, `0004-local-s3-seaweedfs.md`.
+Decisions behind the stack: `docs/decisions/0003-tech-stack.md`, `0004-local-s3-seaweedfs.md`, `0005-ui-angular-material.md`.
 
 ---
 
@@ -136,7 +163,8 @@ Never edit generated code.
 - Base package `de.photoffice`; **each direct sub-package is a module** (e.g. `system`, later `tenant`, `gallery`, `order`, …). Sub-packages of a module are internal.
 - Modules talk to each other through their public API (types in the module's root package) or **domain events** (`ApplicationEventPublisher` + `@ApplicationModuleListener`). Events are persisted in `event_publication`.
 - `de.photoffice.api` (generated) is an open module.
-- Database: schema only via Flyway migrations in `backend/src/main/resources/db/migration` (`V<n>__<description>.sql`); Hibernate runs with `ddl-auto: validate`.
+- Database: schema only via Flyway migrations in `backend/src/main/resources/db/migration`
+  (`V<yyyyMMddHHmm>__<description>.sql`, see "Parallel work"); Hibernate runs with `ddl-auto: validate`.
 - Money: never floating point.
 
 ### Multi-tenancy (module `tenant`, issue #5)
