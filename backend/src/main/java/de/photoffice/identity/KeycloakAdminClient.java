@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
 
@@ -189,11 +190,26 @@ class KeycloakAdminClient {
 			.toBodilessEntity();
 	}
 
+	/**
+	 * Adds the service account token. A 401 means the cached token is no longer accepted (e.g. Keycloak was
+	 * restarted with new keys): fetch a new token and try once more.
+	 */
 	private ClientHttpRequestInterceptor bearerToken() {
 		return (request, body, execution) -> {
 			request.getHeaders().setBearerAuth(currentAccessToken());
+			ClientHttpResponse response = execution.execute(request, body);
+			if (!response.getStatusCode().isSameCodeAs(HttpStatus.UNAUTHORIZED)) {
+				return response;
+			}
+			response.close();
+			discardAccessToken();
+			request.getHeaders().setBearerAuth(currentAccessToken());
 			return execution.execute(request, body);
 		};
+	}
+
+	private synchronized void discardAccessToken() {
+		accessToken = null;
 	}
 
 	private synchronized String currentAccessToken() {

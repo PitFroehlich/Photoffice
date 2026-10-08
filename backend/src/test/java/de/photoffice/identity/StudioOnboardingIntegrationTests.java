@@ -171,6 +171,23 @@ class StudioOnboardingIntegrationTests {
 		assertThat(keycloakAdmin.organizationsOf(userId)).containsExactly(slug);
 	}
 
+	@Test
+	void fetchesNewServiceAccountTokenWhenTheCachedOneIsRejected() {
+		assertThat(keycloakAdmin.findOrganization("studio-a")).isPresent();
+		// New signing keys (as after recreating the dev Keycloak): tokens issued so far are no longer accepted
+		RestClient admin = masterAdmin();
+		List<Map<String, Object>> keyProviders = admin.get()
+			.uri("/components?type=org.keycloak.keys.KeyProvider")
+			.retrieve()
+			.body(new ParameterizedTypeReference<>() {
+			});
+		keyProviders.stream()
+			.filter(provider -> "rsa-generated".equals(provider.get("providerId")))
+			.forEach(provider -> admin.delete().uri("/components/{id}", provider.get("id")).retrieve().toBodilessEntity());
+
+		assertThat(keycloakAdmin.findOrganization("studio-a")).isPresent();
+	}
+
 	private void awaitOnboarded(Tenant tenant) {
 		await().atMost(Duration.ofSeconds(30))
 			.until(() -> tenantManagement.findById(tenant.id()).orElseThrow().onboarded());

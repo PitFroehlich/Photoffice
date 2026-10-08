@@ -22,7 +22,7 @@ erster Studio-Admin mit Einladung (kein Passwort per Mail), Konsistenz zwischen 
 - Dev-Realm: Client `photoffice-backend` (Service-Account, `realm-management`-Rollen per Scope-Mapping), SMTP auf Mailpit.
   `docker-compose.yml`: Mailpit (http://localhost:8025).
 - ADR 0007, AGENTS.md-Abschnitt "Studio onboarding", Demo `docs/demos/0024-studio-onboarding.md`.
-- Tests: Backend 46 (neu u. a. `StudioOnboardingIntegrationTests` mit Keycloak + Mailpit, 5 neue Controller-Tests),
+- Tests: Backend 47 (neu u. a. `StudioOnboardingIntegrationTests` mit Keycloak + Mailpit, 5 neue Controller-Tests),
   Frontend 26 Unit, Playwright 10 (neu `studio-onboarding.spec.ts`; `loginAs` hat einen optionalen Passwort-Parameter).
 
 ## Open / Next steps
@@ -42,3 +42,6 @@ erster Studio-Admin mit Einladung (kein Passwort per Mail), Konsistenz zwischen 
 - Fehlen Vor-/Nachname, fragt Keycloak sie nach dem Passwort ab (Required Action "Update Account Information").
 - Deaktivierte Organisation: Login funktioniert, aber das Token enthält kein `organization`-Claim.
 - Auf dieser Maschine gibt es kein `25.0.2-tem` aus `.sdkmanrc`; `JAVA_HOME=~/.sdkman/candidates/java/25.0.2-oracle` geht.
+- `KeycloakAdminClient` cacht das Service-Account-Token. Nach einem Neuanlegen des Dev-Keycloak (neue Schlüssel) kam
+  401 → bei 401 wird das Token verworfen und der Aufruf einmal wiederholt. `logout-all` reproduziert das **nicht**
+  (Client-Credentials-Tokens bleiben gültig); der Test löscht deshalb den RSA-Key-Provider.
