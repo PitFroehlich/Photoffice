@@ -23,6 +23,7 @@ Studio verwaltet seine Endkunden (Legacy F5), mandantengetrennt.
 - #8 Galerien ist frei (Kunden-Zuordnung, auf `CustomerDeleted` reagieren).
 
 ## Pitfalls
+- Während der Demo `./mvnw verify` ausgeführt → laufendes Backend-JAR überschrieben → `NoClassDefFoundError`, im UI wie "Login kaputt". Backend für Demos aus einer Kopie der JAR starten (AGENTS.md).
 - Nur Pflichtfeld-/Längenprüfung reicht nicht – der Nutzer erwartet Formatprüfung pro Feld (jetzt im Feature-Rezept).
 - `Validators.email` akzeptiert `a@b`; eigene Regel mit Domain-Endung verwenden.
 - Prozess-PID beim Start in eine Datei schreiben und darüber beenden; `pgrep -f` trifft sonst die eigene Shell, wenn der Startbefehl im selben Aufruf steht.

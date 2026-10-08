@@ -121,6 +121,11 @@ cd frontend && npm install && npm start    # http://localhost:4200, proxies /api
 | imgproxy | http://localhost:8081 (signed URLs only; key/salt in `docker-compose.yml`) | – |
 
 The backend reads `DB_URL`, `DB_USER`, `DB_PASSWORD`, `OIDC_ISSUER_URI` (defaults match the compose setup).
+**Running the backend jar while building:** `./mvnw verify/package` overwrites `target/*.jar`; a backend started
+from that file then fails with `NoClassDefFoundError` (looks like "login broken" in the UI). For demos copy the jar
+first (`cp target/photoffice-backend-*.jar /tmp/backend-run.jar && java -jar /tmp/backend-run.jar ...`) or use
+`./mvnw spring-boot:run`, and remember the PID to stop it (don't `pkill -f` with patterns from your own command).
+
 Profile `dev` adds the studios matching the Keycloak dev realm (Liquibase context `dev`); never enable it in production.
 Local database still from the Flyway era? Reset it once: `docker compose down -v`.
 
