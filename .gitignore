@@ -32,3 +32,6 @@ Thumbs.db
 /tmp/
 /temp/
 *.cache
+
+# Claude Code local settings (machine-specific)
+.claude/settings.local.json
