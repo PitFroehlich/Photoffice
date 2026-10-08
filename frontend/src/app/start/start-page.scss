@@ -1,0 +1,28 @@
+:host {
+  display: block;
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem 2rem;
+}
+
+.hero h1 {
+  font: var(--mat-sys-display-small);
+  color: var(--mat-sys-primary);
+  margin: 0 0 1rem;
+}
+
+.lead {
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-surface-variant);
+  max-width: 38rem;
+}
+
+.actions {
+  margin-top: 2rem;
+}
+
+.status {
+  margin-top: 4rem;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}

@@ -1,32 +1,18 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { Api } from '../api/api';
-import { getCurrentStudioUser } from '../api/functions';
-import { CurrentStudioUser } from '../api/models';
-
-const roleLabels: Record<string, string> = {
-  STUDIO_ADMIN: 'Studio-Administrator',
-  PHOTOGRAPHER: 'Fotograf',
-};
+import { Component, computed, inject } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
+import { PageHeader } from '../shared/ui';
+import { StudioSession, roleLabels } from './studio-session';
 
 @Component({
   selector: 'app-studio-home',
+  imports: [PageHeader, MatCardModule, MatChipsModule, MatIconModule],
   templateUrl: './studio-home.html',
+  styleUrl: './studio-home.scss',
 })
-export class StudioHome implements OnInit {
-  private readonly api = inject(Api);
+export class StudioHome {
+  protected readonly session = inject(StudioSession);
 
-  protected readonly user = signal<CurrentStudioUser | undefined>(undefined);
-  protected readonly accessDenied = signal(false);
-
-  async ngOnInit(): Promise<void> {
-    try {
-      this.user.set(await this.api.invoke(getCurrentStudioUser));
-    } catch {
-      this.accessDenied.set(true);
-    }
-  }
-
-  protected roleLabel(role: string): string {
-    return roleLabels[role] ?? role;
-  }
+  protected readonly roles = computed(() => (this.session.user()?.roles ?? []).map((r) => roleLabels[r] ?? r));
 }

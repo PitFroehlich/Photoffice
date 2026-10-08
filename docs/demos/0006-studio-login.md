@@ -20,31 +20,31 @@
 
 ### Schritt 1: Startseite öffnen
 - **Was tun:** http://localhost:4200 im Browser öffnen.
-- **Was du siehst:** Überschrift "Photoffice", Link "Zum Studio-Bereich", unten "Backend: photoffice-backend 0.0.1-SNAPSHOT", oben rechts der Button "Studio-Login".
+- **Was du siehst:** Startseite "Ihre Bilder. Ihre Kunden. Ein Ort.", unten "Backend: photoffice-backend 0.0.1-SNAPSHOT", oben rechts der Button "Studio-Login". (Design seit #27.)
 
 ### Schritt 2: Geschützten Bereich ohne Login aufrufen
-- **Was tun:** Auf "Zum Studio-Bereich" klicken.
+- **Was tun:** In der Adresszeile http://localhost:4200/studio aufrufen.
 - **Was du siehst:** Du wirst zur Keycloak-Anmeldeseite "Sign in to your account" umgeleitet – der Studio-Bereich ist nur mit Login erreichbar.
 
 ### Schritt 3: Als Studio-Admin von Studio A anmelden
 - **Was tun:** Benutzername `admin-a` eingeben, "Sign In" klicken; auf der nächsten Seite Passwort `admin-a` eingeben, "Sign In".
-- **Was du siehst:** Zurück in Photoffice: Überschrift "Studio A", darunter "Angemeldet als Anna Admin (Studio-Administrator)", oben rechts "Abmelden".
+- **Was du siehst:** Studio-Bereich: oben "Photoffice | Studio A", Seite "Übersicht" mit "Willkommen, Anna Admin" und der Rolle "Studio-Administrator", oben rechts "Anna Admin".
 
 ### Schritt 4: Abmelden
-- **Was tun:** Oben rechts auf "Abmelden" klicken.
+- **Was tun:** Oben rechts auf "Anna Admin" klicken (Benutzermenü), dann "Abmelden".
 - **Was du siehst:** Startseite, oben rechts wieder "Studio-Login".
 
 ### Schritt 5: Als Fotograf anmelden
 - **Was tun:** "Studio-Login" → `foto-a` / `foto-a`.
-- **Was du siehst:** "Studio A", "Angemeldet als Felix Foto (Fotograf)". Danach abmelden.
+- **Was du siehst:** "Studio A", "Willkommen, Felix Foto", Rolle "Fotograf". Danach abmelden.
 
 ### Schritt 6: Anderes Studio
 - **Was tun:** "Studio-Login" → `admin-b` / `admin-b`.
-- **Was du siehst:** Überschrift "Studio B" – der Benutzer sieht nur sein eigenes Studio. Danach abmelden.
+- **Was du siehst:** Oben "Studio B" – der Benutzer sieht nur sein eigenes Studio. Danach abmelden.
 
 ### Schritt 7: Plattform-Betreiber ist kein Studio-Benutzer
 - **Was tun:** "Studio-Login" → `operator` / `operator`.
-- **Was du siehst:** "Kein Zugriff – Ihr Benutzerkonto ist keinem aktiven Studio zugeordnet." Danach abmelden.
+- **Was du siehst:** "Kein Zugriff – Ihr Benutzerkonto ist keinem aktiven Studio zugeordnet." Danach oben rechts "Abmelden".
 
 ### Schritt 8 (optional): Rechte über die API prüfen
 - **Was tun:** Im Terminal:
@@ -63,7 +63,6 @@
 ## Noch offen / Einschränkungen
 - Studios und Keycloak-Organisationen werden noch manuell bzw. über den Dev-Realm angelegt (#24).
 - OIDC-Einstellungen im Frontend fest auf localhost (#28). E2E noch nicht in CI (#25).
-- Schlichtes Design – Angular Material folgt mit #27.
 
 ## Aufräumen
 Backend und Frontend beenden (Strg+C), `docker compose down`.

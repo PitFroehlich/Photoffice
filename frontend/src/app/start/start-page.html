@@ -1,8 +1,28 @@
-<h1>Photoffice</h1>
-<p>Galerien und Bestellungen für Fotostudios.</p>
-<p><a routerLink="/studio">Zum Studio-Bereich</a></p>
-@if (systemInfo(); as info) {
-  <p class="system-info">Backend: {{ info.name }} {{ info.version }}</p>
-} @else if (backendError()) {
-  <p class="system-info error">Backend nicht erreichbar</p>
-}
+<section class="hero">
+  <h1>Ihre Bilder. Ihre Kunden. Ein Ort.</h1>
+  <p class="lead">
+    Photoffice ist die Plattform für Fotostudios: Galerien für Kunden bereitstellen, Abzüge und Downloads verkaufen,
+    Bestellungen abwickeln.
+  </p>
+  <div class="actions">
+    @if (auth.isLoggedIn()) {
+      <a matButton="filled" routerLink="/studio">
+        <mat-icon svgIcon="dashboard" />
+        Zum Studio-Bereich
+      </a>
+    } @else {
+      <button matButton="filled" type="button" (click)="auth.login()">
+        <mat-icon svgIcon="login" />
+        Als Studio anmelden
+      </button>
+    }
+  </div>
+</section>
+
+<footer class="status">
+  @if (systemInfo(); as info) {
+    <span class="system-info">Backend: {{ info.name }} {{ info.version }}</span>
+  } @else if (backendError()) {
+    <span class="system-info error">Backend nicht erreichbar</span>
+  }
+</footer>
