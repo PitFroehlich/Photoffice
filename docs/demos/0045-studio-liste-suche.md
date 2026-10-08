@@ -1,6 +1,6 @@
 # Demo #45: Studio-Liste der Plattform-Verwaltung – Suche, Filter und Seiten
 
-- **Issue / PR:** #45 / (PR folgt)
+- **Issue / PR:** #45 / #48
 - **Datum:** 2026-10-09
 - **Agent / Maschine:** Claude Code / fin-de-nb-0061
 

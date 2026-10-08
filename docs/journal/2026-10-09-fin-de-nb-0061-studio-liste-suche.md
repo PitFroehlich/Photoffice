@@ -2,7 +2,7 @@
 
 - **Date:** 2026-10-09
 - **Machine / Agent:** fin-de-nb-0061 / Claude Code (Worktree, parallel zu #46)
-- **Issue / PR:** #45 / (PR folgt)
+- **Issue / PR:** #45 / #48
 - **Branch:** feature/45-studio-liste-suche (baut auf feature/42-studio-bearbeiten auf)
 
 ## Goal
