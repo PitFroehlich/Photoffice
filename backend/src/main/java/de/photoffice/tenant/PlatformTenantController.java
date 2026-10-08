@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Studio administration for the platform operator.
- * <p>
- * TODO(#6): restrict to the platform operator role – until then these endpoints are unprotected.
+ * Studio administration for the platform operator (access restricted in {@code SecurityConfiguration}).
  */
 @RestController
 @RequestMapping("/api")

@@ -7,9 +7,13 @@ info:
   version: 0.1.0
 servers:
   - url: /api
+security:
+  - bearerAuth: []
 tags:
   - name: system
     description: Technische Informationen über die laufende Anwendung
+  - name: studio
+    description: Funktionen für angemeldete Studio-Benutzer (Mandant aus dem Login)
   - name: platform
     description: Verwaltung der Studios (Mandanten) durch den Plattform-Betreiber
 paths:
@@ -17,6 +21,7 @@ paths:
     get:
       tags: [system]
       operationId: getSystemInfo
+      security: []
       summary: Name und Version der laufenden Anwendung
       responses:
         '200':
@@ -25,6 +30,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SystemInfo'
+  /studio/me:
+    get:
+      tags: [studio]
+      operationId: getCurrentStudioUser
+      summary: Angemeldeter Studio-Benutzer mit seinem Studio und seinen Rollen
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentStudioUser'
+        '401':
+          description: Nicht angemeldet
+        '403':
+          description: Kein Studio-Benutzer oder kein aktives Studio zugeordnet
   /platform/tenants:
     get:
       tags: [platform]
@@ -62,6 +83,10 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Nicht angemeldet
+        '403':
+          description: Keine Berechtigung (nur Plattform-Betreiber)
         '409':
           description: Kürzel (slug) bereits vergeben
           content:
@@ -69,7 +94,40 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
+    CurrentStudioUser:
+      type: object
+      required: [username, roles, studio]
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        displayName:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [STUDIO_ADMIN, PHOTOGRAPHER]
+        studio:
+          $ref: '#/components/schemas/StudioSummary'
+    StudioSummary:
+      type: object
+      required: [id, slug, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
     CreateTenantRequest:
       type: object
       required: [slug, name]

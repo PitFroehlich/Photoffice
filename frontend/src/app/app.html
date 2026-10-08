@@ -1,10 +1,11 @@
-<main class="start">
-  <h1>Photoffice</h1>
-  <p>Neubau – Grundgerüst</p>
-  @if (systemInfo(); as info) {
-    <p class="system-info">Backend: {{ info.name }} {{ info.version }}</p>
-  } @else if (backendError()) {
-    <p class="system-info error">Backend nicht erreichbar</p>
+<header class="top-bar">
+  <a routerLink="/" class="brand">Photoffice</a>
+  @if (auth.isLoggedIn()) {
+    <button type="button" (click)="auth.logout()">Abmelden</button>
+  } @else {
+    <button type="button" (click)="auth.login()">Studio-Login</button>
   }
+</header>
+<main class="content">
+  <router-outlet />
 </main>
-<router-outlet />

@@ -1,47 +1,39 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
-
-/** Wartet, bis die Promise-Kette des API-Aufrufs abgearbeitet und die Ansicht aktualisiert ist. */
-async function settle(fixture: { whenStable(): Promise<unknown>; detectChanges(): void }) {
-  await new Promise((resolve) => setTimeout(resolve));
-  await fixture.whenStable();
-  fixture.detectChanges();
-}
+import { AuthService } from './auth/auth.service';
 
 describe('App', () => {
-  let httpTesting: HttpTestingController;
+  const loggedIn = signal(false);
+  const auth = { isLoggedIn: loggedIn.asReadonly(), login: vi.fn(), logout: vi.fn() };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideRouter([]), { provide: AuthService, useValue: auth }],
     }).compileComponents();
-    httpTesting = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => httpTesting.verify());
-
-  it('shows the backend version from the generated API client', async () => {
+  it('offers the studio login when logged out', async () => {
+    loggedIn.set(false);
     const fixture = TestBed.createComponent(App);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
-    httpTesting.expectOne('/api/system/info').flush({ name: 'photoffice-backend', version: '1.2.3' });
-    await settle(fixture);
-
-    const text = (fixture.nativeElement as HTMLElement).querySelector('.system-info')?.textContent;
-    expect(text).toContain('photoffice-backend 1.2.3');
+    const button = (fixture.nativeElement as HTMLElement).querySelector('button')!;
+    expect(button.textContent).toContain('Studio-Login');
+    button.click();
+    expect(auth.login).toHaveBeenCalled();
   });
 
-  it('shows a hint when the backend is not reachable', async () => {
+  it('offers logout when logged in', async () => {
+    loggedIn.set(true);
     const fixture = TestBed.createComponent(App);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
-    httpTesting.expectOne('/api/system/info').flush(null, { status: 503, statusText: 'Service Unavailable' });
-    await settle(fixture);
-
-    const text = (fixture.nativeElement as HTMLElement).querySelector('.system-info')?.textContent;
-    expect(text).toContain('Backend nicht erreichbar');
+    const button = (fixture.nativeElement as HTMLElement).querySelector('button')!;
+    expect(button.textContent).toContain('Abmelden');
+    button.click();
+    expect(auth.logout).toHaveBeenCalled();
   });
 });

@@ -1,0 +1,10 @@
+@if (user(); as user) {
+  <h1>{{ user.studio.name }}</h1>
+  <p class="welcome">
+    Angemeldet als {{ user.displayName || user.username }}
+    ({{ user.roles.length ? roleLabel(user.roles[0]) : '' }})
+  </p>
+} @else if (accessDenied()) {
+  <h1>Kein Zugriff</h1>
+  <p class="error">Ihr Benutzerkonto ist keinem aktiven Studio zugeordnet.</p>
+}
