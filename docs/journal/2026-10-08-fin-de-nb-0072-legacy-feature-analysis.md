@@ -14,11 +14,15 @@ Bestehende Features der Legacy-App erfassen, für eine Neuentwicklung priorisier
 - Offene fachliche Fragen mit dem Nutzer geklärt und in Abschnitt 6 der Analyse dokumentiert: Studios unabhängig, Zugang per Galerie-Link mit Code, Abzüge + Downloads, externer Druck-Service, SaaS mit Abo nach Speicherplatz, `nurpreise` entfällt, keine öffentlichen Galerien/Rechnungen in V1. Neue Features F17–F19, Priorisierung angepasst.
 - Folgefragen geklärt (Fragen 8–12): optionales Kundenkonto (F20), Zahlungsempfänger und Druck-Anbieter noch offen → austauschbare Schnittstellen, Downloads pro Bild und als Paket, Studio-Abos automatisch über Zahlungsanbieter.
 
+- `docs/decisions/0003-tech-stack.md`: Java + Spring Boot/Modulith, Angular, PostgreSQL mit RLS, S3 Object Storage, imgproxy (OSS) + Wasserzeichen-Vorschau per libvips (vips-ffm) im Backend, Keycloak, Bezahlung anbieter-agnostisch, EU-Cloud mit Containern.
+
 ## Open / Next steps
 - Noch offen: Wer kassiert (Studio/Plattform/Druck-Service)? Welcher Druck-Service-Anbieter?
-- Tech-Stack wählen (eigenes ADR).
+- Eigene ADRs vor Umsetzung: Zahlungsanbieter, Druck-Service-Anbieter, Orchestrierung (k3s vs. managed Kubernetes).
+- `AGENTS.md` um Setup/Konventionen des Neubaus ergänzen, sobald Code existiert.
 - Danach gemeinsam Issues für P0/P1 anlegen.
 
 ## Pitfalls
+- imgproxy OSS kann nur ein global konfiguriertes Wasserzeichen; `watermark_url`/`watermark_text` sind Pro-Features → Grund für Backend-Rendering der Wasserzeichen-Vorschau.
 - Kundenbereich der Legacy-App ist nicht lauffähig: 7 Controller referenzieren gelöschte Behavior-Klassen (Commits b3060e9, 68849f8).
 - Die Analyse ist statisch; die App wurde nicht im Docker-Container gestartet.
