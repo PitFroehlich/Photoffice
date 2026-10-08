@@ -10,7 +10,8 @@ export const customerPatterns = {
   phone: /^\+?[0-9][0-9 ()/-]{3,28}[0-9]$/u,
   postalCode: /^[0-9]{4,5}$/u,
   city: /^\p{L}[\p{L} .'()/-]*$/u,
-  street: /^(?=.*\p{L})[\p{L}0-9 .,'/-]+$/u,
+  // Street name (may contain digits, e.g. "Straße des 17. Juni") followed by a house number: 4, 4a, 1/2, 10-12
+  street: /^(?=.*\p{L})[\p{L}0-9 .,'-]*[\p{L}.]\s+[0-9]+\s*[a-zA-Z]?(\s*[-/]\s*[0-9]+\s*[a-zA-Z]?)*$/u,
 };
 
 export const customerHints = {
@@ -19,7 +20,7 @@ export const customerHints = {
   phone: 'Nur Ziffern, Leerzeichen und + - / ( ), mindestens 5 Zeichen',
   postalCode: '4 oder 5 Ziffern',
   city: 'Nur Buchstaben, Leerzeichen und - . \' ( ) /',
-  street: 'Straße und Hausnummer, z. B. Lindenstraße 4',
+  street: 'Straße mit Hausnummer, z. B. Lindenstraße 4 oder Am Markt 1/2',
 };
 
 /** Like Validators.pattern, but on the trimmed value; empty values are left to Validators.required. */

@@ -36,10 +36,11 @@
 
 ### Schritt 4: Eingaben werden geprüft
 - **Was tun:** "Neuer Kunde" → sofort "Speichern". Dann nacheinander tippen: Vorname `Julia2`, Telefon `abc`,
-  PLZ `12a`, E-Mail `julia@example`.
+  PLZ `12a`, Straße `Lindenstraße` (ohne Hausnummer), E-Mail `julia@example`.
 - **Was du siehst:** Zuerst "Pflichtfeld" unter Vorname, Nachname und E-Mail. Beim Tippen erscheint sofort ein
   passender Hinweis: "Nur Buchstaben, Leerzeichen, Bindestrich, Apostroph und Punkt", "Nur Ziffern, Leerzeichen und
-  + - / ( ), mindestens 5 Zeichen", "4 oder 5 Ziffern", "Bitte eine gültige E-Mail-Adresse eingeben, z. B.
+  + - / ( ), mindestens 5 Zeichen", "4 oder 5 Ziffern", "Straße mit Hausnummer, z. B. Lindenstraße 4 oder
+  Am Markt 1/2", "Bitte eine gültige E-Mail-Adresse eingeben, z. B.
   name@beispiel.de". "Speichern" schickt nichts ab, solange Fehler da sind. Das Backend prüft dieselben Regeln.
 
 ### Schritt 4b: Doppelte E-Mail
@@ -68,7 +69,7 @@
   Studio A sind für Studio B nicht vorhanden.
 
 ## Automatisch abgesichert
-- Backend (89 Tests): u. a. Anlegen/Lesen/Ändern/Löschen, Suche inkl. Sonderzeichen, Seitenwechsel, doppelte E-Mail,
+- Backend (98 Tests): u. a. Anlegen/Lesen/Ändern/Löschen, Suche inkl. Sonderzeichen, Seitenwechsel, doppelte E-Mail,
   Validierung, und 3 Tests zur Trennung der Studios.
 - Formatregeln: 40 Backend-Prüfungen mit realistischen und unsinnigen Werten, Frontend-Tests und ein Playwright-Szenario.
 - Frontend: 11 Unit-Tests für Liste/Formular; Playwright (5 Kunden-Szenarien inkl. Studio-Trennung).

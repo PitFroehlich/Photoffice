@@ -21,7 +21,9 @@ public record CustomerData(String firstName, String lastName, String email, Stri
 
 	static final Pattern CITY = Pattern.compile("^\\p{L}[\\p{L} .'()/-]*$");
 
-	static final Pattern STREET = Pattern.compile("^(?=.*\\p{L})[\\p{L}0-9 .,'/-]+$");
+	/** Street name (may contain digits, e.g. "Straße des 17. Juni") followed by a house number like 4, 4a, 1/2, 10-12. */
+	static final Pattern STREET = Pattern.compile(
+			"^(?=.*\\p{L})[\\p{L}0-9 .,'-]*[\\p{L}.]\\s+[0-9]+\\s*[a-zA-Z]?(\\s*[-/]\\s*[0-9]+\\s*[a-zA-Z]?)*$");
 
 	public CustomerData {
 		firstName = check(required(firstName, "Vorname"), NAME,
@@ -31,7 +33,7 @@ public record CustomerData(String firstName, String lastName, String email, Stri
 		email = check(required(email, "E-Mail"), EMAIL, "E-Mail: bitte eine gültige E-Mail-Adresse angeben")
 			.toLowerCase(Locale.ROOT);
 		phone = check(optional(phone), PHONE, "Telefon: nur Ziffern, Leerzeichen und + - / ( ), mindestens 5 Zeichen");
-		street = check(optional(street), STREET, "Straße: Buchstaben, Ziffern und . , ' / -");
+		street = check(optional(street), STREET, "Straße: Straße mit Hausnummer, z. B. Lindenstraße 4 oder Am Markt 1/2");
 		postalCode = check(optional(postalCode), POSTAL_CODE, "PLZ: 4 oder 5 Ziffern");
 		city = check(optional(city), CITY, "Ort: nur Buchstaben, Leerzeichen und - . ' ( ) /");
 		notes = optional(notes);

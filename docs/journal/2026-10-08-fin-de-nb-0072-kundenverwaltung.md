@@ -19,10 +19,13 @@ Studio verwaltet seine Endkunden (Legacy F5), mandantengetrennt.
 - Nach Feedback des Nutzers in der Demo: Formatprüfung aller Felder (Name, E-Mail mit Domain-Endung, Telefon, PLZ, Ort, Straße) in Frontend (`customer-validators.ts`) und Backend (`CustomerData`), feldspezifische Hinweise, Fehler schon beim Tippen (`ShowOnDirtyErrorStateMatcher`).
 - Zweite Claude-Session (Hintergrund, eigener Worktree unter `.claude/worktrees/`, in `.gitignore`) bearbeitet #13.
 
+- Nutzer-Feedback: Straße muss eine Hausnummer enthalten (4, 4a, 1/2, 10-12; Ziffern im Straßennamen wie "Straße des 17. Juni 135" erlaubt).
+
 ## Open / Next steps
 - #8 Galerien ist frei (Kunden-Zuordnung, auf `CustomerDeleted` reagieren).
 
 ## Pitfalls
+- `cmd && … && nohup java … &` schickt die ganze Kette in den Hintergrund – `$!` ist dann nicht die Java-PID, das alte Backend lief weiter und das neue scheiterte am belegten Port. Start als eigene Anweisung, Port-Besitzer prüfen.
 - Während der Demo `./mvnw verify` ausgeführt → laufendes Backend-JAR überschrieben → `NoClassDefFoundError`, im UI wie "Login kaputt". Backend für Demos aus einer Kopie der JAR starten (AGENTS.md).
 - Nur Pflichtfeld-/Längenprüfung reicht nicht – der Nutzer erwartet Formatprüfung pro Feld (jetzt im Feature-Rezept).
 - `Validators.email` akzeptiert `a@b`; eigene Regel mit Domain-Endung verwenden.

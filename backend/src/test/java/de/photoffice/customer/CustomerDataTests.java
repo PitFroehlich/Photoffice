@@ -20,7 +20,9 @@ class CustomerDataTests {
 	@CsvSource(delimiter = '|', value = {
 			"firstName | Anne-Marie", "firstName | Zoë", "firstName | D'Angelo", "lastName | von der Heide",
 			"lastName | Müller-Lüdenscheidt", "email | a.b+c@sub.example.de", "phone | 0171 1234567",
-			"phone | +49 (30) 123-456", "phone | 030/555123", "street | Lindenstraße 4a", "street | Am Markt 1/2",
+			"phone | +49 (30) 123-456", "phone | 030/555123", "street | Lindenstraße 4", "street | Lindenstraße 4a",
+			"street | Lindenstraße 4 a", "street | Am Markt 1/2", "street | Lange Reihe 10-12", "street | Hauptstr. 12",
+			"street | Hauptstraße 5/3/12", "street | Straße des 17. Juni 135",
 			"postalCode | 10969", "postalCode | 1010", "city | Frankfurt (Oder)", "city | Bad Homburg v. d. Höhe",
 			"city | Saint-Étienne" })
 	void acceptsRealisticValues(String field, String value) {
@@ -32,7 +34,7 @@ class CustomerDataTests {
 			"firstName | Julia2", "firstName | 123", "firstName | <script>", "lastName | -Becker",
 			"email | julia@example", "email | julia@@example.test", "email | julia example@test.de",
 			"phone | abc", "phone | 0171 12x4567", "phone | 12", "phone | ++49 171", "street | 12345",
-			"street | Lindenstraße #4", "postalCode | ABCDE", "postalCode | 123", "postalCode | 123456",
+			"street | Lindenstraße #4", "street | Lindenstraße", "street | Am Markt", "street | 4 Lindenstraße", "postalCode | ABCDE", "postalCode | 123", "postalCode | 123456",
 			"city | 10115 Berlin", "city | Berlin!" })
 	void rejectsGarbage(String field, String value) {
 		assertThatIllegalArgumentException().isThrownBy(() -> with(field, value));

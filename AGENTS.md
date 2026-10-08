@@ -122,9 +122,15 @@ cd frontend && npm install && npm start    # http://localhost:4200, proxies /api
 
 The backend reads `DB_URL`, `DB_USER`, `DB_PASSWORD`, `OIDC_ISSUER_URI` (defaults match the compose setup).
 **Running the backend jar while building:** `./mvnw verify/package` overwrites `target/*.jar`; a backend started
-from that file then fails with `NoClassDefFoundError` (looks like "login broken" in the UI). For demos copy the jar
-first (`cp target/photoffice-backend-*.jar /tmp/backend-run.jar && java -jar /tmp/backend-run.jar ...`) or use
-`./mvnw spring-boot:run`, and remember the PID to stop it (don't `pkill -f` with patterns from your own command).
+from that file then fails with `NoClassDefFoundError` (looks like "login broken" in the UI). For demos start from a
+**fresh copy per start** and record the real Java PID – `nohup … &` as its own statement, not at the end of an
+`&&` chain (then `$!` is the PID of a subshell):
+```bash
+JAR=/tmp/backend-$(date +%s).jar; cp backend/target/photoffice-backend-*.jar "$JAR"
+nohup java -jar "$JAR" --spring.profiles.active=dev > /tmp/backend.log 2>&1 &
+echo $! > /tmp/backend.pid      # stop with: kill "$(cat /tmp/backend.pid)"
+```
+Check with `ss -ltnp | grep :8080` that the PID really owns the port. Don't `pkill -f` with patterns from your own command.
 
 Profile `dev` adds the studios matching the Keycloak dev realm (Liquibase context `dev`); never enable it in production.
 Local database still from the Flyway era? Reset it once: `docker compose down -v`.

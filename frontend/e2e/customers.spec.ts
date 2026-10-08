@@ -83,6 +83,8 @@ test('format rules are checked while typing', async ({ page }) => {
   await expect(page.getByText('Nur Ziffern, Leerzeichen und + - / ( ), mindestens 5 Zeichen')).toBeVisible();
   await page.getByLabel('PLZ').fill('12a');
   await expect(page.getByText('4 oder 5 Ziffern')).toBeVisible();
+  await page.getByLabel('Straße und Hausnummer').fill('Lindenstraße');
+  await expect(page.getByText('Straße mit Hausnummer, z. B. Lindenstraße 4 oder Am Markt 1/2')).toBeVisible();
   await page.getByLabel('E-Mail').fill('julia@example');
   await expect(page.getByText('Bitte eine gültige E-Mail-Adresse eingeben, z. B. name@beispiel.de')).toBeVisible();
 

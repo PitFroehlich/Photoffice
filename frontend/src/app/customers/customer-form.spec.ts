@@ -145,7 +145,8 @@ describe('CustomerForm validation rules', () => {
     expect(await errorFor(fixture, 'firstName', 'Julia2')).toContain('Nur Buchstaben');
     expect(await errorFor(fixture, 'email', 'julia@example')).toContain('gültige E-Mail-Adresse');
     expect(await errorFor(fixture, 'city', '10115 Berlin')).toContain('Nur Buchstaben');
-    expect(await errorFor(fixture, 'street', '12345')).toContain('Straße und Hausnummer');
+    expect(await errorFor(fixture, 'street', '12345')).toContain('Straße mit Hausnummer');
+    expect(await errorFor(fixture, 'street', 'Lindenstraße')).toContain('Straße mit Hausnummer');
   });
 
   it('accepts realistic values, also with surrounding spaces', async () => {
@@ -156,5 +157,7 @@ describe('CustomerForm validation rules', () => {
     expect(await errorFor(fixture, 'firstName', ' Zoë ')).toBeNull();
     expect(await errorFor(fixture, 'city', 'Frankfurt (Oder)')).toBeNull();
     expect(await errorFor(fixture, 'street', 'Lindenstraße 4a')).toBeNull();
+    expect(await errorFor(fixture, 'street', 'Am Markt 1/2')).toBeNull();
+    expect(await errorFor(fixture, 'street', 'Straße des 17. Juni 135')).toBeNull();
   });
 });
