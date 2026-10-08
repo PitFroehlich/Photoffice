@@ -2,7 +2,7 @@
 
 - **Date:** 2026-10-08
 - **Machine / Agent:** fin-de-nb-0061 / Claude Code
-- **Issue / PR:** #24 / (siehe PR zu #24)
+- **Issue / PR:** #24 / #33
 - **Branch:** feature/24-studio-onboarding
 
 ## Goal

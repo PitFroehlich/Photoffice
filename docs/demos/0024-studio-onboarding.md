@@ -1,6 +1,6 @@
 # Demo #24: Studio-Onboarding – Keycloak-Organisation und erster Studio-Admin automatisch
 
-- **Issue / PR:** #24 / (siehe PR zu #24)
+- **Issue / PR:** #24 / #33
 - **Datum:** 2026-10-08
 - **Agent / Maschine:** Claude Code / fin-de-nb-0061
 
