@@ -1,0 +1,101 @@
+<app-page-header
+  title="Rechtstexte"
+  subtitle="AGB, Widerrufsbelehrung, Impressum und Datenschutzerklärung für Ihre Kunden"
+>
+  <a matButton="outlined" routerLink="/studio/profil" actions>Studio-Profil</a>
+</app-page-header>
+
+@if (loading()) {
+  <app-loading-indicator />
+} @else {
+  <p class="note" role="note">
+    <mat-icon svgIcon="info" aria-hidden="true" />
+    <span>
+      Ihre Kunden sehen diese Texte später in der Galerie und im Checkout.
+      @if (canEdit()) {
+        Die Gliederungsvorschläge sind nur eine Hilfe zum Aufbau und keine Rechtsberatung – bitte
+        lassen Sie Ihre Texte rechtlich prüfen.
+      } @else {
+        Nur Studio-Administratoren können die Rechtstexte ändern.
+      }
+    </span>
+  </p>
+
+  <mat-tab-group mat-stretch-tabs="false" animationDuration="0ms">
+    @for (kind of kinds; track kind) {
+      <mat-tab [label]="labels[kind].tab + (unsaved().has(kind) ? ' *' : '')">
+        <div class="tab-content">
+          @if (canEdit()) {
+            <div class="editor-layout">
+              <section class="editor" [attr.aria-label]="labels[kind].title + ' bearbeiten'">
+                <mat-form-field class="full">
+                  <mat-label>{{ labels[kind].title }} (Markdown)</mat-label>
+                  <textarea
+                    matInput
+                    [formControl]="form.controls[kind]"
+                    rows="18"
+                    [attr.maxlength]="maxLength"
+                    [placeholder]="placeholder(kind)"
+                  ></textarea>
+                  <mat-hint>
+                    # Überschrift, **fett**, *kursiv*, - Liste, [Link](https://…) – HTML wird als
+                    Text angezeigt
+                  </mat-hint>
+                  <mat-hint align="end">{{ value(kind).length }} / {{ maxLength }}</mat-hint>
+                  <mat-error
+                    ><app-field-error [control]="form.controls[kind]" [patternHint]="patternHint"
+                  /></mat-error>
+                </mat-form-field>
+                <div class="editor-actions">
+                  @if (saved()[kind]?.updatedAt; as updated) {
+                    <span class="status">Gespeichert: {{ formatDateTime(updated) }} Uhr</span>
+                  }
+                  @if (unsaved().has(kind)) {
+                    <span class="status unsaved">Ungespeicherte Änderungen</span>
+                  }
+                  @if (!value(kind).trim()) {
+                    <button matButton="outlined" type="button" (click)="insertOutline(kind)">
+                      Gliederung einfügen
+                    </button>
+                  }
+                  <button
+                    matButton="filled"
+                    type="button"
+                    [disabled]="saving() === kind || !unsaved().has(kind)"
+                    (click)="save(kind)"
+                  >
+                    {{ labels[kind].tab }} speichern
+                  </button>
+                </div>
+              </section>
+              <section class="preview" [attr.aria-label]="'Vorschau ' + labels[kind].title">
+                <h2 class="preview-title">Vorschau</h2>
+                @if (value(kind).trim()) {
+                  <app-markdown-view [markdown]="value(kind)" />
+                } @else {
+                  <p class="preview-empty">
+                    Noch kein Text – die Vorschau erscheint beim Schreiben.
+                  </p>
+                }
+              </section>
+            </div>
+          } @else {
+            @if (value(kind).trim()) {
+              <mat-card appearance="outlined" class="read-only">
+                <mat-card-content>
+                  <app-markdown-view [markdown]="value(kind)" />
+                </mat-card-content>
+              </mat-card>
+            } @else {
+              <app-empty-state
+                icon="description"
+                [title]="labels[kind].title + ' fehlt noch'"
+                message="Ein Studio-Administrator kann den Text hier hinterlegen."
+              />
+            }
+          }
+        </div>
+      </mat-tab>
+    }
+  </mat-tab-group>
+}

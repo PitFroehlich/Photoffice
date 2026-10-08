@@ -18,6 +18,8 @@ tags:
     description: Endkunden des Studios (Mandant aus dem Login)
   - name: price-list
     description: Preisliste des Studios – Produkte, Download-Pakete, Versandarten (Mandant aus dem Login)
+  - name: studio-profile
+    description: Studio-Profil (Stammdaten) und Rechtstexte des Studios (Mandant aus dem Login)
   - name: platform
     description: Verwaltung der Studios (Mandanten) durch den Plattform-Betreiber
 paths:
@@ -556,6 +558,98 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
   # --- end price list ---
+  # --- studio profile (#20) ---
+  /studio/profile:
+    get:
+      tags: [studio-profile]
+      operationId: getStudioProfile
+      summary: Studio-Profil (Stammdaten) des Studios
+      description: |
+        Lesen dürfen alle Studio-Benutzer, ändern nur Studio-Administratoren. Hat das Studio noch kein Profil
+        gespeichert, kommt ein leeres Profil mit dem Studionamen als Anzeigename und Land DE (ohne updatedAt).
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudioProfile'
+    put:
+      tags: [studio-profile]
+      operationId: updateStudioProfile
+      summary: Studio-Profil speichern (nur Studio-Administratoren)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudioProfileInput'
+      responses:
+        '200':
+          description: Gespeichert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudioProfile'
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Nur Studio-Administratoren dürfen das Studio-Profil ändern
+  /studio/profile/legal-texts:
+    get:
+      tags: [studio-profile]
+      operationId: listLegalTexts
+      summary: Rechtstexte des Studios (AGB, Widerrufsbelehrung, Impressum, Datenschutzerklärung)
+      description: |
+        Liefert immer alle vier Texte in fester Reihenfolge; noch nicht gepflegte Texte haben einen leeren
+        Markdown-Text und kein updatedAt. Die Texte sind Markdown; HTML darin wird bei der Anzeige nicht
+        ausgeführt, sondern als Text dargestellt.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LegalText'
+  /studio/profile/legal-texts/{kind}:
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/LegalTextKind'
+    put:
+      tags: [studio-profile]
+      operationId: updateLegalText
+      summary: Einen Rechtstext speichern (nur Studio-Administratoren); leerer Text entfernt ihn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegalTextInput'
+      responses:
+        '200':
+          description: Gespeichert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalText'
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Nur Studio-Administratoren dürfen Rechtstexte ändern
+  # --- end studio profile ---
   /platform/tenants:
     get:
       tags: [platform]
@@ -961,6 +1055,100 @@ components:
           items:
             $ref: '#/components/schemas/ShippingMethod'
     # --- end price list ---
+    # --- studio profile (#20) ---
+    Country:
+      description: Land der Studio-Adresse (bestimmt das PLZ-Format)
+      type: string
+      enum: [DE, AT, CH]
+    StudioProfileInput:
+      description: |
+        Stammdaten des Studios, die Kunden später in Galerie, Checkout und Impressum sehen. Leere optionale Felder
+        werden entfernt. Formatregeln wie im Frontend; Kontoinhaber und IBAN nur gemeinsam.
+      type: object
+      required: [displayName, country]
+      properties:
+        displayName:
+          description: Name, unter dem das Studio auftritt
+          type: string
+          maxLength: 100
+          example: Lichtblick Fotografie
+        street:
+          description: Straße mit Hausnummer
+          type: string
+          maxLength: 200
+        postalCode:
+          description: DE 5 Ziffern, AT/CH 4 Ziffern
+          type: string
+          maxLength: 10
+        city:
+          type: string
+          maxLength: 100
+        country:
+          $ref: '#/components/schemas/Country'
+        email:
+          type: string
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 30
+        website:
+          description: Wird mit https:// gespeichert, wenn kein Schema angegeben ist
+          type: string
+          maxLength: 200
+        taxNumber:
+          description: Steuernummer, 8 bis 13 Ziffern mit / - oder Leerzeichen
+          type: string
+          maxLength: 30
+        vatId:
+          description: USt-IdNr. bzw. UID (DE123456789, ATU12345678, CHE-123.456.789 MWST); gespeichert ohne Leerzeichen
+          type: string
+          maxLength: 30
+        accountHolder:
+          type: string
+          maxLength: 100
+        iban:
+          description: IBAN mit gültiger Prüfsumme; gespeichert ohne Leerzeichen in Großbuchstaben
+          type: string
+          maxLength: 42
+        bic:
+          description: BIC mit 8 oder 11 Zeichen
+          type: string
+          maxLength: 11
+    StudioProfile:
+      allOf:
+        - $ref: '#/components/schemas/StudioProfileInput'
+        - type: object
+          properties:
+            updatedAt:
+              description: Fehlt, solange das Profil noch nie gespeichert wurde
+              type: string
+              format: date-time
+    LegalTextKind:
+      description: |
+        TERMS_AND_CONDITIONS = AGB, CANCELLATION_POLICY = Widerrufsbelehrung, IMPRINT = Impressum,
+        PRIVACY_POLICY = Datenschutzerklärung
+      type: string
+      enum: [TERMS_AND_CONDITIONS, CANCELLATION_POLICY, IMPRINT, PRIVACY_POLICY]
+    LegalTextInput:
+      type: object
+      required: [markdown]
+      properties:
+        markdown:
+          description: Text als Markdown (höchstens 50.000 Zeichen); leer = Text entfernen
+          type: string
+          maxLength: 50000
+    LegalText:
+      type: object
+      required: [kind, markdown]
+      properties:
+        kind:
+          $ref: '#/components/schemas/LegalTextKind'
+        markdown:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+    # --- end studio profile ---
     CurrentStudioUser:
       type: object
       required: [username, roles, studio]

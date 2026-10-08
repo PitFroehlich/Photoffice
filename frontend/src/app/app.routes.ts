@@ -77,6 +77,16 @@ export const routes: Routes = [
         title: 'Versandart bearbeiten',
         loadComponent: () => import('./price-list/shipping-method-form').then((m) => m.ShippingMethodForm),
       },
+      {
+        path: 'profil',
+        title: 'Studio-Profil',
+        loadComponent: () => import('./studio-profile/studio-profile-form').then((m) => m.StudioProfileForm),
+      },
+      {
+        path: 'rechtstexte',
+        title: 'Rechtstexte',
+        loadComponent: () => import('./studio-profile/legal-texts-page').then((m) => m.LegalTextsPage),
+      },
       ...(isDevMode()
         ? [
             {

@@ -1,0 +1,65 @@
+.card {
+  max-width: 48rem;
+}
+
+fieldset {
+  border: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+legend {
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-on-surface-variant);
+  margin-bottom: 0.75rem;
+}
+
+.read-only-hint,
+.section-hint {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+  margin: 0 0 1rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1rem;
+
+  &.postal {
+    grid-template-columns: 10rem 1fr;
+  }
+
+  &.bank {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  @media (max-width: 600px) {
+    &,
+    &.postal,
+    &.bank {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+mat-form-field {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+mat-form-field.country {
+  max-width: 16rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+}
+
+.updated-at {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}

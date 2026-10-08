@@ -38,6 +38,9 @@ class SecurityConfiguration {
 			// Price list (#13): every studio member reads, only studio administrators change prices
 			.requestMatchers(HttpMethod.GET, "/api/studio/price-list/**").access(studioMember)
 			.requestMatchers("/api/studio/price-list/**").access(AuthorizationManagers.allOf(studioMember, AuthorityAuthorizationManager.hasRole(Roles.STUDIO_ADMIN)))
+			// Studio profile and legal texts (#20): every studio member reads, only studio administrators change them
+			.requestMatchers(HttpMethod.GET, "/api/studio/profile/**").access(studioMember)
+			.requestMatchers("/api/studio/profile/**").access(AuthorizationManagers.allOf(studioMember, AuthorityAuthorizationManager.hasRole(Roles.STUDIO_ADMIN)))
 			.requestMatchers("/api/studio/**").access(studioMember)
 			.anyRequest().denyAll())
 			.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
