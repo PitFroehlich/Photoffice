@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import de.photoffice.TestcontainersConfiguration;
 import de.photoffice.tenant.InitialStudioAdmin;
 import de.photoffice.tenant.TenantManagement;
-import java.nio.file.Path;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -23,14 +23,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.MountableFile;
 
 /**
  * End-to-end check of the Keycloak realm in {@code infra/keycloak/photoffice-realm.json} against the backend:
- * real tokens (organization claim, realm roles, audience) must lead to the right studio.
+ * real tokens (organization claim, realm roles, audience) must lead to the right studio; the login pages use the
+ * German Photoffice theme (issue #36).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -39,13 +38,7 @@ import org.testcontainers.utility.MountableFile;
 class KeycloakIntegrationTests {
 
 	@Container
-	static final GenericContainer<?> keycloak = new GenericContainer<>("quay.io/keycloak/keycloak:26.8")
-		.withCommand("start-dev", "--import-realm")
-		.withCopyFileToContainer(
-				MountableFile.forHostPath(Path.of("../infra/keycloak/photoffice-realm.json").toAbsolutePath()),
-				"/opt/keycloak/data/import/photoffice-realm.json")
-		.withExposedPorts(8080)
-		.waitingFor(Wait.forHttp("/realms/photoffice").forPort(8080).forStatusCode(200));
+	static final GenericContainer<?> keycloak = DevKeycloakContainer.create();
 
 	@DynamicPropertySource
 	static void issuer(DynamicPropertyRegistry registry) {
@@ -114,6 +107,23 @@ class KeycloakIntegrationTests {
 
 		mockMvc.perform(get("/api/studio/me").header("Authorization", "Bearer " + tampered))
 			.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void loginPageIsGermanAndUsesThePhotofficeTheme() {
+		// German even if the browser prefers English: the realm offers German only (issue #36)
+		String loginPage = RestClient.create()
+			.get()
+			.uri(issuerUri() + "/protocol/openid-connect/auth?client_id=photoffice-frontend&response_type=code&scope=openid"
+					+ "&redirect_uri=http://localhost:4200/&code_challenge_method=S256"
+					+ "&code_challenge=Rkz4ypGlYEXqCTI0h1vZ8_wWbGUDaqlAEanUuBb_r9U")
+			.header(HttpHeaders.ACCEPT_LANGUAGE, "en-US,en;q=0.9")
+			.retrieve()
+			.body(String.class);
+
+		assertThat(loginPage).contains("lang=\"de\"")
+			.contains("Bei Photoffice anmelden")
+			.contains("/login/photoffice/css/photoffice.css");
 	}
 
 	private static String issuerUri() {

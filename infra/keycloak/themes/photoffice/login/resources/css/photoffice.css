@@ -1,0 +1,151 @@
+/*
+ * Photoffice design for the Keycloak login pages (issue #36, ADR 0009).
+ * Builds on the standard theme "keycloak.v2" (PatternFly 5): only colours, font, shapes and the logo are changed here.
+ * Values match the frontend theme (frontend/src/styles.scss, frontend/src/styles/_theme-colors.scss):
+ * primary petrol #1F4E5F, tertiary copper #C8794A, warm neutral, font Inter (self-hosted, no CDN).
+ */
+
+@font-face {
+    font-family: 'Inter Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url('../fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
+}
+
+:root {
+    /* Photoffice tokens (Material palettes of the frontend) */
+    --po-primary: #1f4e5f;           /* petrol */
+    --po-primary-dark: #003545;      /* primary 20 – hover/pressed */
+    --po-primary-container: #bce9fe; /* primary 90 */
+    --po-tertiary: #c8794a;          /* copper accent */
+    --po-surface: #fff8f5;           /* neutral 98 */
+    --po-surface-container: #f9efe8; /* neutral 95 */
+    --po-on-surface: #1f1b17;        /* neutral 10 */
+    --po-on-surface-variant: #4b4641;/* neutral 30 */
+    --po-outline: #cec5bf;           /* neutral 80 */
+    --po-font: 'Inter Variable', system-ui, sans-serif;
+
+    /* Keycloak v2 theme variables */
+    --keycloak-card-top-color: var(--po-tertiary);
+
+    /* PatternFly 5: colours */
+    --pf-v5-global--primary-color--100: var(--po-primary);
+    --pf-v5-global--primary-color--200: var(--po-primary-dark);
+    --pf-v5-global--primary-color--dark-100: var(--po-primary);
+    --pf-v5-global--link--Color: var(--po-primary);
+    --pf-v5-global--link--Color--hover: var(--po-primary-dark);
+    --pf-v5-global--link--Color--dark: var(--po-primary);
+    --pf-v5-global--link--Color--dark--hover: var(--po-primary-dark);
+    --pf-v5-global--link--Color--visited: var(--po-primary);
+    --pf-v5-global--active-color--100: var(--po-primary);
+    --pf-v5-global--Color--100: var(--po-on-surface);
+    --pf-v5-global--Color--200: var(--po-on-surface-variant);
+
+    /* PatternFly 5: typography */
+    --pf-v5-global--FontFamily--text: var(--po-font);
+    --pf-v5-global--FontFamily--text--vf: var(--po-font);
+    --pf-v5-global--FontFamily--heading: var(--po-font);
+    --pf-v5-global--FontFamily--heading--vf: var(--po-font);
+}
+
+/* Calm, warm background instead of the Keycloak picture */
+.login-pf body {
+    background: var(--po-surface-container);
+    color: var(--po-on-surface);
+    font-family: var(--po-font);
+}
+
+/* Brand: camera icon + "Photoffice" in petrol, like the top bar of the app */
+#kc-header-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    font-family: var(--po-font);
+    font-size: 1.75rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--po-primary) !important;
+}
+
+#kc-header-wrapper::before {
+    content: '';
+    display: inline-block;
+    width: 2.25rem;
+    height: 2.25rem;
+    background-color: currentColor;
+    -webkit-mask: url('../img/photo_camera.svg') no-repeat center / contain;
+    mask: url('../img/photo_camera.svg') no-repeat center / contain;
+}
+
+/* Card */
+.pf-v5-c-login__main {
+    --pf-v5-c-login__main--BackgroundColor: #fff;
+    --pf-v5-c-login__main--BoxShadow: 0 1px 3px rgb(31 27 23 / 12%), 0 4px 16px rgb(31 27 23 / 8%);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.pf-v5-c-login__main-header {
+    border-top-width: 4px;
+}
+
+.pf-v5-c-title {
+    font-family: var(--po-font);
+    font-weight: 600;
+    color: var(--po-on-surface);
+}
+
+/* Buttons: fully rounded like the Material 3 buttons of the app */
+.pf-v5-c-button {
+    --pf-v5-c-button--BorderRadius: 999px;
+    font-weight: 500;
+}
+
+.pf-v5-c-button.pf-m-control {
+    --pf-v5-c-button--BorderRadius: 0;
+}
+
+.pf-v5-c-button.pf-m-primary {
+    --pf-v5-c-button--m-primary--BackgroundColor: var(--po-primary);
+    --pf-v5-c-button--m-primary--hover--BackgroundColor: var(--po-primary-dark);
+    --pf-v5-c-button--m-primary--focus--BackgroundColor: var(--po-primary-dark);
+    --pf-v5-c-button--m-primary--active--BackgroundColor: var(--po-primary-dark);
+}
+
+.pf-v5-c-button.pf-m-secondary {
+    --pf-v5-c-button--m-secondary--Color: var(--po-primary);
+    --pf-v5-c-button--m-secondary--after--BorderColor: var(--po-primary);
+    --pf-v5-c-button--m-secondary--hover--Color: var(--po-primary-dark);
+    --pf-v5-c-button--m-secondary--hover--after--BorderColor: var(--po-primary-dark);
+}
+
+/* Inputs: rounded corners, petrol focus line */
+.pf-v5-c-form-control {
+    --pf-v5-c-form-control--BorderRadius: 8px;
+    --pf-v5-c-form-control--hover--after--BorderBottomColor: var(--po-primary);
+    --pf-v5-c-form-control--focus--after--BorderBottomColor: var(--po-primary);
+    --pf-v5-c-form-control--m-expanded--after--BorderBottomColor: var(--po-primary);
+}
+
+/* Info pages (invitation link, account updated): space above the action button */
+#kc-info-message p + p {
+    margin-top: var(--pf-v5-global--spacer--lg);
+}
+
+/* Keyboard focus always visible (as in the app) */
+:focus-visible {
+    outline: 2px solid var(--po-primary);
+    outline-offset: 2px;
+}
+
+a {
+    color: var(--po-primary);
+}
+
+a:hover {
+    color: var(--po-primary-dark);
+}

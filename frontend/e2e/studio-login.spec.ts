@@ -36,4 +36,7 @@ test('studio area requires login', async ({ page }) => {
   await page.goto('/studio');
 
   await expect(page.locator('#username')).toBeVisible();
+  // German Keycloak login page in the Photoffice theme (issue #36)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Bei Photoffice anmelden');
+  await expect(page.locator('#kc-header-wrapper')).toHaveText('Photoffice');
 });
