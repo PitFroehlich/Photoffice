@@ -56,6 +56,12 @@ must live in this repository or on GitHub.
 - **Backend modules:** one Spring Modulith module per domain (e.g. `customer`, `gallery`); don't edit another
   module's internals – use its public API or events, or ask in the other issue.
 - **Before the PR:** `git fetch && git rebase origin/main`, run backend + frontend tests again.
+- **ADR numbers** collide like migration numbers did: two branches may both take the next free number. Check
+  `docs/decisions/` on `origin/main` right before the PR; if your number is taken, renumber your ADR and its
+  references (the earlier merged ADR keeps its number).
+- **After a rebase, also check semantic conflicts:** changed method signatures or behaviour from other merged issues
+  (e.g. `TenantManagement.register(...)` gained a first studio admin in #24) don't show up as Git conflicts – compile
+  and run all tests.
 - Stay inside the scope of your issue; create a new issue for anything else you find.
 
 ### Demo after every finished issue (mandatory)
@@ -94,7 +100,7 @@ no screenshots**:
 | `docs/` | Analysis, ADRs, journal, demos |
 | `legacy/` | Old PHP 5.6 application – reference only, see `legacy/AGENTS.md` |
 
-Decisions behind the stack: `docs/decisions/0003-tech-stack.md`, `0004-local-s3-seaweedfs.md`, `0005-ui-angular-material.md`, `0006-liquibase.md`, `0007-studio-onboarding-keycloak.md`; domain model decisions: `0007-preismodell.md` (price list).
+Decisions behind the stack: `docs/decisions/0003-tech-stack.md`, `0004-local-s3-seaweedfs.md`, `0005-ui-angular-material.md`, `0006-liquibase.md`, `0007-studio-onboarding-keycloak.md`; domain model decisions: `0008-preismodell.md` (price list).
 
 ---
 
@@ -190,7 +196,7 @@ Never edit generated code.
 - Database: schema only via Liquibase changesets in `backend/src/main/resources/db/changelog/changes/`
   (see "Parallel work", ADR 0006); Hibernate runs with `ddl-auto: validate`. Use `splitStatements:false` for
   changesets containing `$$` function bodies. Test data for local development: `db/changelog/devdata/` with `context:dev`.
-- Money: never floating point – gross prices as integer cents (`priceCents`), see ADR 0007. Jackson rejects decimal numbers
+- Money: never floating point – gross prices as integer cents (`priceCents`), see ADR 0008. Jackson rejects decimal numbers
   for integer fields (`accept-float-as-int: false`), so `4.9` is a 400, not silently 4.
 
 ### Multi-tenancy (module `tenant`, issue #5)

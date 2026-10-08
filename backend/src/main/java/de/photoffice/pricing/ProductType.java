@@ -1,7 +1,7 @@
 package de.photoffice.pricing;
 
 /**
- * Kind of a single product. New types (e.g. photo book) get their own attributes, see ADR 0007.
+ * Kind of a single product. New types (e.g. photo book) get their own attributes, see ADR 0008.
  */
 public enum ProductType {
 

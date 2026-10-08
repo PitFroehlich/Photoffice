@@ -1,7 +1,7 @@
 package de.photoffice.pricing;
 
 /**
- * Amounts are gross prices in cents of the price list currency – integers, never floating point (ADR 0007).
+ * Amounts are gross prices in cents of the price list currency – integers, never floating point (ADR 0008).
  * Validation messages are German because they are shown to studio users.
  */
 final class Prices {

@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
--- Preisliste eines Studios (Issue #13, Legacy F7 + neues Feature F17), Modell siehe ADR 0007.
+-- Preisliste eines Studios (Issue #13, Legacy F7 + neues Feature F17), Modell siehe ADR 0008.
 -- Alle Beträge sind Bruttopreise in Cent (INTEGER, nie Gleitkomma) in der Währung aus price_list_settings.
 
 --changeset photoffice:price-list-settings-table

@@ -10,7 +10,7 @@ Studio pflegt seine Preisliste (Legacy F7 + Downloads F17): Abzüge, Downloads, 
 Währung/Steuersatz; nur gültige Kombinationen für Kunden.
 
 ## Done
-- ADR 0007 Preismodell (Produkttypen PRINT/DOWNLOAD mit CHECK-Constraints, Pakete, Versandarten, Bruttopreise in Cent,
+- ADR 0008 Preismodell (Produkttypen PRINT/DOWNLOAD mit CHECK-Constraints, Pakete, Versandarten, Bruttopreise in Cent,
   EUR + Steuersatz pro Studio, aktiv/inaktiv, Rechte).
 - Liquibase `202610081600-price-list.sql`: `price_list_settings`, `product`, `download_package`, `shipping_method`
   (alle mit RLS); Dev-Daten für Studio A (19 %) und B (0 %).
@@ -33,7 +33,7 @@ Währung/Steuersatz; nur gültige Kombinationen für Kunden.
   `studio-navigation.ts`, `AGENTS.md`).
 - #14 Bestellung: Preis/Steuersatz/Bezeichnung als Kopie in Bestellpositionen; danach Löschen referenzierter Einträge
   neu bewerten. Kunden-Ansicht der Preisliste kommt mit Galerie-Zugang/Shop.
-- Preise pro Galerie überschreiben (ADR 0007), Zahlungsarten (mit dem Bezahldienst).
+- Preise pro Galerie überschreiben (ADR 0008), Zahlungsarten (mit dem Bezahldienst).
 
 ## Pitfalls
 - Jackson akzeptiert standardmäßig Dezimalzahlen für Integer-Felder und schneidet ab – bei Geldbeträgen gefährlich.
@@ -48,7 +48,7 @@ Währung/Steuersatz; nur gültige Kombinationen für Kunden.
 - `trimmedPattern` nach `shared/ui/validators.ts` verschoben (vorher im Kunden-Feature).
 - E2E: alle 22 grün (inkl. der 8 Preislisten-Tests, erstmals ausgeführt). Kunden-E2E robuster gemacht (eindeutige Namen ohne Ziffern; nicht mehr von in Demos geänderten Seed-Daten abhängig).
 - Parallele Playwright-Worker gegen den Dev-Server waren nach einem Branch-Wechsel instabil → bei Problemen `--workers=1`.
-- Nutzer-Feedback in der Demo: „Wieso kann ich keine neuen Downloads hinzufügen?“ → Entscheidung des Nutzers: **frei benannte Download-Varianten** statt fester Auflösungen WEB/FULL. Umgesetzt vor dem Merge (Changeset direkt angepasst, da nicht auf `main`): `product.download_name` + `max_edge_px` (NULL = Original), Pakete verweisen per mandantensicherem Fremdschlüssel `(tenant_id, download_product_id)` auf eine Variante; verwendete Varianten nicht löschbar (409), Pakete nur angeboten, wenn auch die Variante aktiv ist. ADR 0007 angepasst.
+- Nutzer-Feedback in der Demo: „Wieso kann ich keine neuen Downloads hinzufügen?“ → Entscheidung des Nutzers: **frei benannte Download-Varianten** statt fester Auflösungen WEB/FULL. Umgesetzt vor dem Merge (Changeset direkt angepasst, da nicht auf `main`): `product.download_name` + `max_edge_px` (NULL = Original), Pakete verweisen per mandantensicherem Fremdschlüssel `(tenant_id, download_product_id)` auf eine Variante; verwendete Varianten nicht löschbar (409), Pakete nur angeboten, wenn auch die Variante aktiv ist. ADR 0008 angepasst.
 - Allgemeiner Fehler gefunden: Fehlertexte bei DELETE-Aufrufen kamen als roher Text (generierter Client fordert bei 204-Antworten `text` an) → `apiErrorMessage` parst jetzt auch Text-Bodies.
 - Lokale DB einmal mit `docker compose down -v` zurückgesetzt (geändertes Changeset).
 - Tests: Backend 164, Frontend 70 Unit, E2E 23 – alle grün.

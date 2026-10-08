@@ -1,4 +1,4 @@
-# 0007: Preismodell – Produkte, Download-Pakete, Versandarten
+# 0008: Preismodell – Produkte, Download-Pakete, Versandarten
 
 - **Status:** Accepted
 - **Date:** 2026-10-08

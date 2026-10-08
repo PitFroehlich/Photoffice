@@ -15,6 +15,7 @@ import com.jayway.jsonpath.JsonPath;
 import de.photoffice.TestcontainersConfiguration;
 import de.photoffice.tenant.Tenant;
 import de.photoffice.tenant.TenantContext;
+import de.photoffice.tenant.InitialStudioAdmin;
 import de.photoffice.tenant.TenantManagement;
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -34,6 +35,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @Import(TestcontainersConfiguration.class)
 class PriceListApiTests {
 
+	private static final InitialStudioAdmin STUDIO_ADMIN = new InitialStudioAdmin("admin@example.test", null, null);
+
 	private static final String BASE = "/api/studio/price-list";
 
 	@Autowired
@@ -51,7 +54,7 @@ class PriceListApiTests {
 
 	@BeforeEach
 	void registerStudio() {
-		tenant = tenantManagement.register("studio-" + UUID.randomUUID().toString().substring(0, 8), "Studio");
+		tenant = tenantManagement.register("studio-" + UUID.randomUUID().toString().substring(0, 8), "Studio", STUDIO_ADMIN);
 		studio = tenant.slug();
 	}
 

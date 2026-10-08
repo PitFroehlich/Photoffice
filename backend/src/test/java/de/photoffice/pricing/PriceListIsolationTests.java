@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import de.photoffice.TestcontainersConfiguration;
+import de.photoffice.tenant.InitialStudioAdmin;
 import de.photoffice.tenant.TenantManagement;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
 class PriceListIsolationTests {
+
+	private static final InitialStudioAdmin STUDIO_ADMIN = new InitialStudioAdmin("admin@example.test", null, null);
 
 	private static final String BASE = "/api/studio/price-list";
 
@@ -63,8 +66,8 @@ class PriceListIsolationTests {
 
 	@BeforeEach
 	void createPriceListOfStudioA() throws Exception {
-		studioA = tenantManagement.register(uniqueSlug(), "Studio A").slug();
-		studioB = tenantManagement.register(uniqueSlug(), "Studio B").slug();
+		studioA = tenantManagement.register(uniqueSlug(), "Studio A", STUDIO_ADMIN).slug();
+		studioB = tenantManagement.register(uniqueSlug(), "Studio B", STUDIO_ADMIN).slug();
 		productOfA = create(studioA, "/products", PRINT);
 		variantOfA = create(studioA, "/products", VARIANT);
 		packageOfA = create(studioA, "/download-packages", PACKAGE.formatted(variantOfA));

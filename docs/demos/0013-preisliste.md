@@ -17,7 +17,7 @@
 - **Studios getrennt:** Studio B sieht und ändert nichts von Studio A.
 - Testdaten: Studio A mit vollständiger Preisliste (19 % USt., je ein inaktiver Abzug/Paket/Versand), Studio B
   klein und als Kleinunternehmer (0 % USt.).
-- Modell und Gründe: ADR `docs/decisions/0007-preismodell.md`.
+- Modell und Gründe: ADR `docs/decisions/0008-preismodell.md`.
 
 ## Vorbereitung
 1. `docker compose up -d postgres keycloak`
@@ -128,7 +128,7 @@ Testbenutzer: siehe AGENTS.md "Dev users" (Passwort = Benutzername).
 ## Noch offen / Einschränkungen
 - Kunden sehen die Preisliste noch nicht – dafür fehlen Galerie-Zugang und Shop (#8, #14). Die Grundlage
   (`PriceListManagement.offer()`, nur aktive Einträge) ist vorhanden.
-- Preise pro Galerie überschreiben: nicht umgesetzt (Galerien gibt es noch nicht), siehe ADR 0007.
+- Preise pro Galerie überschreiben: nicht umgesetzt (Galerien gibt es noch nicht), siehe ADR 0008.
 - Zahlungsarten (Legacy F7) gehören zum Bezahldienst und kommen später.
 - Papier und Format sind Freitext; Tippvarianten („13x18“) sind möglich.
 

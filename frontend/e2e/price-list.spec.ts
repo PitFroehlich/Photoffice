@@ -29,7 +29,9 @@ test('shows the seeded price list of studio A', async ({ page }) => {
       .getByRole('row', { name: /Original Original 9,90 €/ }),
   ).toBeVisible();
   await expect(
-    page.getByRole('table', { name: 'Download-Pakete' }).getByText('10 Bilder'),
+    page
+      .getByRole('table', { name: 'Download-Pakete' })
+      .getByRole('row', { name: /^10 Downloads 10 Bilder Original 69,00 €/ }),
   ).toBeVisible();
   await expect(
     page.getByRole('table', { name: 'Versandarten' }).getByText('Standardversand'),
