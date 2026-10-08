@@ -2,7 +2,7 @@
 
 - **Date:** 2026-10-08
 - **Machine / Agent:** fin-de-nb-0061 / Claude Code (parallel zu #36 in eigenem Worktree)
-- **Issue / PR:** #35 / (PR folgt)
+- **Issue / PR:** #35 / #37
 - **Branch:** feature/35-plattform-oberflaeche
 
 ## Goal

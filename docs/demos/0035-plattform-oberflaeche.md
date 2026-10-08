@@ -1,6 +1,6 @@
 # Demo #35: Plattform-Oberfläche – Studios registrieren, sperren und Onboarding-Status sehen
 
-- **Issue / PR:** #35 / (PR folgt)
+- **Issue / PR:** #35 / #37
 - **Datum:** 2026-10-08
 - **Agent / Maschine:** Claude Code / fin-de-nb-0061
 
