@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,15 +47,37 @@ public class Tenant {
 	@Column(name = "onboarding_failed_at")
 	private Instant onboardingFailedAt;
 
+	/**
+	 * First studio admin, kept only until onboarding completes (data minimisation); the onboarding reads the current
+	 * values from here, so corrections by the platform operator are used by the next attempt.
+	 */
+	@Column(name = "admin_email")
+	private String adminEmail;
+
+	@Column(name = "admin_first_name")
+	private String adminFirstName;
+
+	@Column(name = "admin_last_name")
+	private String adminLastName;
+
+	/** Optimistic locking: editing and the onboarding must not overwrite each other's changes. */
+	@Version
+	private long version;
+
 	protected Tenant() {
 	}
 
 	Tenant(String slug, String name, Instant createdAt) {
+		this(slug, name, null, createdAt);
+	}
+
+	Tenant(String slug, String name, InitialStudioAdmin admin, Instant createdAt) {
 		this.id = UUID.randomUUID();
 		this.slug = slug;
 		this.name = name;
 		this.status = TenantStatus.ACTIVE;
 		this.createdAt = createdAt;
+		setInitialAdmin(admin);
 	}
 
 	public TenantId id() {
@@ -90,6 +113,39 @@ public class Tenant {
 	}
 
 	/**
+	 * First studio admin while onboarding is not complete; empty afterwards (and for studios registered before the
+	 * data was stored at the studio, see {@link TenantRegistered#admin()}).
+	 */
+	public Optional<InitialStudioAdmin> initialAdmin() {
+		return adminEmail == null ? Optional.empty()
+				: Optional.of(new InitialStudioAdmin(adminEmail, adminFirstName, adminLastName));
+	}
+
+	/**
+	 * @return {@code true} if the name changed
+	 */
+	boolean rename(String newName) {
+		if (name.equals(newName)) {
+			return false;
+		}
+		name = newName;
+		return true;
+	}
+
+	void changeInitialAdmin(InitialStudioAdmin admin) {
+		if (onboarded()) {
+			throw new OnboardingCompletedException(this);
+		}
+		setInitialAdmin(admin);
+	}
+
+	private void setInitialAdmin(InitialStudioAdmin admin) {
+		adminEmail = admin == null ? null : admin.email();
+		adminFirstName = admin == null ? null : admin.firstName();
+		adminLastName = admin == null ? null : admin.lastName();
+	}
+
+	/**
 	 * @return {@code true} if the status changed
 	 */
 	boolean changeStatus(TenantStatus newStatus) {
@@ -106,6 +162,7 @@ public class Tenant {
 		}
 		onboardingError = null;
 		onboardingFailedAt = null;
+		setInitialAdmin(null);
 	}
 
 	/** Ignored once onboarding is complete (a late failure report of a duplicate delivery). */

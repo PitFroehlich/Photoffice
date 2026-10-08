@@ -51,8 +51,25 @@ public class TenantManagement {
 		if (tenants.existsBySlug(slug)) {
 			throw new DuplicateTenantSlugException(slug);
 		}
-		Tenant tenant = tenants.save(new Tenant(slug, name.strip(), now()));
-		events.publishEvent(new TenantRegistered(tenant.id(), tenant.slug(), tenant.name(), admin));
+		Tenant tenant = tenants.save(new Tenant(slug, validName(name), admin, now()));
+		// The admin data stays at the studio (correctable until onboarding completes), not in the event
+		events.publishEvent(new TenantRegistered(tenant.id(), tenant.slug(), tenant.name()));
+		return tenant;
+	}
+
+	/**
+	 * Changes a studio. The name can always be changed ({@link TenantRenamed} updates the Keycloak organization),
+	 * the first studio admin only until onboarding completes. The slug never changes.
+	 *
+	 * @param admin new data of the first studio admin; empty = unchanged
+	 * @throws OnboardingCompletedException if the admin is to be changed after onboarding completed
+	 */
+	public Tenant update(TenantId id, String name, Optional<InitialStudioAdmin> admin) {
+		Tenant tenant = require(id);
+		admin.ifPresent(tenant::changeInitialAdmin);
+		if (tenant.rename(validName(name))) {
+			events.publishEvent(new TenantRenamed(tenant.id(), tenant.slug(), tenant.name()));
+		}
 		return tenant;
 	}
 
@@ -119,6 +136,13 @@ public class TenantManagement {
 			events.publishEvent(new TenantStatusChanged(tenant.id(), tenant.slug(), status));
 		}
 		return tenant;
+	}
+
+	private static String validName(String name) {
+		if (name == null || name.isBlank()) {
+			throw new IllegalArgumentException("Bitte einen Namen für das Studio angeben.");
+		}
+		return name.strip();
 	}
 
 	private Tenant require(TenantId id) {

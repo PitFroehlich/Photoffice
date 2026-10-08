@@ -3,6 +3,7 @@ package de.photoffice.identity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,6 +14,7 @@ import de.photoffice.tenant.TenantManagement;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -169,6 +171,63 @@ class StudioOnboardingIntegrationTests {
 		awaitOnboarded(tenant);
 		assertThat(keycloakAdmin.organizationsOf(userId)).containsExactly(slug);
 		assertThat(tenantManagement.findById(tenant.id()).orElseThrow().onboardingError()).isEmpty();
+	}
+
+	@Test
+	void onboardingSucceedsAfterThePlatformOperatorCorrectedTheAdminEmail() throws Exception {
+		// The e-mail address belongs to a user of another studio – the onboarding fails
+		String otherStudio = uniqueSlug();
+		String otherStudioId = keycloakAdmin.createOrganization(otherStudio, "Anderes Studio", true);
+		String takenEmail = "vergeben@" + otherStudio + ".test";
+		String otherUserId = keycloakAdmin.createUser(takenEmail, null, null, List.of()).id();
+		keycloakAdmin.addMember(otherStudioId, otherUserId);
+
+		String slug = uniqueSlug();
+		Tenant tenant = tenantManagement.register(slug, "Fotostudio Korrektur",
+				new InitialStudioAdmin(takenEmail, null, null));
+		await().atMost(Duration.ofSeconds(30))
+			.until(() -> tenantManagement.findById(tenant.id()).orElseThrow().onboardingError().isPresent());
+
+		// The operator corrects the address and renames the studio ("Bearbeiten" in the platform area)
+		String correctedEmail = "inhaber@" + slug + ".test";
+		// 409 only if a resubmitted attempt (every 2 s here) records its failure at the same moment – then repeat
+		await().atMost(Duration.ofSeconds(30))
+			.until(() -> mockMvc
+				.perform(patch("/api/platform/tenants/{id}", tenant.id().value()).with(TestTokens.platformAdmin())
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("""
+							{"name": "Fotostudio Korrigiert", "adminEmail": "%s", "adminFirstName": "Ina", "adminLastName": "Haber"}"""
+						.formatted(correctedEmail)))
+				.andReturn()
+				.getResponse()
+				.getStatus() == 200);
+
+		awaitOnboarded(tenant);
+		Tenant onboarded = tenantManagement.findById(tenant.id()).orElseThrow();
+		assertThat(onboarded.onboardingError()).isEmpty();
+		// Data minimisation: the admin data is removed from the studio after onboarding
+		assertThat(onboarded.initialAdmin()).isEmpty();
+
+		KeycloakAdminClient.User admin = keycloakAdmin.findUserByEmail(correctedEmail).orElseThrow();
+		assertThat(keycloakAdmin.organizationsOf(admin.id())).containsExactly(slug);
+		assertThat(keycloakAdmin.organizationsOf(otherUserId)).containsExactly(otherStudio);
+		assertThat(keycloakAdmin.findOrganization(slug).orElseThrow().description()).isEqualTo("Fotostudio Korrigiert");
+		assertThat((String) awaitMailTo(correctedEmail).get("Text")).contains("Hallo Ina Haber,");
+	}
+
+	@Test
+	void renamingTheStudioUpdatesTheOrganizationDescription() {
+		String slug = uniqueSlug();
+		Tenant tenant = tenantManagement.register(slug, "Fotostudio Alt",
+				new InitialStudioAdmin("admin@" + slug + ".test", null, null));
+		awaitOnboarded(tenant);
+
+		tenantManagement.update(tenant.id(), "Fotostudio Neu", Optional.empty());
+
+		await().atMost(Duration.ofSeconds(30))
+			.until(() -> "Fotostudio Neu".equals(keycloakAdmin.findOrganization(slug).orElseThrow().description()));
+		// The organization name stays the slug (unique in Keycloak)
+		assertThat(keycloakAdmin.findOrganization(slug).orElseThrow().name()).isEqualTo(slug);
 	}
 
 	@Test

@@ -16,7 +16,7 @@ public record InitialStudioAdmin(String email, String firstName, String lastName
 		Objects.requireNonNull(email, "email");
 		email = email.strip().toLowerCase(Locale.ROOT);
 		if (email.isEmpty() || !email.contains("@")) {
-			throw new IllegalArgumentException("Invalid admin e-mail: " + email);
+			throw new IllegalArgumentException("Ungültige E-Mail-Adresse für den ersten Studio-Admin: „" + email + "“");
 		}
 		firstName = blankToNull(firstName);
 		lastName = blankToNull(lastName);

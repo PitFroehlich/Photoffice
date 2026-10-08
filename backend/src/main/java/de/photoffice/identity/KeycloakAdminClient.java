@@ -89,13 +89,25 @@ class KeycloakAdminClient {
 	}
 
 	void setOrganizationEnabled(String organizationId, boolean enabled) {
+		updateOrganization(organizationId, Map.of("enabled", enabled));
+	}
+
+	/** The studio name is the organization's description (see {@link #createOrganization}). */
+	void setOrganizationDescription(String organizationId, String studioName) {
+		updateOrganization(organizationId, Map.of("description", studioName));
+	}
+
+	/**
+	 * Sets the given fields; does nothing if they already have these values.
+	 */
+	private void updateOrganization(String organizationId, Map<String, Object> changes) {
 		// PUT replaces the organization – read the full representation to keep domains and attributes
 		Map<String, Object> organization = new HashMap<>(
 				admin.get().uri("/organizations/{id}", organizationId).retrieve().body(JSON_OBJECT));
-		if (Boolean.valueOf(enabled).equals(organization.get("enabled"))) {
+		if (changes.entrySet().stream().allMatch(change -> change.getValue().equals(organization.get(change.getKey())))) {
 			return;
 		}
-		organization.put("enabled", enabled);
+		organization.putAll(changes);
 		admin.put()
 			.uri("/organizations/{id}", organizationId)
 			.contentType(MediaType.APPLICATION_JSON)
