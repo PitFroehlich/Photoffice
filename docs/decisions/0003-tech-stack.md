@@ -20,7 +20,7 @@ Anforderungen aus der [Feature-Analyse](../analysis/legacy-features.md):
 | Backend | **Java (aktuelles LTS, mind. 22 wegen FFM für vips-ffm) + Spring Boot**, als modularer Monolith mit **Spring Modulith**. Module kommunizieren über Domain-Events (persistiertes Event-Publication-Registry). |
 | API | REST, beschrieben per **OpenAPI**; Frontend-Client wird daraus generiert. |
 | Frontend | **Angular + TypeScript** als SPA. Zwei Oberflächen: Studio-Backoffice und Kunden-Galerie. |
-| Datenbank | **PostgreSQL**; Mandant per `tenant_id`-Spalte, zusätzlich abgesichert durch **Row-Level Security**. Schema-Migrationen mit Flyway. |
+| Datenbank | **PostgreSQL**; Mandant per `tenant_id`-Spalte, zusätzlich abgesichert durch **Row-Level Security**. Schema-Migrationen mit Flyway (ersetzt durch Liquibase, siehe ADR 0006). |
 | Bildspeicher | **S3-kompatibler Object Storage** (z. B. Hetzner Object Storage; lokal SeaweedFS, siehe ADR 0004). Präfix pro Mandant für Verbrauchsmessung. Zugriff nur über signierte, zeitlich begrenzte URLs. |
 | Bildverarbeitung | **imgproxy (Open-Source-Version, MIT)** für alle Ableitungen (Größen, Thumbnails, Formate), on-the-fly mit Cache. Das **studiospezifische Wasserzeichen** wird beim Upload einmalig vom Backend mit **libvips (vips-ffm)** in eine Vorschau-Datei gerendert; imgproxy skaliert diese weiter. EXIF-Auslesen ebenfalls im Backend beim Upload. |
 | Authentifizierung | **Keycloak** (selbst gehostet), Feature *Organizations* für Studios, Rollen pro Studio. Backend als OAuth2 Resource Server. Der **Galerie-Link mit Code** für Endkunden ist eine eigene Implementierung im Backend (kein Keycloak-Login). |

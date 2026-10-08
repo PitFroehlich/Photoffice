@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * Guards the convention for new tables after all migrations ran: every table is either tenant-owned
+ * Guards the convention for new tables after all changesets ran: every table is either tenant-owned
  * (column {@code tenant_id} plus {@code enable_tenant_isolation}) or explicitly listed as global.
  */
 @SpringBootTest
@@ -20,7 +20,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class TenantIsolationCoverageTests {
 
 	/** Tables intentionally shared by all tenants. Extend only with a good reason. */
-	private static final Set<String> GLOBAL_TABLES = Set.of("flyway_schema_history", "event_publication", "tenant");
+	private static final Set<String> GLOBAL_TABLES = Set.of("databasechangelog", "databasechangeloglock",
+			"event_publication", "tenant");
 
 	@Autowired
 	private JdbcTemplate jdbc;
@@ -56,7 +57,7 @@ class TenantIsolationCoverageTests {
 				.as("Table '%s' needs a tenant_id column (or must be added to GLOBAL_TABLES)", table.name())
 				.isTrue();
 			assertThat(table.rlsEnabled() && table.rlsForced() && table.hasPolicy())
-				.as("Table '%s' is not secured – call SELECT enable_tenant_isolation('%s') in its migration",
+				.as("Table '%s' is not secured – call SELECT enable_tenant_isolation('%s') in its changeset",
 						table.name(), table.name())
 				.isTrue();
 		});

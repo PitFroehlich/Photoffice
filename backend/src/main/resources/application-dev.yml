@@ -1,4 +1,4 @@
 # Profil "dev": lokale Entwicklung mit Testdaten passend zum Keycloak-Realm (infra/keycloak/photoffice-realm.json)
 spring:
-  flyway:
-    locations: classpath:db/migration,classpath:db/devdata
+  liquibase:
+    contexts: default,dev

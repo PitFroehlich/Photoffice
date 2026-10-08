@@ -44,10 +44,11 @@ must live in this repository or on GitHub.
 7. Several agents work in parallel – follow "Parallel work" below.
 
 ### Parallel work
-- **Flyway migrations:** name new migrations with a timestamp, `V<yyyyMMddHHmm>__<description>.sql`
-  (e.g. `V202610081430__customer.sql`), never "next number" – two branches would both create `V3`.
-  `spring.flyway.out-of-order` is enabled, so a migration merged later with an older timestamp still runs.
-  Never change a migration that is already on `main`.
+- **Database changes (Liquibase):** add a new file `backend/src/main/resources/db/changelog/changes/<yyyyMMddHHmm>-<description>.sql`
+  (Liquibase formatted SQL, header `--liquibase formatted sql`, changesets `--changeset photoffice:<unique-id>`).
+  The master changelog picks it up automatically (`includeAll`) – **don't edit the master changelog**.
+  Liquibase runs every changeset not yet executed, so merge order doesn't matter.
+  Never change a changeset that is already on `main` – add a new one.
 - **Shared files** – keep changes small and local, rebase on `main` right before opening the PR and again
   if `main` moved: `api/openapi.yaml` (add paths/schemas in your own block, don't reorder), `SecurityConfiguration`
   (one `requestMatchers` line per endpoint group), `AGENTS.md` (own subsection), `app.routes.ts`, `pom.xml`,
@@ -58,13 +59,19 @@ must live in this repository or on GitHub.
 - Stay inside the scope of your issue; create a new issue for anything else you find.
 
 ### Demo after every finished issue (mandatory)
-When an issue is done, show what was built – for the user in the conversation **and** in the repository:
-1. Create `docs/demos/<issue-nr>-<short-topic>.md` from the template in `docs/demos/README.md`:
-   what was implemented, how to try it (users, URLs, commands), screenshots of the UI, API examples with real output.
-2. Screenshots: run the app locally (compose + backend profile `dev` + frontend) and capture with Playwright
-   into `docs/demos/<issue-nr>-<short-topic>/` (PNG, ~1100 px wide). Backend-only issues show `curl` calls with output instead.
-3. Link the demo in the PR description and in the closing comment of the issue.
-4. In the conversation: present the screenshots/outputs and summarise what changed and what is still open.
+When an issue is done, the agent gives the user a **guided demo through the running application – step by step,
+no screenshots**:
+1. Start the app locally with test data (`docker compose up -d`, backend with profile `dev`, `npm start`) and
+   check that it is reachable.
+2. Write `docs/demos/<issue-nr>-<short-topic>.md` from the template in `docs/demos/README.md`: what was implemented,
+   start instructions, test users, and a **walkthrough**: numbered steps, each with *what to do* (where to click,
+   what to enter) and *what you should see*. Backend-only issues: steps with `curl` calls and the expected output.
+3. Before presenting it, verify the walkthrough yourself (ideally as Playwright E2E test in `frontend/e2e/`).
+4. In the conversation: lead the user through the walkthrough **one step at a time** – describe the step, wait
+   until the user has done it (or asks questions), then continue. At the end summarise what changed and what is
+   still open.
+5. Link the demo in the PR description and in the closing comment of the issue.
+6. Stop everything after the demo (backend, `ng serve`, `docker compose down`).
 
 ### At the end of a session
 1. Write a journal entry `docs/journal/YYYY-MM-DD-<hostname>-<topic>.md` (see `docs/journal/README.md`).
@@ -87,7 +94,7 @@ When an issue is done, show what was built – for the user in the conversation 
 | `docs/` | Analysis, ADRs, journal, demos |
 | `legacy/` | Old PHP 5.6 application – reference only, see `legacy/AGENTS.md` |
 
-Decisions behind the stack: `docs/decisions/0003-tech-stack.md`, `0004-local-s3-seaweedfs.md`, `0005-ui-angular-material.md`.
+Decisions behind the stack: `docs/decisions/0003-tech-stack.md`, `0004-local-s3-seaweedfs.md`, `0005-ui-angular-material.md`, `0006-liquibase.md`.
 
 ---
 
@@ -101,7 +108,7 @@ Decisions behind the stack: `docs/decisions/0003-tech-stack.md`, `0004-local-s3-
 ### Start
 ```bash
 docker compose up -d                       # infrastructure
-cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # http://localhost:8080, dev data (studios A/B)
+cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # http://localhost:8080, Liquibase + dev data (studios A/B)
 cd frontend && npm install && npm start    # http://localhost:4200, proxies /api to :8080
 ```
 
@@ -114,7 +121,8 @@ cd frontend && npm install && npm start    # http://localhost:4200, proxies /api
 | imgproxy | http://localhost:8081 (signed URLs only; key/salt in `docker-compose.yml`) | – |
 
 The backend reads `DB_URL`, `DB_USER`, `DB_PASSWORD`, `OIDC_ISSUER_URI` (defaults match the compose setup).
-Profile `dev` adds the studios matching the Keycloak dev realm (`db/devdata`); never enable it in production.
+Profile `dev` adds the studios matching the Keycloak dev realm (Liquibase context `dev`); never enable it in production.
+Local database still from the Flyway era? Reset it once: `docker compose down -v`.
 
 ### Dev users (Keycloak realm `photoffice`, password = username)
 | User | Role | Studio (organization) |
@@ -163,17 +171,18 @@ Never edit generated code.
 - Base package `de.photoffice`; **each direct sub-package is a module** (e.g. `system`, later `tenant`, `gallery`, `order`, …). Sub-packages of a module are internal.
 - Modules talk to each other through their public API (types in the module's root package) or **domain events** (`ApplicationEventPublisher` + `@ApplicationModuleListener`). Events are persisted in `event_publication`.
 - `de.photoffice.api` (generated) is an open module.
-- Database: schema only via Flyway migrations in `backend/src/main/resources/db/migration`
-  (`V<yyyyMMddHHmm>__<description>.sql`, see "Parallel work"); Hibernate runs with `ddl-auto: validate`.
+- Database: schema only via Liquibase changesets in `backend/src/main/resources/db/changelog/changes/`
+  (see "Parallel work", ADR 0006); Hibernate runs with `ddl-auto: validate`. Use `splitStatements:false` for
+  changesets containing `$$` function bodies. Test data for local development: `db/changelog/devdata/` with `context:dev`.
 - Money: never floating point.
 
 ### Multi-tenancy (module `tenant`, issue #5)
 - A studio is a **tenant**. Every business table has a `tenant_id UUID NOT NULL` column and is secured in its
-  migration with `SELECT enable_tenant_isolation('<table>');` (PostgreSQL row-level security).
+  changeset with `SELECT enable_tenant_isolation('<table>');` (PostgreSQL row-level security).
   Global tables are the exception and must be listed in `TenantIsolationCoverageTests.GLOBAL_TABLES` – that test
   fails for any unsecured table.
 - At runtime the app connects via `TenantAwareDataSource`: every connection runs as role `photoffice_app`
-  (not owner, not superuser → RLS applies) with `app.tenant_id` set from `TenantContext`. Flyway runs as owner.
+  (not owner, not superuser → RLS applies) with `app.tenant_id` set from `TenantContext`. Liquibase runs as owner.
 - Bind the tenant with `TenantContext.runAs(tenantId, ...)` / `callAs(...)` **before** a transaction starts.
   Without a bound tenant no tenant rows are visible and inserts fail. For HTTP requests the
   `TenantContextFilter` binds the tenant from registered `TenantResolver` beans.

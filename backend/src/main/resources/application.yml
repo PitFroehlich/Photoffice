@@ -13,10 +13,10 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
-  flyway:
-    locations: classpath:db/migration
-    # Parallel branches: migrations are named by timestamp and may be merged out of order (AGENTS.md)
-    out-of-order: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    # Changesets with a context (e.g. test data "dev") only run when that context is active
+    contexts: default
   security:
     oauth2:
       resourceserver:
@@ -27,7 +27,7 @@ spring:
   modulith:
     events:
       jdbc:
-        # Schema kommt ausschließlich aus Flyway (V1__event_publication.sql)
+        # Schema kommt ausschließlich aus Liquibase (db/changelog)
         schema-initialization:
           enabled: false
 

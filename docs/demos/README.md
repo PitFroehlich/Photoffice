@@ -1,12 +1,12 @@
 # Demos
 
-Nach jedem abgeschlossenen Issue legt der bearbeitende Agent hier eine Demo an (Pflicht, siehe AGENTS.md
-"Demo after every finished issue"). Sie zeigt, wie die Funktion aussieht und was umgesetzt wurde.
+Nach jedem abgeschlossenen Issue führt der bearbeitende Agent den Nutzer **Schritt für Schritt durch die laufende
+Anwendung** (Pflicht, siehe AGENTS.md "Demo after every finished issue"). Keine Screenshots – der Nutzer probiert
+selbst aus. Die Anleitung dafür liegt hier.
 
 - Datei: `<issue-nr vierstellig>-<thema>.md`, z. B. `0007-kunden.md`
-- Bilder: Ordner mit gleichem Namen, z. B. `0007-kunden/01-liste.png`
-- Screenshots: `cd frontend && node scripts/screenshot.mjs <pfad> <ausgabe.png> [--login <benutzer>]`
-  (laufende App vorausgesetzt: `docker compose up -d`, Backend mit Profil `dev`, `npm start`)
+- Jeder Schritt: **Was tun** (wohin klicken, was eingeben) und **Was du siehst** (erwartetes Ergebnis).
+- Die Schritte vorher selbst prüfen, am besten als Playwright-Test in `frontend/e2e/`.
 
 ## Vorlage
 
@@ -20,17 +20,24 @@ Nach jedem abgeschlossenen Issue legt der bearbeitende Agent hier eine Demo an (
 ## Was wurde umgesetzt
 Kurz und fachlich: was kann man jetzt tun, was hat sich geändert.
 
-## So probierst du es aus
-Benutzer, URLs, Schritte (lokale Umgebung, siehe AGENTS.md).
+## Vorbereitung
+1. `docker compose up -d`
+2. `cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev`
+3. `cd frontend && npm start`
+Testbenutzer: siehe AGENTS.md "Dev users" (Passwort = Benutzername).
 
-## Screenshots
-![Beschreibung](<ordner>/01-....png)
+## Schritt für Schritt
+### Schritt 1: <kurzer Titel>
+- **Was tun:** …
+- **Was du siehst:** …
 
-## API-Beispiele
-Aufruf und echte Ausgabe (bei Backend-Funktionen).
+### Schritt 2: …
 
-## Tests
-Was automatisiert abgesichert ist.
+## Automatisch abgesichert
+Welche Tests die Schritte abdecken.
 
 ## Noch offen / Einschränkungen
+
+## Aufräumen
+`docker compose down`, Backend und Frontend beenden.
 ```

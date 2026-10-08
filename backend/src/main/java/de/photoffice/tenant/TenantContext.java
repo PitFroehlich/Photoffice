@@ -6,7 +6,7 @@ import java.util.Optional;
  * Holds the tenant of the current unit of work.
  * <p>
  * Every database connection obtained while a tenant is bound is restricted to that tenant's rows by
- * PostgreSQL row-level security (see {@code V2__tenant.sql}). Without a bound tenant no tenant-owned rows are
+ * PostgreSQL row-level security (see {@code db/changelog/changes/202610081100-tenant.sql}). Without a bound tenant no tenant-owned rows are
  * visible at all.
  * <p>
  * The tenant must be bound <em>before</em> a transaction starts: a connection keeps the tenant it was

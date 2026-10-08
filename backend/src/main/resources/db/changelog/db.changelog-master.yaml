@@ -1,0 +1,13 @@
+# Master changelog – NOT edited for new changes (parallel branches would conflict).
+# New changes: add a file db/changelog/changes/<yyyyMMddHHmm>-<description>.sql (Liquibase formatted SQL).
+# includeAll applies files in alphabetical (= timestamp) order; Liquibase applies every changeset not yet
+# executed, so changes merged in a different order still run.
+databaseChangeLog:
+  - includeAll:
+      path: changes/
+      relativeToChangelogFile: true
+  # Test data for local development, only with context "dev" (profile dev)
+  - includeAll:
+      path: devdata/
+      relativeToChangelogFile: true
+      contextFilter: dev
