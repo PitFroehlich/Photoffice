@@ -10,6 +10,8 @@ servers:
 tags:
   - name: system
     description: Technische Informationen über die laufende Anwendung
+  - name: platform
+    description: Verwaltung der Studios (Mandanten) durch den Plattform-Betreiber
 paths:
   /system/info:
     get:
@@ -23,8 +25,96 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SystemInfo'
+  /platform/tenants:
+    get:
+      tags: [platform]
+      operationId: listTenants
+      summary: Alle Studios, sortiert nach Name
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TenantResponse'
+    post:
+      tags: [platform]
+      operationId: createTenant
+      summary: Neues Studio registrieren
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTenantRequest'
+      responses:
+        '201':
+          description: Studio angelegt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Kürzel (slug) bereits vergeben
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 components:
   schemas:
+    CreateTenantRequest:
+      type: object
+      required: [slug, name]
+      properties:
+        slug:
+          type: string
+          description: Eindeutiges Kürzel, als Subdomain verwendbar
+          pattern: '^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$'
+          example: studio-mueller
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Fotostudio Müller
+    TenantResponse:
+      type: object
+      required: [id, slug, name, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, SUSPENDED]
+        createdAt:
+          type: string
+          format: date-time
+    ProblemDetail:
+      description: Fehlerbeschreibung nach RFC 9457
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
     SystemInfo:
       type: object
       required: [name, version]

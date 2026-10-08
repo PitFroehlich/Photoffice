@@ -6,12 +6,21 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/photoffice}
     username: ${DB_USER:photoffice}
     password: ${DB_PASSWORD:photoffice}
+  mvc:
+    problemdetails:
+      enabled: true
   jpa:
     open-in-view: false
     hibernate:
       ddl-auto: validate
   flyway:
     locations: classpath:db/migration
+  modulith:
+    events:
+      jdbc:
+        # Schema kommt ausschließlich aus Flyway (V1__event_publication.sql)
+        schema-initialization:
+          enabled: false
 
 management:
   endpoints:
