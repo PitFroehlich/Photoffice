@@ -124,7 +124,8 @@ Legende Zustand: ✅ funktioniert · ⚠️ funktioniert mit Mängeln · ❌ kap
 
 Diese Features gibt es in der Legacy-App nicht.
 
-- **F17 – Digitale Downloads:** Kunde kauft Bilder als Datei und lädt sie herunter (gesicherter, ggf. zeitlich begrenzter Download-Link).
+- **F17 – Digitale Downloads:** Kunde kauft Bilder als Datei – einzeln oder als Paket – und lädt sie herunter (gesicherter, ggf. zeitlich begrenzter Download-Link).
+- **F20 – Optionales Kundenkonto:** Wiederkehrende Kunden eines Studios sehen ihre Galerien und Bestellungen gesammelt (P3; der Galerie-Link reicht für den Start).
 - **F18 – Anbindung Druck-Service:** Bestellte Abzüge werden an einen externen Druck-Service übergeben; Status-Rückmeldung (in Produktion, versendet).
 - **F19 – Abos und Speicherkontingent:** Studios mieten das Produkt per Abo; Tarife unterscheiden sich im Speicherplatz. Verbrauch wird gemessen und begrenzt.
 
@@ -154,6 +155,7 @@ Kriterium: Wertschöpfungskette eines Studios – **Bilder ausliefern → Abzüg
 | **P2** | F8 E-Mail-Benachrichtigungen | Nötig für den Galerie-Link-Versand und Bestellbestätigungen; anfangs manuell überbrückbar (Link kopieren). Sinnvoll als ereignisbasierter Mechanismus. |
 | **P2** | F11 Studio-Stammdaten und AGB | Rechtlich nötig für den Verkauf, fachlich einfach. Wird im Mandantenmodell zum "Studio-Profil". |
 | **P3** | F9 Bestell-PDF | Mit externem Druck-Service weniger wichtig; Detailansicht reicht anfangs. |
+| **P3** | F20 Optionales Kundenkonto | Komfort für wiederkehrende Kunden; Galerie-Link deckt den Start ab. Datenmodell muss es aber von Anfang an vorsehen (Kunde ↔ Galerie-Zugänge). |
 | **P3** | F10 Mehrere Benutzer pro Studio | Kleine Studios kommen mit einem Login aus; das Rollenmodell aus P0 muss es aber vorsehen. |
 | **P3** | F12 Wasserzeichen | Schutz der Vorschaubilder vor unbezahlter Nutzung – mit Downloads wichtiger, aber kein Blocker. |
 | **P3** | F12 EXIF-Anzeige | Nettes Extra; EXIF sollte aber schon beim Upload (F2) gespeichert werden. |
@@ -220,12 +222,12 @@ Diese Punkte ergeben sich nicht aus dem Legacy-Code, sondern aus dem Ziel des Ne
 | 6 | Geschäftsmodell? | Wir hosten das Produkt (SaaS). Studios mieten es per Abo mit unterschiedlich viel Speicherplatz. | Neues Feature **F19 Abos und Speicherkontingent**: Tarife, Speicherverbrauch pro Studio messen, Upload bei überschrittenem Kontingent begrenzen. Plattform-Betreiber-Rolle wird nötig. |
 | 7 | Öffentliche Galerien, Rechnungen in V1? | Nein. | F13 und F15 sind nicht Teil der ersten Version. |
 
-### Offene Punkte aus den Antworten
+### Folgefragen (geklärt am 2026-10-08)
 
-- **Kundenkonto zusätzlich zum Galerie-Link?** Antwort 1 spricht von Kunden-Logins, Antwort 2 von Zugang ohne Account.
-  Annahme bis zur Klärung: **Galerie-Link mit Code ist der Standard-Zugang**, ein optionales Kundenkonto (z. B. um mehrere Galerien eines Studios gesammelt zu sehen) ist eine spätere Erweiterung.
-  Für eine Bestellung werden ohnehin Name, E-Mail und ggf. Lieferadresse benötigt (Erfassung im Checkout).
-- **Welcher Druck-Service?** Konkreter Anbieter und dessen API (Bestellformat, Rückmeldung zum Versandstatus, Abrechnung) sind noch offen.
-- **Wer kassiert?** Zahlt der Endkunde an das Studio, an uns als Plattform, oder direkt beim Druck-Service? Bestimmt Bezahldienst und Rechnungsstellung.
-- **Preise für Downloads:** pro Bild, Paket, ganze Galerie? Auflösung (Web/voll)?
-- **Abo-Abrechnung der Studios:** manuell oder über einen Zahlungsanbieter mit wiederkehrenden Zahlungen?
+| # | Frage | Antwort | Konsequenz |
+|---|---|---|---|
+| 8 | Kundenkonto zusätzlich zum Galerie-Link? | Ja, z. B. für wiederkehrende Kunden. | Galerie-Link mit Code bleibt der Standard-Zugang. **Optionales Kundenkonto** (pro Studio) bündelt mehrere Galerien und Bestellungen; ein Link-Zugang muss sich nachträglich einem Konto zuordnen lassen. Bestellungen ohne Konto erfassen Name, E-Mail und ggf. Lieferadresse im Checkout. |
+| 9 | Wer kassiert? | Noch unklar. | Bezahlung als **austauschbare Schnittstelle** bauen; Bestellung darf nicht davon ausgehen, wer Zahlungsempfänger ist (Studio, Plattform oder Druck-Service). Entscheidung vor Umsetzung des Bezahldienstes nötig (rechtliche/steuerliche Klärung). |
+| 10 | Druck-Service-Anbieter? | Noch nicht festgelegt. | Schnittstelle anbieterneutral entwerfen; Anbieter-Auswahl ist eigene Aufgabe vor F18. |
+| 11 | Preismodell Downloads? | Pro Bild **und** als Pakete. | Preismodell braucht neben Einzelpreisen auch **Pakete** (z. B. "10 Downloads" oder "ganze Galerie"). Auflösung (Web/voll) bei Bedarf als Produktvariante. |
+| 12 | Abo-Abrechnung der Studios? | Automatisch über einen Zahlungsanbieter. | Für F19 wird ein Anbieter mit wiederkehrenden Zahlungen (Subscriptions) benötigt; Tarifwechsel und Zahlungsausfall müssen Kontingent/Zugang des Studios steuern. |
