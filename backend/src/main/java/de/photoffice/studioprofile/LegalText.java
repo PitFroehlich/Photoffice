@@ -12,7 +12,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * A legal text of a studio as Markdown. Clients render it without raw HTML and sanitised (see ADR 0009).
+ * A legal text of a studio as Markdown. Clients render it without raw HTML and sanitised (see ADR 0011).
  * At most one row per tenant and kind (row-level security on table {@code studio_legal_text}).
  */
 @Entity

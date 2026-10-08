@@ -19,7 +19,7 @@ mit Grund, und eine leere Studio-ID im Pfad liefert kein leeres 401 mehr.
 - Frontend: Bereich `/plattform` (`platformGuard`, `PlatformShell`, `platform/studio-list`, `platform/studio-form`),
   Rollen aus dem Access-Token im `AuthService`, `studioGuard` leitet den Betreiber weiter, „Plattform-Login“ in der
   öffentlichen Shell.
-- ADR 0008, AGENTS.md-Abschnitt "Platform area", Demo `docs/demos/0035-plattform-oberflaeche.md`.
+- ADR 0010 (ursprünglich 0008, umnummeriert wegen Kollision mit dem Preismodell), AGENTS.md-Abschnitt "Platform area", Demo `docs/demos/0035-plattform-oberflaeche.md`.
 - Tests: Backend 119 (neu: 4 Controller-Tests, `TenantOnboardingRetryTests` 3, `StudioOnboardingFailureReasonTests` 4,
   erweitert `StudioOnboardingIntegrationTests`), Frontend 62 Unit, Playwright 20 (neu `platform.spec.ts` mit 5 Tests;
   `studio-login.spec.ts`: Betreiber landet in der Plattform-Verwaltung; `loginAs` akzeptiert `/plattform`).

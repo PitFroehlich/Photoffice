@@ -1,4 +1,4 @@
-# 0009: Studio-Profil und Rechtstexte – Markdown, sicher gerendert
+# 0011: Studio-Profil und Rechtstexte – Markdown, sicher gerendert
 
 - **Status:** Accepted
 - **Date:** 2026-10-08
