@@ -1,4 +1,5 @@
 import { APIRequestContext, expect, test } from '@playwright/test';
+import { loginAs } from './helpers';
 
 /**
  * Studio onboarding (issue #24): the platform operator registers a studio, the first studio admin receives an
@@ -57,16 +58,13 @@ test('new studio: invited admin sets a password, logs in, loses access while sus
   await page.locator('[type=submit]').click();
   await expect(page.getByText('Your account has been updated')).toBeVisible();
   await page.getByText('Back to Application').click();
+  await expect(page.getByRole('button', { name: 'Studio-Login' })).toBeVisible();
 
   // Login with e-mail and new password
-  await page.getByRole('button', { name: 'Studio-Login' }).click();
-  await page.locator('#username').fill(email);
-  await page.locator('#kc-login').click();
-  await page.locator('#password').fill('Geheim-123');
-  await page.locator('#kc-login').click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Fotostudio E2E');
-  await expect(page.locator('.welcome')).toContainText('Maria Müller');
-  await expect(page.locator('.welcome')).toContainText('Studio-Administrator');
+  await loginAs(page, email, 'Geheim-123');
+  await expect(page.locator('.studio-name')).toHaveText('Fotostudio E2E');
+  await expect(page.locator('.welcome')).toContainText('Willkommen, Maria Müller');
+  await expect(page.locator('mat-chip')).toContainText('Studio-Administrator');
 
   // Suspended studio: no access
   expect((await request.post(`${backend}/platform/tenants/${studio.id}/suspend`, { headers: auth })).status()).toBe(200);
@@ -76,5 +74,5 @@ test('new studio: invited admin sets a password, logs in, loses access while sus
   // Reactivated: access again
   expect((await request.post(`${backend}/platform/tenants/${studio.id}/reactivate`, { headers: auth })).status()).toBe(200);
   await page.reload();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Fotostudio E2E');
+  await expect(page.locator('.studio-name')).toHaveText('Fotostudio E2E');
 });
