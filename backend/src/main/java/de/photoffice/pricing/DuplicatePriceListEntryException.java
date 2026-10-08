@@ -14,8 +14,8 @@ public class DuplicatePriceListEntryException extends RuntimeException {
 		return switch (product.type()) {
 			case PRINT -> new DuplicatePriceListEntryException("Den Abzug „%s, %s“ gibt es bereits."
 				.formatted(product.paperType(), product.printFormat()));
-			case DOWNLOAD -> new DuplicatePriceListEntryException("Den Download in %s gibt es bereits."
-				.formatted(product.resolution() == DownloadResolution.WEB ? "Web-Auflösung" : "voller Auflösung"));
+			case DOWNLOAD -> new DuplicatePriceListEntryException(
+					"Die Download-Variante „%s“ gibt es bereits.".formatted(product.downloadName()));
 		};
 	}
 

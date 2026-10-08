@@ -48,3 +48,7 @@ Währung/Steuersatz; nur gültige Kombinationen für Kunden.
 - `trimmedPattern` nach `shared/ui/validators.ts` verschoben (vorher im Kunden-Feature).
 - E2E: alle 22 grün (inkl. der 8 Preislisten-Tests, erstmals ausgeführt). Kunden-E2E robuster gemacht (eindeutige Namen ohne Ziffern; nicht mehr von in Demos geänderten Seed-Daten abhängig).
 - Parallele Playwright-Worker gegen den Dev-Server waren nach einem Branch-Wechsel instabil → bei Problemen `--workers=1`.
+- Nutzer-Feedback in der Demo: „Wieso kann ich keine neuen Downloads hinzufügen?“ → Entscheidung des Nutzers: **frei benannte Download-Varianten** statt fester Auflösungen WEB/FULL. Umgesetzt vor dem Merge (Changeset direkt angepasst, da nicht auf `main`): `product.download_name` + `max_edge_px` (NULL = Original), Pakete verweisen per mandantensicherem Fremdschlüssel `(tenant_id, download_product_id)` auf eine Variante; verwendete Varianten nicht löschbar (409), Pakete nur angeboten, wenn auch die Variante aktiv ist. ADR 0007 angepasst.
+- Allgemeiner Fehler gefunden: Fehlertexte bei DELETE-Aufrufen kamen als roher Text (generierter Client fordert bei 204-Antworten `text` an) → `apiErrorMessage` parst jetzt auch Text-Bodies.
+- Lokale DB einmal mit `docker compose down -v` zurückgesetzt (geändertes Changeset).
+- Tests: Backend 164, Frontend 70 Unit, E2E 23 – alle grün.

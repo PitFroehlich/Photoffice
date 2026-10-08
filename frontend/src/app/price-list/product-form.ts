@@ -12,7 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Api } from '../api/api';
 import { createProduct, getProduct, updateProduct } from '../api/functions';
-import { DownloadResolution, Product, ProductInput, ProductType } from '../api/models';
+import { Product, ProductInput, ProductType } from '../api/models';
 import {
   FieldError,
   LoadingIndicator,
@@ -21,7 +21,7 @@ import {
   apiErrorMessage,
 } from '../shared/ui';
 import { centsToInput, parsePriceCents, priceValidator } from './money';
-import { canEditPriceList, productLabel, resolutionLabels } from './price-list-labels';
+import { canEditPriceList, productLabel } from './price-list-labels';
 
 /**
  * Create (/studio/preisliste/produkte/neu?typ=abzug|download) or edit (/studio/preisliste/produkte/:id)
@@ -58,15 +58,26 @@ export class ProductForm implements OnInit {
   protected readonly loading = signal(false);
   protected readonly saving = signal(false);
   protected readonly title = signal('Neuer Abzug');
-  protected readonly resolutions = Object.entries(resolutionLabels) as [
-    DownloadResolution,
-    string,
-  ][];
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    paperType: ['', [Validators.required, Validators.maxLength(50), trimmedPattern(priceListPatterns.paperType)]],
-    printFormat: ['', [Validators.required, Validators.maxLength(50), trimmedPattern(priceListPatterns.printFormat)]],
-    resolution: ['' as DownloadResolution | '', Validators.required],
+    paperType: [
+      '',
+      [Validators.required, Validators.maxLength(50), trimmedPattern(priceListPatterns.paperType)],
+    ],
+    printFormat: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(50),
+        trimmedPattern(priceListPatterns.printFormat),
+      ],
+    ],
+    downloadName: [
+      '',
+      [Validators.required, Validators.maxLength(100), trimmedPattern(priceListPatterns.name)],
+    ],
+    // Empty = original size
+    maxEdgePx: ['', [trimmedPattern(/^\d+$/), Validators.min(200), Validators.max(20000)]],
     price: ['', [Validators.required, priceValidator]],
     active: [true],
   });
@@ -116,9 +127,11 @@ export class ProductForm implements OnInit {
       void this.router.navigate(['/studio/preisliste']);
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 409) {
-        // Same paper × format (or resolution) already in the price list: show it at the field
+        // Same paper × format (or variant name) already in the price list: show it at the field
         const control =
-          this.type() === 'PRINT' ? this.form.controls.printFormat : this.form.controls.resolution;
+          this.type() === 'PRINT'
+            ? this.form.controls.printFormat
+            : this.form.controls.downloadName;
         control.setErrors({ server: apiErrorMessage(error) });
         control.markAsTouched();
       } else {
@@ -132,9 +145,10 @@ export class ProductForm implements OnInit {
   /** Only the fields of the type take part in validation; the others are disabled. */
   private useType(type: ProductType): void {
     this.type.set(type);
-    const { paperType, printFormat, resolution } = this.form.controls;
+    const { paperType, printFormat, downloadName, maxEdgePx } = this.form.controls;
     if (type === 'PRINT') {
-      resolution.disable();
+      downloadName.disable();
+      maxEdgePx.disable();
     } else {
       paperType.disable();
       printFormat.disable();
@@ -152,14 +166,21 @@ export class ProductForm implements OnInit {
         ...common,
       };
     }
-    return { type: 'DOWNLOAD', resolution: value.resolution as DownloadResolution, ...common };
+    const maxEdge = value.maxEdgePx.trim();
+    return {
+      type: 'DOWNLOAD',
+      downloadName: value.downloadName.trim(),
+      ...(maxEdge ? { maxEdgePx: Number(maxEdge) } : {}),
+      ...common,
+    };
   }
 
   private toFormValue(product: Product) {
     return {
       paperType: product.paperType ?? '',
       printFormat: product.printFormat ?? '',
-      resolution: product.resolution ?? ('' as const),
+      downloadName: product.downloadName ?? '',
+      maxEdgePx: product.maxEdgePx ? String(product.maxEdgePx) : '',
       price: centsToInput(product.priceCents),
       active: product.active !== false,
     };

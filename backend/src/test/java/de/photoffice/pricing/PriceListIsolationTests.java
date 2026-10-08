@@ -34,8 +34,11 @@ class PriceListIsolationTests {
 	private static final String PRINT = """
 			{"type": "PRINT", "paperType": "Matt", "printFormat": "13 × 18 cm", "priceCents": 290}""";
 
+	private static final String VARIANT = """
+			{"type": "DOWNLOAD", "downloadName": "Original", "priceCents": 990}""";
+
 	private static final String PACKAGE = """
-			{"name": "Ganze Galerie", "kind": "WHOLE_GALLERY", "resolution": "FULL", "priceCents": 14900}""";
+			{"name": "Ganze Galerie", "kind": "WHOLE_GALLERY", "downloadProductId": "%s", "priceCents": 14900}""";
 
 	private static final String SHIPPING = """
 			{"name": "Standardversand", "priceCents": 490}""";
@@ -52,6 +55,8 @@ class PriceListIsolationTests {
 
 	private String productOfA;
 
+	private String variantOfA;
+
 	private String packageOfA;
 
 	private String shippingOfA;
@@ -61,7 +66,8 @@ class PriceListIsolationTests {
 		studioA = tenantManagement.register(uniqueSlug(), "Studio A").slug();
 		studioB = tenantManagement.register(uniqueSlug(), "Studio B").slug();
 		productOfA = create(studioA, "/products", PRINT);
-		packageOfA = create(studioA, "/download-packages", PACKAGE);
+		variantOfA = create(studioA, "/products", VARIANT);
+		packageOfA = create(studioA, "/download-packages", PACKAGE.formatted(variantOfA));
 		shippingOfA = create(studioA, "/shipping-methods", SHIPPING);
 		mockMvc.perform(put(BASE + "/settings").with(studioAdmin(studioA))
 			.contentType(MediaType.APPLICATION_JSON)
@@ -73,7 +79,7 @@ class PriceListIsolationTests {
 	@Test
 	void otherStudioSeesItsOwnEmptyPriceList() throws Exception {
 		mockMvc.perform(get(BASE).with(studioAdmin(studioA)))
-			.andExpect(jsonPath("$.products.length()").value(1))
+			.andExpect(jsonPath("$.products.length()").value(2))
 			.andExpect(jsonPath("$.downloadPackages.length()").value(1))
 			.andExpect(jsonPath("$.shippingMethods.length()").value(1))
 			.andExpect(jsonPath("$.settings.vatRatePercent").value(7.0));
@@ -87,7 +93,7 @@ class PriceListIsolationTests {
 	@Test
 	void otherStudioCannotReadUpdateOrDeleteTheEntries() throws Exception {
 		assertUntouchable("/products/" + productOfA, PRINT);
-		assertUntouchable("/download-packages/" + packageOfA, PACKAGE);
+		assertUntouchable("/download-packages/" + packageOfA, PACKAGE.formatted(variantOfA));
 		assertUntouchable("/shipping-methods/" + shippingOfA, SHIPPING);
 
 		mockMvc.perform(get(BASE + "/products/" + productOfA).with(studioAdmin(studioA)))
@@ -98,8 +104,18 @@ class PriceListIsolationTests {
 	@Test
 	void sameEntriesMayExistInDifferentStudios() throws Exception {
 		create(studioB, "/products", PRINT);
-		create(studioB, "/download-packages", PACKAGE);
+		String variantOfB = create(studioB, "/products", VARIANT);
+		create(studioB, "/download-packages", PACKAGE.formatted(variantOfB));
 		create(studioB, "/shipping-methods", SHIPPING);
+	}
+
+	@Test
+	void otherStudioCannotUseTheDownloadVariantOfStudioA() throws Exception {
+		mockMvc.perform(post(BASE + "/download-packages").with(studioAdmin(studioB))
+			.contentType(MediaType.APPLICATION_JSON)
+			.content(PACKAGE.formatted(variantOfA)))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.detail").value("Die gewählte Download-Variante gibt es nicht."));
 	}
 
 	private void assertUntouchable(String path, String json) throws Exception {

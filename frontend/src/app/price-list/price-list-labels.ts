@@ -1,11 +1,5 @@
 import { Signal, computed, inject } from '@angular/core';
-import {
-  DownloadPackage,
-  DownloadPackageKind,
-  DownloadResolution,
-  Product,
-  ProductType,
-} from '../api/models';
+import { DownloadPackage, DownloadPackageKind, Product, ProductType } from '../api/models';
 import { StudioSession } from '../studio/studio-session';
 
 export const productTypeLabels: Record<ProductType, string> = {
@@ -13,24 +7,24 @@ export const productTypeLabels: Record<ProductType, string> = {
   DOWNLOAD: 'Download',
 };
 
-export const resolutionLabels: Record<DownloadResolution, string> = {
-  WEB: 'Web-Auflösung',
-  FULL: 'Volle Auflösung',
-};
-
 export const packageKindLabels: Record<DownloadPackageKind, string> = {
   IMAGE_COUNT: 'Feste Anzahl Bilder',
   WHOLE_GALLERY: 'Ganze Galerie',
 };
 
-/** Human-readable product name: "Abzug Matt, 13 × 18 cm" or "Download Volle Auflösung". */
+/** Human-readable product name: "Abzug Matt, 13 × 18 cm" or "Download Web 2048 px". */
 export function productLabel(
-  product: Pick<Product, 'type' | 'paperType' | 'printFormat' | 'resolution'>,
+  product: Pick<Product, 'type' | 'paperType' | 'printFormat' | 'downloadName'>,
 ): string {
   if (product.type === 'PRINT') {
     return `Abzug ${product.paperType}, ${product.printFormat}`;
   }
-  return `Download ${product.resolution ? resolutionLabels[product.resolution] : ''}`.trim();
+  return `Download ${product.downloadName ?? ''}`.trim();
+}
+
+/** Size of a download variant: "max. 2.048 px" or "Original". */
+export function downloadSize(product: Pick<Product, 'maxEdgePx'>): string {
+  return product.maxEdgePx ? `max. ${product.maxEdgePx.toLocaleString('de-DE')} px` : 'Original';
 }
 
 /** Content of a package: "10 Bilder" or "Ganze Galerie". */

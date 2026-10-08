@@ -19,7 +19,9 @@
             autocomplete="off"
             placeholder="z. B. 10 Downloads"
           />
-          <mat-error><app-field-error [control]="form.controls.name" [patternHint]="hints.name" /></mat-error>
+          <mat-error
+            ><app-field-error [control]="form.controls.name" [patternHint]="hints.name"
+          /></mat-error>
         </mat-form-field>
 
         <div class="row">
@@ -47,14 +49,27 @@
           }
         </div>
 
-        <mat-form-field>
-          <mat-label>Auflösung</mat-label>
-          <mat-select formControlName="resolution">
-            @for (option of resolutions; track option[0]) {
-              <mat-option [value]="option[0]">{{ option[1] }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        @if (variants().length === 0) {
+          <p class="read-only-hint" role="note">
+            Legen Sie zuerst unter „Downloads“ eine Download-Variante an (z. B. „Original“) – darin
+            werden die Bilder des Pakets geliefert.
+          </p>
+        } @else {
+          <mat-form-field>
+            <mat-label>Download-Variante</mat-label>
+            <mat-select formControlName="downloadProductId">
+              @for (variant of variants(); track variant.id) {
+                <mat-option [value]="variant.id"
+                  >{{ variant.downloadName }} ({{ downloadSize(variant) }}){{
+                    variant.active === false ? ' – inaktiv' : ''
+                  }}</mat-option
+                >
+              }
+            </mat-select>
+            <mat-hint>In dieser Größe erhält der Kunde die Bilder des Pakets</mat-hint>
+            <mat-error><app-field-error [control]="form.controls.downloadProductId" /></mat-error>
+          </mat-form-field>
+        }
 
         <mat-form-field class="price-field">
           <mat-label>Paketpreis</mat-label>
@@ -76,7 +91,11 @@
 
         <div class="form-actions">
           <a matButton routerLink="/studio/preisliste">Abbrechen</a>
-          <button matButton="filled" type="submit" [disabled]="saving() || !canEdit()">
+          <button
+            matButton="filled"
+            type="submit"
+            [disabled]="saving() || !canEdit() || variants().length === 0"
+          >
             Speichern
           </button>
         </div>

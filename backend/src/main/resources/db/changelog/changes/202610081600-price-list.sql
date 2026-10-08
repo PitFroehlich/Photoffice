@@ -28,20 +28,25 @@ CREATE TABLE product
     type         TEXT        NOT NULL,
     paper_type   TEXT,
     print_format TEXT,
-    resolution   TEXT,
+    -- DOWNLOAD: frei benannte Variante, Kantenlänge in Pixeln (NULL = Original)
+    download_name TEXT,
+    max_edge_px  INTEGER,
     price_cents  INTEGER     NOT NULL,
     active       BOOLEAN     NOT NULL,
     created_at   TIMESTAMPTZ NOT NULL,
     updated_at   TIMESTAMPTZ NOT NULL,
     CONSTRAINT product_price_range CHECK (price_cents BETWEEN 0 AND 10000000),
-    CONSTRAINT product_resolution_values CHECK (resolution IN ('WEB', 'FULL')),
+    CONSTRAINT product_max_edge_range CHECK (max_edge_px BETWEEN 200 AND 20000),
     CONSTRAINT product_type_attributes CHECK (
-        (type = 'PRINT' AND paper_type IS NOT NULL AND print_format IS NOT NULL AND resolution IS NULL)
-            OR (type = 'DOWNLOAD' AND resolution IS NOT NULL AND paper_type IS NULL AND print_format IS NULL))
+        (type = 'PRINT' AND paper_type IS NOT NULL AND print_format IS NOT NULL
+            AND download_name IS NULL AND max_edge_px IS NULL)
+            OR (type = 'DOWNLOAD' AND download_name IS NOT NULL AND paper_type IS NULL AND print_format IS NULL)),
+    -- Ziel für den mandantensicheren Fremdschlüssel aus download_package
+    CONSTRAINT product_tenant_id_uk UNIQUE (tenant_id, id)
 );
--- Jede Kombination Papier × Format bzw. jede Download-Auflösung gibt es pro Studio nur einmal
+-- Jede Kombination Papier × Format bzw. jeder Name einer Download-Variante existiert pro Studio nur einmal
 CREATE UNIQUE INDEX product_print_uk ON product (tenant_id, lower(paper_type), lower(print_format)) WHERE type = 'PRINT';
-CREATE UNIQUE INDEX product_download_uk ON product (tenant_id, resolution) WHERE type = 'DOWNLOAD';
+CREATE UNIQUE INDEX product_download_uk ON product (tenant_id, lower(download_name)) WHERE type = 'DOWNLOAD';
 
 --changeset photoffice:product-tenant-isolation
 SELECT enable_tenant_isolation('product');
@@ -55,13 +60,15 @@ CREATE TABLE download_package
     name        TEXT        NOT NULL,
     kind        TEXT        NOT NULL,
     image_count INTEGER,
-    resolution  TEXT        NOT NULL,
+    -- Download-Variante, in der die Bilder geliefert werden; muss zum selben Studio gehören
+    download_product_id UUID NOT NULL,
     price_cents INTEGER     NOT NULL,
     active      BOOLEAN     NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL,
     updated_at  TIMESTAMPTZ NOT NULL,
     CONSTRAINT download_package_price_range CHECK (price_cents BETWEEN 0 AND 10000000),
-    CONSTRAINT download_package_resolution_values CHECK (resolution IN ('WEB', 'FULL')),
+    CONSTRAINT download_package_product_fk FOREIGN KEY (tenant_id, download_product_id)
+        REFERENCES product (tenant_id, id),
     CONSTRAINT download_package_kind_attributes CHECK (
         (kind = 'IMAGE_COUNT' AND image_count BETWEEN 2 AND 10000)
             OR (kind = 'WHOLE_GALLERY' AND image_count IS NULL))

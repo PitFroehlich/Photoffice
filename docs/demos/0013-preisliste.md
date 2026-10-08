@@ -6,12 +6,12 @@
 
 ## Was wurde umgesetzt
 - Neue Seite **Preisliste** im Studio-Bereich mit fünf Abschnitten: Allgemein (Währung, Umsatzsteuer), Abzüge
-  (Papier × Format), Downloads (Einzelpreis je Auflösung), Download-Pakete („10 Downloads“, „ganze Galerie“) und
+  (Papier × Format), Downloads (frei benannte Varianten mit Größe und Einzelpreis), Download-Pakete („10 Downloads“, „ganze Galerie“) und
   Versandarten.
 - Alle Preise sind Endpreise inkl. USt., exakt in Cent gespeichert. Eingaben wie `2,9` oder `12.90` werden
   korrekt übernommen, `4,999` wird abgelehnt.
 - Einträge lassen sich **deaktivieren** (bleiben gepflegt, werden Kunden nicht angeboten) oder löschen.
-- Jede Kombination Papier × Format, jede Download-Auflösung, jeder Paket- und Versandart-Name gibt es pro Studio
+- Jede Kombination Papier × Format, jeder Name einer Download-Variante, eines Pakets und einer Versandart gibt es pro Studio
   nur einmal.
 - **Berechtigung:** Alle im Studio sehen die Preisliste, nur Studio-Administratoren können sie ändern.
 - **Studios getrennt:** Studio B sieht und ändert nichts von Studio A.
@@ -32,8 +32,9 @@ Testbenutzer: siehe AGENTS.md "Dev users" (Passwort = Benutzername).
 - **Was du siehst:** Seite "Preisliste" mit Untertitel „… alle Preise sind Endpreise inkl. Umsatzsteuer“.
   Abschnitt "Allgemein": Währung „Euro (EUR)“, Umsatzsteuer „19 %“. Abschnitt "Abzüge" mit sechs Zeilen, z. B.
   „Glänzend | 10 × 15 cm | 1,90 € | Aktiv“ und „Fine Art | 30 × 45 cm | 24,90 € | Inaktiv“ (grau/kursiv).
-  "Downloads": „Web-Auflösung 4,90 €“, „Volle Auflösung 9,90 €“ – ein Button „Download hinzufügen“ fehlt, weil
-  beide Auflösungen schon einen Preis haben. "Download-Pakete": „5 Downloads Web“ (inaktiv), „10 Downloads“
+  "Downloads": drei Varianten mit Größe und Preis – „Social Media 1080 px | max. 1.080 px | 2,90 €“,
+  „Web 2048 px | max. 2.048 px | 4,90 €“, „Original | Original | 9,90 €“. "Download-Pakete" mit Spalte „Variante“:
+  „5 Downloads Web“ (inaktiv, Variante Web 2048 px), „10 Downloads“
   (10 Bilder, 69,00 €), „Ganze Galerie“ (149,00 €). "Versandarten": „Abholung im Studio 0,00 €“,
   „Standardversand 4,90 €“, „Expressversand 12,90 €“ (inaktiv).
 
@@ -57,11 +58,24 @@ Testbenutzer: siehe AGENTS.md "Dev users" (Passwort = Benutzername).
   (aktiv)“ ausschalten → "Speichern".
 - **Was du siehst:** „„Abzug Matt, 9 × 13 cm“ wurde gespeichert.“; die Zeile zeigt „1,75 €“ und „Inaktiv“.
 
-### Schritt 5: Download-Paket „ganze Galerie“
-- **Was tun:** "Paket hinzufügen" → Name `Alle Bilder Web`, Inhalt „Ganze Galerie“ wählen, Auflösung
-  „Web-Auflösung“, Paketpreis `79` → "Speichern".
-- **Was du siehst:** Nach der Auswahl „Ganze Galerie“ verschwindet das Feld „Anzahl Bilder“. Nach dem Speichern
-  steht „Alle Bilder Web | Ganze Galerie | Web-Auflösung | 79,00 €“ in "Download-Pakete".
+### Schritt 5a: Eigene Download-Variante
+- **Was tun:** Bei "Downloads" auf "Download hinzufügen" → Name der Variante `Druckdatei 4000 px`, Maximale
+  Kantenlänge erst `100`, dann `4000`, Preis je Bild `14,90` → "Speichern".
+- **Was du siehst:** Bei `100` sofort „Mindestens 200“. Nach dem Speichern steht in "Downloads"
+  „Druckdatei 4000 px | max. 4.000 px | 14,90 €“. Leer gelassene Kantenlänge bedeutet „Original“.
+
+### Schritt 5b: Download-Paket „ganze Galerie“
+- **Was tun:** "Paket hinzufügen" → Name `Alle Bilder Web`, Inhalt „Ganze Galerie“ wählen, Download-Variante
+  „Web 2048 px (max. 2.048 px)“, Paketpreis `79` → "Speichern".
+- **Was du siehst:** Nach der Auswahl „Ganze Galerie“ verschwindet das Feld „Anzahl Bilder“. Die Auswahl
+  „Download-Variante“ listet alle Varianten des Studios (vorausgewählt: „Original“). Nach dem Speichern steht
+  „Alle Bilder Web | Ganze Galerie | Web 2048 px | 79,00 €“ in "Download-Pakete".
+
+### Schritt 5c: Verwendete Variante ist geschützt
+- **Was tun:** Bei "Downloads" in der Zeile „Original“ auf den Papierkorb → "Löschen".
+- **Was du siehst:** Rote Meldung „Die Download-Variante „Original“ wird vom Paket „10 Downloads“ verwendet und kann
+  nicht gelöscht werden. Deaktivieren Sie sie stattdessen.“ Die eigene Variante „Druckdatei 4000 px“ lässt sich
+  dagegen löschen.
   Optional: noch einmal mit Name `alle bilder web` → Fehler am Namen „Ein Paket mit dem Namen … gibt es bereits.“
 
 ### Schritt 6: Versandart und Löschen

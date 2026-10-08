@@ -15,11 +15,16 @@ Entscheidungen 3 und 11 in `docs/analysis/legacy-features.md`). Bezahldienst und
   - `PRINT` (Abzug): Papiertyp × Format als Freitext; jede Kombination gibt es pro Studio einmal
     (Groß-/Kleinschreibung egal). Es gibt keine eigenen Stammdaten-Tabellen für Papier und Format: eine
     Kombination existiert genau dann, wenn sie einen Preis hat – Kunden sehen damit nur gültige Kombinationen.
-  - `DOWNLOAD`: eine Auflösungsvariante (`WEB`, `FULL`), je Auflösung ein Preis.
+  - `DOWNLOAD`: eine **frei benannte Variante** (z. B. „Social Media 1080 px“, „Web 2048 px“, „Original“) mit
+    optionaler maximaler Kantenlänge in Pixeln (200–20.000, leer = Original) und eigenem Preis. Beliebig viele
+    Varianten pro Studio, Name eindeutig. (Ursprünglich zwei feste Auflösungen WEB/FULL – in der Demo zu #13 vom
+    Nutzer als zu eng bewertet und vor dem Merge umgestellt.)
   - Typabhängige Spalten sind nullable und per CHECK-Constraint an den Typ gebunden. Ein neuer Typ
     (z. B. Fotobuch) ergänzt Spalten, einen Enum-Wert und einen CHECK-Zweig. Der Typ ist nach dem Anlegen fest.
 - **Download-Pakete** (`download_package`): Name, Art (`IMAGE_COUNT` mit Bildanzahl ≥ 2 oder `WHOLE_GALLERY`),
-  Auflösung, Paketpreis. Ein Paket bezieht sich immer auf die Bilder *einer* Galerie.
+  Download-Variante (Verweis auf ein Produkt vom Typ `DOWNLOAD`, mandantensicherer Fremdschlüssel), Paketpreis.
+  Eine Variante, die ein Paket verwendet, kann nicht gelöscht, nur deaktiviert werden; ein Paket wird Kunden nur
+  angeboten, solange auch seine Variante aktiv ist. Ein Paket bezieht sich immer auf die Bilder *einer* Galerie.
 - **Versandarten** (`shipping_method`): Name und Kosten; nur für Bestellungen mit Abzügen relevant.
 - **Aktiv/inaktiv** für alle Einträge: inaktive Einträge bleiben gepflegt, werden Kunden aber nicht angeboten.
   `PriceListManagement.offer()` liefert nur aktive Einträge (Grundlage für Shop/Bestellung #14).

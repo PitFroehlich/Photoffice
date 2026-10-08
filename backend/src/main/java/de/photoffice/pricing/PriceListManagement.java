@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -59,10 +60,19 @@ public class PriceListManagement {
 	public PriceOffer offer() {
 		PriceListSettings current = currentSettings();
 		var activeProducts = products.findAllOrdered().stream().filter(Product::active).toList();
+		var activeDownloadIds = activeProducts.stream()
+			.filter(p -> p.type() == ProductType.DOWNLOAD)
+			.map(Product::id)
+			.collect(java.util.stream.Collectors.toSet());
 		return new PriceOffer(current.currency(), current.vatRatePercent(),
 				activeProducts.stream().filter(p -> p.type() == ProductType.PRINT).toList(),
 				activeProducts.stream().filter(p -> p.type() == ProductType.DOWNLOAD).toList(),
-				downloadPackages.findAllOrdered().stream().filter(DownloadPackage::active).toList(),
+				// A package is only offered while its download variant is active, too
+				downloadPackages.findAllOrdered()
+					.stream()
+					.filter(DownloadPackage::active)
+					.filter(d -> activeDownloadIds.contains(d.downloadProductId()))
+					.toList(),
 				shippingMethods.findAllOrdered().stream().filter(ShippingMethod::active).toList());
 	}
 
@@ -101,14 +111,24 @@ public class PriceListManagement {
 		return saveChecked(products, product, () -> DuplicatePriceListEntryException.of(data));
 	}
 
+	/**
+	 * A download variant that packages are delivered in cannot be deleted (it can be deactivated instead).
+	 */
 	public void deleteProduct(UUID id) {
-		products.delete(product(id));
+		Product product = product(id);
+		List<DownloadPackage> usedBy = downloadPackages.findByDownloadProductIdOrderByName(id);
+		if (!usedBy.isEmpty()) {
+			throw new PriceListEntryInUseException(
+					"Die Download-Variante „%s“ wird vom Paket „%s“ verwendet und kann nicht gelöscht werden. Deaktivieren Sie sie stattdessen."
+						.formatted(product.downloadName(), usedBy.getFirst().name()));
+		}
+		products.delete(product);
 	}
 
 	private void ensureProductIsNew(ProductData data, UUID excludedId) {
 		boolean exists = switch (data.type()) {
 			case PRINT -> products.existsOtherPrint(data.paperType(), data.printFormat(), excludedId);
-			case DOWNLOAD -> products.existsOtherDownload(data.resolution(), excludedId);
+			case DOWNLOAD -> products.existsOtherDownload(data.downloadName(), excludedId);
 		};
 		if (exists) {
 			throw DuplicatePriceListEntryException.of(data);
@@ -124,6 +144,7 @@ public class PriceListManagement {
 
 	public DownloadPackage createDownloadPackage(DownloadPackageData data) {
 		TenantId tenant = TenantContext.require();
+		ensureDownloadVariantExists(data);
 		ensureUnique(name -> downloadPackages.existsOtherWithName(name, NO_ID), data.name(),
 				() -> DuplicatePriceListEntryException.of(data));
 		return saveChecked(downloadPackages, new DownloadPackage(tenant, data, now()),
@@ -132,10 +153,18 @@ public class PriceListManagement {
 
 	public DownloadPackage updateDownloadPackage(UUID id, DownloadPackageData data) {
 		DownloadPackage downloadPackage = downloadPackage(id);
+		ensureDownloadVariantExists(data);
 		ensureUnique(name -> downloadPackages.existsOtherWithName(name, id), data.name(),
 				() -> DuplicatePriceListEntryException.of(data));
 		downloadPackage.apply(data, now());
 		return saveChecked(downloadPackages, downloadPackage, () -> DuplicatePriceListEntryException.of(data));
+	}
+
+	/** Row-level security makes variants of other studios invisible, so they count as missing. */
+	private void ensureDownloadVariantExists(DownloadPackageData data) {
+		products.findById(data.downloadProductId())
+			.filter(product -> product.type() == ProductType.DOWNLOAD)
+			.orElseThrow(() -> new IllegalArgumentException("Die gewählte Download-Variante gibt es nicht."));
 	}
 
 	public void deleteDownloadPackage(UUID id) {

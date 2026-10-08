@@ -14,6 +14,8 @@ interface DownloadPackageRepository extends JpaRepository<DownloadPackage, UUID>
 	@Query("select d from DownloadPackage d order by d.priceCents, d.name")
 	List<DownloadPackage> findAllOrdered();
 
+	List<DownloadPackage> findByDownloadProductIdOrderByName(UUID downloadProductId);
+
 	@Query("select count(d) > 0 from DownloadPackage d where lower(d.name) = lower(:name) and d.id <> :excludedId")
 	boolean existsOtherWithName(@Param("name") String name, @Param("excludedId") UUID excludedId);
 

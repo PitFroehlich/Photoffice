@@ -5,7 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
  */
 export function apiErrorMessage(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
-    const problem = error.error as { detail?: unknown; title?: unknown } | null;
+    const problem = problemDetail(error.error);
     if (problem && typeof problem.detail === 'string' && problem.detail) {
       return problem.detail;
     }
@@ -27,4 +27,19 @@ export function apiErrorMessage(error: unknown): string {
     }
   }
   return 'Es ist ein Fehler aufgetreten. Bitte später erneut versuchen.';
+}
+
+/**
+ * The problem detail of an error response. Calls without a response body (e.g. DELETE → 204) are requested as
+ * text, so their error body arrives as an unparsed JSON string.
+ */
+function problemDetail(body: unknown): { detail?: unknown; title?: unknown } | null {
+  if (typeof body === 'string') {
+    try {
+      return JSON.parse(body) as { detail?: unknown };
+    } catch {
+      return null;
+    }
+  }
+  return body as { detail?: unknown; title?: unknown } | null;
 }

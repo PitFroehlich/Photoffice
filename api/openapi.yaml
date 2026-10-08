@@ -732,14 +732,10 @@ components:
     # --- price list (#13) ---
     ProductType:
       description: |
-        Produkttyp. PRINT = Abzug (Papiertyp × Format), DOWNLOAD = digitale Datei in einer Auflösung.
+        Produkttyp. PRINT = Abzug (Papiertyp × Format), DOWNLOAD = digitale Datei in einer frei benannten Variante (Größe).
         Weitere Typen (z. B. Fotobuch) können ergänzt werden.
       type: string
       enum: [PRINT, DOWNLOAD]
-    DownloadResolution:
-      description: WEB = verkleinert für Bildschirm/Social Media, FULL = volle Auflösung des Originals
-      type: string
-      enum: [WEB, FULL]
     DownloadPackageKind:
       description: IMAGE_COUNT = feste Anzahl Bilder einer Galerie, WHOLE_GALLERY = alle Bilder einer Galerie
       type: string
@@ -780,8 +776,18 @@ components:
           description: Nur bei PRINT (Pflicht), z. B. "13 × 18 cm"
           type: string
           maxLength: 50
-        resolution:
-          $ref: '#/components/schemas/DownloadResolution'
+        downloadName:
+          description: Nur bei DOWNLOAD (Pflicht), frei benannte Variante, z. B. "Web 2048 px" oder "Original"
+          type: string
+          maxLength: 100
+        maxEdgePx:
+          description: >-
+            Nur bei DOWNLOAD: maximale Kantenlänge in Pixeln, auf die das Bild verkleinert wird
+            (200–20000); fehlt der Wert, wird das Original ausgeliefert
+          type: integer
+          format: int32
+          minimum: 200
+          maximum: 20000
         priceCents:
           description: Bruttopreis in Cent (ganzzahlig, nie Gleitkomma)
           type: integer
@@ -810,7 +816,7 @@ components:
               format: date-time
     DownloadPackageInput:
       type: object
-      required: [name, kind, resolution, priceCents]
+      required: [name, kind, downloadProductId, priceCents]
       properties:
         name:
           type: string
@@ -825,8 +831,10 @@ components:
           format: int32
           minimum: 2
           maximum: 10000
-        resolution:
-          $ref: '#/components/schemas/DownloadResolution'
+        downloadProductId:
+          description: Download-Variante (Produkt vom Typ DOWNLOAD), in der die Bilder des Pakets geliefert werden
+          type: string
+          format: uuid
         priceCents:
           description: Bruttopreis in Cent (ganzzahlig, nie Gleitkomma)
           type: integer

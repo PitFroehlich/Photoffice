@@ -34,9 +34,8 @@ public class DownloadPackage {
 	@Column(name = "image_count")
 	private Integer imageCount;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private DownloadResolution resolution;
+	@Column(name = "download_product_id", nullable = false)
+	private UUID downloadProductId;
 
 	@Column(name = "price_cents", nullable = false)
 	private int priceCents;
@@ -64,7 +63,7 @@ public class DownloadPackage {
 		this.name = data.name();
 		this.kind = data.kind();
 		this.imageCount = data.imageCount();
-		this.resolution = data.resolution();
+		this.downloadProductId = data.downloadProductId();
 		this.priceCents = data.priceCents();
 		this.active = data.active();
 		this.updatedAt = now;
@@ -91,8 +90,9 @@ public class DownloadPackage {
 		return imageCount;
 	}
 
-	public DownloadResolution resolution() {
-		return resolution;
+	/** The download variant the images are delivered in. */
+	public UUID downloadProductId() {
+		return downloadProductId;
 	}
 
 	public int priceCents() {

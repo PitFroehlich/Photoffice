@@ -95,7 +95,7 @@ class PriceListApiTests {
 			.andExpect(jsonPath("$.paperType").value("Matt"))
 			.andExpect(jsonPath("$.priceCents").value(290))
 			.andExpect(jsonPath("$.active").value(true))
-			.andExpect(jsonPath("$.resolution").doesNotExist())
+			.andExpect(jsonPath("$.downloadName").doesNotExist())
 			.andReturn()
 			.getResponse()
 			.getHeader("Location");
@@ -118,16 +118,27 @@ class PriceListApiTests {
 	}
 
 	@Test
-	void createsDownloadsPerResolution() throws Exception {
+	void createsFreelyNamedDownloadVariants() throws Exception {
 		createProduct("""
-				{"type": "DOWNLOAD", "resolution": "WEB", "priceCents": 490}""");
+				{"type": "DOWNLOAD", "downloadName": "Social Media 1080 px", "maxEdgePx": 1080, "priceCents": 290}""");
 		createProduct("""
-				{"type": "DOWNLOAD", "resolution": "FULL", "priceCents": 990}""");
+				{"type": "DOWNLOAD", "downloadName": "Web 2048 px", "maxEdgePx": 2048, "priceCents": 490}""");
+		send(post(BASE + "/products"), """
+				{"type": "DOWNLOAD", "downloadName": "Original", "priceCents": 990}""")
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.maxEdgePx").doesNotExist());
 
 		send(post(BASE + "/products"), """
-				{"type": "DOWNLOAD", "resolution": "FULL", "priceCents": 1290}""")
+				{"type": "DOWNLOAD", "downloadName": "ORIGINAL", "priceCents": 1290}""")
 			.andExpect(status().isConflict())
-			.andExpect(jsonPath("$.detail").value("Den Download in voller Auflösung gibt es bereits."));
+			.andExpect(jsonPath("$.detail").value("Die Download-Variante „ORIGINAL“ gibt es bereits."));
+		send(post(BASE + "/products"), """
+				{"type": "DOWNLOAD", "downloadName": "Mini", "maxEdgePx": 100, "priceCents": 90}""")
+			.andExpect(status().isBadRequest());
+		send(post(BASE + "/products"), """
+				{"type": "DOWNLOAD", "downloadName": "123", "priceCents": 90}""")
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.startsWith("Name der Download-Variante:")));
 	}
 
 	@Test
@@ -164,14 +175,14 @@ class PriceListApiTests {
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.detail").value("Für einen Abzug ist das Format Pflicht."));
 		send(post(BASE + "/products"), """
-				{"type": "PRINT", "paperType": "Matt", "printFormat": "10 × 15 cm", "resolution": "WEB", "priceCents": 290}""")
+				{"type": "PRINT", "paperType": "Matt", "printFormat": "10 × 15 cm", "downloadName": "Web", "priceCents": 290}""")
 			.andExpect(status().isBadRequest());
 		send(post(BASE + "/products"), """
 				{"type": "DOWNLOAD", "priceCents": 290}""")
 			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.detail").value("Für einen Download ist die Auflösung Pflicht."));
+			.andExpect(jsonPath("$.detail").value("Für einen Download ist der Name der Variante Pflicht."));
 		send(post(BASE + "/products"), """
-				{"type": "DOWNLOAD", "resolution": "WEB", "paperType": "Matt", "priceCents": 290}""")
+				{"type": "DOWNLOAD", "downloadName": "Web", "paperType": "Matt", "priceCents": 290}""")
 			.andExpect(status().isBadRequest());
 		send(post(BASE + "/products"), """
 				{"type": "BOOK", "priceCents": 290}""").andExpect(status().isBadRequest());
@@ -179,7 +190,7 @@ class PriceListApiTests {
 		String print = createProduct("""
 				{"type": "PRINT", "paperType": "Matt", "printFormat": "10 × 15 cm", "priceCents": 190}""");
 		send(put(BASE + "/products/" + print), """
-				{"type": "DOWNLOAD", "resolution": "WEB", "priceCents": 190}""")
+				{"type": "DOWNLOAD", "downloadName": "Web", "priceCents": 190}""")
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.detail").value("Der Produkttyp kann nicht geändert werden."));
 	}
@@ -187,43 +198,69 @@ class PriceListApiTests {
 	@Test
 	void pricesAreWholeCentsWithinLimits() throws Exception {
 		send(post(BASE + "/products"), """
-				{"type": "DOWNLOAD", "resolution": "WEB", "priceCents": -1}""").andExpect(status().isBadRequest());
+				{"type": "DOWNLOAD", "downloadName": "Web", "priceCents": -1}""").andExpect(status().isBadRequest());
 		send(post(BASE + "/products"), """
-				{"type": "DOWNLOAD", "resolution": "WEB", "priceCents": 10000001}""").andExpect(status().isBadRequest());
+				{"type": "DOWNLOAD", "downloadName": "Web", "priceCents": 10000001}""").andExpect(status().isBadRequest());
 		send(post(BASE + "/products"), """
-				{"type": "DOWNLOAD", "resolution": "WEB", "priceCents": 4.9}""").andExpect(status().isBadRequest());
+				{"type": "DOWNLOAD", "downloadName": "Web", "priceCents": 4.9}""").andExpect(status().isBadRequest());
 		send(post(BASE + "/shipping-methods"), """
 				{"name": "Abholung im Studio", "priceCents": 0}""").andExpect(status().isCreated());
 	}
 
 	@Test
 	void managesDownloadPackages() throws Exception {
+		String original = createProduct("""
+				{"type": "DOWNLOAD", "downloadName": "Original", "priceCents": 990}""");
 		String location = send(post(BASE + "/download-packages"), """
-				{"name": "10 Downloads", "kind": "IMAGE_COUNT", "imageCount": 10, "resolution": "FULL", "priceCents": 6900}""")
+				{"name": "10 Downloads", "kind": "IMAGE_COUNT", "imageCount": 10, "downloadProductId": "%s", "priceCents": 6900}"""
+			.formatted(original))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.imageCount").value(10))
 			.andReturn()
 			.getResponse()
 			.getHeader("Location");
 		send(post(BASE + "/download-packages"), """
-				{"name": "Ganze Galerie", "kind": "WHOLE_GALLERY", "resolution": "FULL", "priceCents": 14900}""")
+				{"name": "Ganze Galerie", "kind": "WHOLE_GALLERY", "downloadProductId": "%s", "priceCents": 14900}"""
+			.formatted(original))
 			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.downloadProductId").value(original))
 			.andExpect(jsonPath("$.imageCount").doesNotExist());
 
 		send(post(BASE + "/download-packages"), """
-				{"name": "ganze galerie", "kind": "WHOLE_GALLERY", "resolution": "WEB", "priceCents": 4900}""")
+				{"name": "ganze galerie", "kind": "WHOLE_GALLERY", "downloadProductId": "%s", "priceCents": 4900}"""
+			.formatted(original))
 			.andExpect(status().isConflict())
 			.andExpect(jsonPath("$.detail").value("Ein Paket mit dem Namen „ganze galerie“ gibt es bereits."));
 		send(post(BASE + "/download-packages"), """
-				{"name": "Ohne Anzahl", "kind": "IMAGE_COUNT", "resolution": "FULL", "priceCents": 100}""")
+				{"name": "Ohne Anzahl", "kind": "IMAGE_COUNT", "downloadProductId": "%s", "priceCents": 100}"""
+			.formatted(original))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.detail").value("Ein Paket enthält zwischen 2 und 10.000 Bilder."));
 		send(post(BASE + "/download-packages"), """
-				{"name": "Galerie mit Anzahl", "kind": "WHOLE_GALLERY", "imageCount": 5, "resolution": "FULL", "priceCents": 100}""")
+				{"name": "Galerie mit Anzahl", "kind": "WHOLE_GALLERY", "imageCount": 5, "downloadProductId": "%s", "priceCents": 100}"""
+			.formatted(original))
+			.andExpect(status().isBadRequest());
+		send(post(BASE + "/download-packages"), """
+				{"name": "Unbekannte Variante", "kind": "WHOLE_GALLERY", "downloadProductId": "%s", "priceCents": 100}"""
+			.formatted(java.util.UUID.randomUUID()))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.detail").value("Die gewählte Download-Variante gibt es nicht."));
+		String print = createProduct("""
+				{"type": "PRINT", "paperType": "Matt", "printFormat": "10 × 15 cm", "priceCents": 190}""");
+		send(post(BASE + "/download-packages"), """
+				{"name": "Abzug als Variante", "kind": "WHOLE_GALLERY", "downloadProductId": "%s", "priceCents": 100}"""
+			.formatted(print))
 			.andExpect(status().isBadRequest());
 
+		// The variant is in use and cannot be deleted
+		mockMvc.perform(delete(BASE + "/products/" + original).with(studioAdmin(studio)))
+			.andExpect(status().isConflict())
+			.andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.startsWith(
+					"Die Download-Variante „Original“ wird vom Paket „10 Downloads“ verwendet")));
+
 		send(put(location), """
-				{"name": "20 Downloads", "kind": "IMAGE_COUNT", "imageCount": 20, "resolution": "FULL", "priceCents": 11900}""")
+				{"name": "20 Downloads", "kind": "IMAGE_COUNT", "imageCount": 20, "downloadProductId": "%s", "priceCents": 11900}"""
+			.formatted(original))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.name").value("20 Downloads"));
 		mockMvc.perform(delete(location).with(studioAdmin(studio))).andExpect(status().isNoContent());
@@ -261,13 +298,13 @@ class PriceListApiTests {
 	@Test
 	void priceListIsSortedForDisplay() throws Exception {
 		createProduct("""
-				{"type": "DOWNLOAD", "resolution": "FULL", "priceCents": 990}""");
+				{"type": "DOWNLOAD", "downloadName": "Original", "priceCents": 990}""");
 		createProduct("""
 				{"type": "PRINT", "paperType": "Matt", "printFormat": "20 × 30 cm", "priceCents": 790}""");
 		createProduct("""
 				{"type": "PRINT", "paperType": "Matt", "printFormat": "10 × 15 cm", "priceCents": 190}""");
 		createProduct("""
-				{"type": "DOWNLOAD", "resolution": "WEB", "priceCents": 490}""");
+				{"type": "DOWNLOAD", "downloadName": "Web 2048 px", "maxEdgePx": 2048, "priceCents": 490}""");
 		send(post(BASE + "/shipping-methods"), """
 				{"name": "Standardversand", "priceCents": 490}""");
 		send(post(BASE + "/shipping-methods"), """
@@ -276,8 +313,8 @@ class PriceListApiTests {
 		mockMvc.perform(get(BASE).with(studioAdmin(studio)))
 			.andExpect(jsonPath("$.products[0].printFormat").value("10 × 15 cm"))
 			.andExpect(jsonPath("$.products[1].printFormat").value("20 × 30 cm"))
-			.andExpect(jsonPath("$.products[2].resolution").value("WEB"))
-			.andExpect(jsonPath("$.products[3].resolution").value("FULL"))
+			.andExpect(jsonPath("$.products[2].downloadName").value("Web 2048 px"))
+			.andExpect(jsonPath("$.products[3].downloadName").value("Original"))
 			.andExpect(jsonPath("$.shippingMethods[0].name").value("Abholung"));
 	}
 
@@ -287,10 +324,19 @@ class PriceListApiTests {
 				{"type": "PRINT", "paperType": "Matt", "printFormat": "10 × 15 cm", "priceCents": 190}""");
 		createProduct("""
 				{"type": "PRINT", "paperType": "Fine Art", "printFormat": "30 × 45 cm", "priceCents": 2490, "active": false}""");
-		createProduct("""
-				{"type": "DOWNLOAD", "resolution": "FULL", "priceCents": 990}""");
+		String original = createProduct("""
+				{"type": "DOWNLOAD", "downloadName": "Original", "priceCents": 990}""");
+		String inactiveVariant = createProduct("""
+				{"type": "DOWNLOAD", "downloadName": "Web", "priceCents": 490, "active": false}""");
 		send(post(BASE + "/download-packages"), """
-				{"name": "Alt", "kind": "WHOLE_GALLERY", "resolution": "FULL", "priceCents": 100, "active": false}""");
+				{"name": "Alt", "kind": "WHOLE_GALLERY", "downloadProductId": "%s", "priceCents": 100, "active": false}"""
+			.formatted(original));
+		send(post(BASE + "/download-packages"), """
+				{"name": "Web-Paket", "kind": "WHOLE_GALLERY", "downloadProductId": "%s", "priceCents": 100}"""
+			.formatted(inactiveVariant));
+		send(post(BASE + "/download-packages"), """
+				{"name": "Ganze Galerie", "kind": "WHOLE_GALLERY", "downloadProductId": "%s", "priceCents": 14900}"""
+			.formatted(original));
 		send(post(BASE + "/shipping-methods"), """
 				{"name": "Standardversand", "priceCents": 490}""");
 		send(put(BASE + "/settings"), """
@@ -301,15 +347,16 @@ class PriceListApiTests {
 		assertThat(offer.currency()).isEqualTo("EUR");
 		assertThat(offer.vatRatePercent()).isEqualByComparingTo(new BigDecimal("7"));
 		assertThat(offer.prints()).extracting(Product::paperType).containsExactly("Matt");
-		assertThat(offer.downloads()).extracting(Product::resolution).containsExactly(DownloadResolution.FULL);
-		assertThat(offer.downloadPackages()).isEmpty();
+		assertThat(offer.downloads()).extracting(Product::downloadName).containsExactly("Original");
+		// inactive package and package of an inactive variant are not offered
+		assertThat(offer.downloadPackages()).extracting(DownloadPackage::name).containsExactly("Ganze Galerie");
 		assertThat(offer.shippingMethods()).extracting(ShippingMethod::name).containsExactly("Standardversand");
 	}
 
 	@Test
 	void photographersMayReadButNotChangeThePriceList() throws Exception {
 		String product = createProduct("""
-				{"type": "DOWNLOAD", "resolution": "FULL", "priceCents": 990}""");
+				{"type": "DOWNLOAD", "downloadName": "Original", "priceCents": 990}""");
 
 		mockMvc.perform(get(BASE).with(photographer(studio)))
 			.andExpect(status().isOk())
@@ -319,12 +366,12 @@ class PriceListApiTests {
 		mockMvc.perform(post(BASE + "/products").with(photographer(studio))
 			.contentType(MediaType.APPLICATION_JSON)
 			.content("""
-					{"type": "DOWNLOAD", "resolution": "WEB", "priceCents": 490}"""))
+					{"type": "DOWNLOAD", "downloadName": "Web", "priceCents": 490}"""))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(put(BASE + "/products/" + product).with(photographer(studio))
 			.contentType(MediaType.APPLICATION_JSON)
 			.content("""
-					{"type": "DOWNLOAD", "resolution": "FULL", "priceCents": 1}"""))
+					{"type": "DOWNLOAD", "downloadName": "Original", "priceCents": 1}"""))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(delete(BASE + "/products/" + product).with(photographer(studio)))
 			.andExpect(status().isForbidden());

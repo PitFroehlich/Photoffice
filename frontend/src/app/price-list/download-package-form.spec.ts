@@ -31,10 +31,32 @@ describe('DownloadPackageForm', () => {
     vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const fixture = TestBed.createComponent(DownloadPackageForm);
     fixture.detectChanges();
+    // The form first loads the download variants of the studio
+    httpTesting.expectOne({ method: 'GET', url: '/api/studio/price-list' }).flush({
+      settings: { currency: 'EUR', vatRatePercent: 19 },
+      products: variants,
+      downloadPackages: [],
+      shippingMethods: [],
+    });
+    await settle(fixture);
     const form = (fixture.componentInstance as unknown as { form: DownloadPackageForm['form'] })
       .form;
     return { fixture, form, element: fixture.nativeElement as HTMLElement };
   }
+
+  const defaultVariants = [
+    {
+      id: 'v-web',
+      type: 'DOWNLOAD',
+      downloadName: 'Web 2048 px',
+      maxEdgePx: 2048,
+      priceCents: 490,
+      active: true,
+    },
+    { id: 'v-original', type: 'DOWNLOAD', downloadName: 'Original', priceCents: 990, active: true },
+  ];
+  let variants: unknown[] = defaultVariants;
+  beforeEach(() => (variants = defaultVariants));
 
   function fill(element: HTMLElement, name: string, value: string) {
     const input = element.querySelector(`[formcontrolname="${name}"]`) as HTMLInputElement;
@@ -62,7 +84,7 @@ describe('DownloadPackageForm', () => {
       name: '10 Downloads',
       kind: 'IMAGE_COUNT',
       imageCount: 10,
-      resolution: 'FULL',
+      downloadProductId: 'v-original',
       priceCents: 6900,
       active: true,
     });
@@ -118,7 +140,7 @@ describe('DownloadPackageForm', () => {
         id: 'd1',
         name: 'Ganze Galerie',
         kind: 'WHOLE_GALLERY',
-        resolution: 'FULL',
+        downloadProductId: 'v-web',
         priceCents: 14900,
         active: false,
       });
@@ -129,5 +151,17 @@ describe('DownloadPackageForm', () => {
       '149,00',
     );
     expect(element.querySelector('[formcontrolname="imageCount"]')).toBeNull();
+  });
+
+  it('asks for a download variant first when there is none', async () => {
+    variants = [];
+    const { element } = await render(null);
+
+    expect(element.textContent).toContain(
+      'Legen Sie zuerst unter „Downloads“ eine Download-Variante an',
+    );
+    expect((element.querySelector('button[type="submit"]') as HTMLButtonElement).disabled).toBe(
+      true,
+    );
   });
 });

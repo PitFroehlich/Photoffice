@@ -13,7 +13,7 @@ interface ProductRepository extends JpaRepository<Product, UUID> {
 
 	@Query("""
 			select p from Product p
-			order by p.type desc, p.priceCents, p.printFormat, p.paperType, p.resolution desc
+			order by p.type desc, p.priceCents, p.printFormat, p.paperType, p.downloadName
 			""")
 	List<Product> findAllOrdered();
 
@@ -28,10 +28,9 @@ interface ProductRepository extends JpaRepository<Product, UUID> {
 
 	@Query("""
 			select count(p) > 0 from Product p
-			where p.type = de.photoffice.pricing.ProductType.DOWNLOAD and p.resolution = :resolution
+			where p.type = de.photoffice.pricing.ProductType.DOWNLOAD and lower(p.downloadName) = lower(:name)
 			  and p.id <> :excludedId
 			""")
-	boolean existsOtherDownload(@Param("resolution") DownloadResolution resolution,
-			@Param("excludedId") UUID excludedId);
+	boolean existsOtherDownload(@Param("name") String name, @Param("excludedId") UUID excludedId);
 
 }

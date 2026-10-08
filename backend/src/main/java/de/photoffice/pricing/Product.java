@@ -11,8 +11,8 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Product sold individually at a single price, e.g. a print "matt, 13 × 18 cm" or a download in full
- * resolution. Belongs to exactly one tenant (row-level security on table {@code product}).
+ * Product sold individually at a single price, e.g. a print "matt, 13 × 18 cm" or a download variant
+ * "Web 2048 px". Belongs to exactly one tenant (row-level security on table {@code product}).
  */
 @Entity
 @Table(name = "product")
@@ -34,8 +34,11 @@ public class Product {
 	@Column(name = "print_format")
 	private String printFormat;
 
-	@Enumerated(EnumType.STRING)
-	private DownloadResolution resolution;
+	@Column(name = "download_name")
+	private String downloadName;
+
+	@Column(name = "max_edge_px")
+	private Integer maxEdgePx;
 
 	@Column(name = "price_cents", nullable = false)
 	private int priceCents;
@@ -66,7 +69,8 @@ public class Product {
 		}
 		this.paperType = data.paperType();
 		this.printFormat = data.printFormat();
-		this.resolution = data.resolution();
+		this.downloadName = data.downloadName();
+		this.maxEdgePx = data.maxEdgePx();
 		this.priceCents = data.priceCents();
 		this.active = data.active();
 		this.updatedAt = now;
@@ -92,8 +96,14 @@ public class Product {
 		return printFormat;
 	}
 
-	public DownloadResolution resolution() {
-		return resolution;
+	/** Name of a download variant, e.g. "Web 2048 px" ({@code null} for prints). */
+	public String downloadName() {
+		return downloadName;
+	}
+
+	/** Maximum edge length in pixels of a download; {@code null} = original size (or a print). */
+	public Integer maxEdgePx() {
+		return maxEdgePx;
 	}
 
 	public int priceCents() {

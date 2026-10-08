@@ -12,13 +12,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Api } from '../api/api';
-import { createDownloadPackage, getDownloadPackage, updateDownloadPackage } from '../api/functions';
 import {
-  DownloadPackage,
-  DownloadPackageInput,
-  DownloadPackageKind,
-  DownloadResolution,
-} from '../api/models';
+  createDownloadPackage,
+  getDownloadPackage,
+  getPriceList,
+  updateDownloadPackage,
+} from '../api/functions';
+import { DownloadPackage, DownloadPackageInput, DownloadPackageKind, Product } from '../api/models';
 import {
   FieldError,
   LoadingIndicator,
@@ -27,7 +27,7 @@ import {
   apiErrorMessage,
 } from '../shared/ui';
 import { centsToInput, parsePriceCents, priceValidator } from './money';
-import { canEditPriceList, packageKindLabels, resolutionLabels } from './price-list-labels';
+import { canEditPriceList, downloadSize, packageKindLabels } from './price-list-labels';
 
 /** Create (/studio/preisliste/pakete/neu) or edit (/studio/preisliste/pakete/:id) a download package. */
 @Component({
@@ -61,16 +61,18 @@ export class DownloadPackageForm implements OnInit {
   protected readonly saving = signal(false);
   protected readonly title = signal('Neues Download-Paket');
   protected readonly kinds = Object.entries(packageKindLabels) as [DownloadPackageKind, string][];
-  protected readonly resolutions = Object.entries(resolutionLabels) as [
-    DownloadResolution,
-    string,
-  ][];
+  /** Download variants of the studio – a package is delivered in one of them. */
+  protected readonly variants = signal<Product[]>([]);
+  protected readonly downloadSize = downloadSize;
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    name: ['', [Validators.required, Validators.maxLength(100), trimmedPattern(priceListPatterns.name)]],
+    name: [
+      '',
+      [Validators.required, Validators.maxLength(100), trimmedPattern(priceListPatterns.name)],
+    ],
     kind: ['IMAGE_COUNT' as DownloadPackageKind, Validators.required],
     imageCount: [10, [Validators.required, Validators.min(2), Validators.max(10000)]],
-    resolution: ['FULL' as DownloadResolution, Validators.required],
+    downloadProductId: ['', Validators.required],
     price: ['', [Validators.required, priceValidator]],
     active: [true],
   });
@@ -92,8 +94,15 @@ export class DownloadPackageForm implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    await this.loadVariants();
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
+      // Preselect the original if there is one, otherwise the first variant
+      const variants = this.variants();
+      const preferred = variants.find((v) => !v.maxEdgePx) ?? variants[0];
+      if (preferred) {
+        this.form.controls.downloadProductId.setValue(preferred.id);
+      }
       return;
     }
     this.packageId.set(id);
@@ -140,13 +149,22 @@ export class DownloadPackageForm implements OnInit {
     }
   }
 
+  private async loadVariants(): Promise<void> {
+    try {
+      const priceList = await this.api.invoke(getPriceList);
+      this.variants.set(priceList.products.filter((p) => p.type === 'DOWNLOAD'));
+    } catch (error) {
+      this.notifications.error(error);
+    }
+  }
+
   private toInput(): DownloadPackageInput {
     const value = this.form.getRawValue();
     return {
       name: value.name.trim(),
       kind: value.kind,
       imageCount: value.kind === 'IMAGE_COUNT' ? value.imageCount : undefined,
-      resolution: value.resolution,
+      downloadProductId: value.downloadProductId,
       priceCents: parsePriceCents(value.price)!,
       active: value.active,
     };
@@ -157,7 +175,7 @@ export class DownloadPackageForm implements OnInit {
       name: downloadPackage.name,
       kind: downloadPackage.kind,
       imageCount: downloadPackage.imageCount ?? 10,
-      resolution: downloadPackage.resolution,
+      downloadProductId: downloadPackage.downloadProductId,
       price: centsToInput(downloadPackage.priceCents),
       active: downloadPackage.active !== false,
     };

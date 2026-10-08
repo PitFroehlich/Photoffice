@@ -54,7 +54,10 @@ export class ShippingMethodForm implements OnInit {
   protected readonly title = signal('Neue Versandart');
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    name: ['', [Validators.required, Validators.maxLength(100), trimmedPattern(priceListPatterns.name)]],
+    name: [
+      '',
+      [Validators.required, Validators.maxLength(100), trimmedPattern(priceListPatterns.name)],
+    ],
     price: ['', [Validators.required, priceValidator]],
     active: [true],
   });

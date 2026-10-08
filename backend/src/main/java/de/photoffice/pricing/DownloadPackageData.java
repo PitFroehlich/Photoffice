@@ -1,21 +1,24 @@
 package de.photoffice.pricing;
 
+import java.util.UUID;
+
 import static de.photoffice.pricing.Prices.requireValidCents;
 import static de.photoffice.pricing.Prices.required;
 
 /**
- * Editable fields of a download package: a number of images or the whole gallery at a package price.
+ * Editable fields of a download package: a number of images or the whole gallery at a package price, delivered
+ * in one download variant (product of type {@code DOWNLOAD}).
  */
-public record DownloadPackageData(String name, DownloadPackageKind kind, Integer imageCount,
-		DownloadResolution resolution, int priceCents, boolean active) {
+public record DownloadPackageData(String name, DownloadPackageKind kind, Integer imageCount, UUID downloadProductId,
+		int priceCents, boolean active) {
 
 	public DownloadPackageData {
 		name = PriceListTexts.name(required(name, "Der Name des Pakets ist Pflicht."), "Name des Pakets");
 		if (kind == null) {
 			throw new IllegalArgumentException("Die Art des Pakets fehlt.");
 		}
-		if (resolution == null) {
-			throw new IllegalArgumentException("Die Auflösung des Pakets fehlt.");
+		if (downloadProductId == null) {
+			throw new IllegalArgumentException("Die Download-Variante des Pakets fehlt.");
 		}
 		priceCents = requireValidCents(priceCents);
 		switch (kind) {

@@ -13,13 +13,7 @@ import {
   deleteShippingMethod,
   getPriceList,
 } from '../api/functions';
-import {
-  DownloadPackage,
-  DownloadResolution,
-  PriceList,
-  Product,
-  ShippingMethod,
-} from '../api/models';
+import { DownloadPackage, PriceList, Product, ShippingMethod } from '../api/models';
 import {
   ConfirmService,
   EmptyState,
@@ -28,12 +22,7 @@ import {
   PageHeader,
 } from '../shared/ui';
 import { formatCents } from './money';
-import {
-  canEditPriceList,
-  packageContent,
-  productLabel,
-  resolutionLabels,
-} from './price-list-labels';
+import { canEditPriceList, packageContent, productLabel, downloadSize } from './price-list-labels';
 
 /**
  * Price list of the studio (/studio/preisliste): settings, prints, downloads, download packages and shipping
@@ -71,10 +60,6 @@ export class PriceListPage implements OnInit {
   protected readonly downloads = computed(
     () => this.priceList()?.products.filter((p) => p.type === 'DOWNLOAD') ?? [],
   );
-  /** Each resolution can be sold once – offer "add" only while one is missing. */
-  protected readonly canAddDownload = computed(
-    () => this.downloads().length < Object.keys(resolutionLabels).length,
-  );
 
   private readonly withActions = (columns: string[]) =>
     computed(() => (this.canEdit() ? [...columns, 'actions'] : columns));
@@ -84,11 +69,16 @@ export class PriceListPage implements OnInit {
     'price',
     'status',
   ]);
-  protected readonly downloadColumns = this.withActions(['resolution', 'price', 'status']);
+  protected readonly downloadColumns = this.withActions([
+    'downloadName',
+    'size',
+    'price',
+    'status',
+  ]);
   protected readonly packageColumns = this.withActions([
     'name',
     'content',
-    'resolution',
+    'variant',
     'price',
     'status',
   ]);
@@ -101,8 +91,11 @@ export class PriceListPage implements OnInit {
     void this.load();
   }
 
-  protected resolutionLabel(resolution: DownloadResolution | undefined): string {
-    return resolution ? resolutionLabels[resolution] : '';
+  protected readonly downloadSize = downloadSize;
+
+  /** Name of the download variant a package is delivered in. */
+  protected variantName(downloadProductId: string): string {
+    return this.downloads().find((p) => p.id === downloadProductId)?.downloadName ?? '';
   }
 
   protected price(cents: number): string {

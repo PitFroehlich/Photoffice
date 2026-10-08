@@ -81,11 +81,11 @@ describe('ProductForm', () => {
     expect(navigate).toHaveBeenCalledWith(['/studio/preisliste']);
   });
 
-  it('creates a download with a resolution only', async () => {
+  it('creates a download variant with name and size', async () => {
     const { fixture, element } = await render(null, 'download');
     expect(element.querySelector('[formcontrolname="paperType"]')).toBeNull();
-    const component = fixture.componentInstance as unknown as { form: ProductForm['form'] };
-    component.form.controls.resolution.setValue('WEB');
+    fill(element, 'downloadName', ' Web 2048 px ');
+    fill(element, 'maxEdgePx', '2048');
     fill(element, 'price', '4,90');
     submit(element);
     await settle(fixture);
@@ -96,12 +96,41 @@ describe('ProductForm', () => {
     });
     expect(request.request.body).toEqual({
       type: 'DOWNLOAD',
-      resolution: 'WEB',
+      downloadName: 'Web 2048 px',
+      maxEdgePx: 2048,
       priceCents: 490,
       active: true,
     });
     request.flush({ id: 'new' });
     await settle(fixture);
+    expect(notifications.success).toHaveBeenCalledWith('„Download Web 2048 px“ wurde angelegt.');
+  });
+
+  it('sends no size for the original', async () => {
+    const { fixture, element } = await render(null, 'download');
+    fill(element, 'downloadName', 'Original');
+    fill(element, 'price', '9,90');
+    submit(element);
+    await settle(fixture);
+
+    const request = httpTesting.expectOne({
+      method: 'POST',
+      url: '/api/studio/price-list/products',
+    });
+    expect(request.request.body.maxEdgePx).toBeUndefined();
+    request.flush({ id: 'new' });
+    await settle(fixture);
+  });
+
+  it('rejects a size outside 200 to 20,000 pixels', async () => {
+    const { fixture, element } = await render(null, 'download');
+    fill(element, 'downloadName', 'Mini');
+    fill(element, 'maxEdgePx', '100');
+    fill(element, 'price', '1');
+    submit(element);
+    await settle(fixture);
+
+    httpTesting.expectNone({ method: 'POST' });
   });
 
   it('does not send an invalid price', async () => {

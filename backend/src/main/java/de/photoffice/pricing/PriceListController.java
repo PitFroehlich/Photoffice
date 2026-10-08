@@ -133,6 +133,11 @@ class PriceListController implements PriceListApi {
 	}
 
 	@ExceptionHandler
+	ProblemDetail onInUse(PriceListEntryInUseException ex) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+	}
+
+	@ExceptionHandler
 	ProblemDetail onInvalidInput(IllegalArgumentException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
 	}
@@ -141,15 +146,13 @@ class PriceListController implements PriceListApi {
 
 	private static ProductData toData(ProductInput input) {
 		return new ProductData(ProductType.valueOf(input.getType().getValue()), input.getPaperType(),
-				input.getPrintFormat(), input.getResolution() == null ? null
-						: DownloadResolution.valueOf(input.getResolution().getValue()),
-				input.getPriceCents(), isActive(input.getActive()));
+				input.getPrintFormat(), input.getDownloadName(), input.getMaxEdgePx(), input.getPriceCents(),
+				isActive(input.getActive()));
 	}
 
 	private static DownloadPackageData toData(DownloadPackageInput input) {
 		return new DownloadPackageData(input.getName(), DownloadPackageKind.valueOf(input.getKind().getValue()),
-				input.getImageCount(), DownloadResolution.valueOf(input.getResolution().getValue()),
-				input.getPriceCents(), isActive(input.getActive()));
+				input.getImageCount(), input.getDownloadProductId(), input.getPriceCents(), isActive(input.getActive()));
 	}
 
 	private static ShippingMethodData toData(ShippingMethodInput input) {
@@ -173,16 +176,15 @@ class PriceListController implements PriceListApi {
 				product.active(), product.id(), utc(product.createdAt()), utc(product.updatedAt()));
 		response.setPaperType(product.paperType());
 		response.setPrintFormat(product.printFormat());
-		if (product.resolution() != null) {
-			response.setResolution(de.photoffice.api.model.DownloadResolution.fromValue(product.resolution().name()));
-		}
+		response.setDownloadName(product.downloadName());
+		response.setMaxEdgePx(product.maxEdgePx());
 		return response;
 	}
 
 	private static de.photoffice.api.model.DownloadPackage toResponse(DownloadPackage downloadPackage) {
 		var response = new de.photoffice.api.model.DownloadPackage(downloadPackage.name(),
 				de.photoffice.api.model.DownloadPackageKind.fromValue(downloadPackage.kind().name()),
-				de.photoffice.api.model.DownloadResolution.fromValue(downloadPackage.resolution().name()),
+				downloadPackage.downloadProductId(),
 				downloadPackage.priceCents(), downloadPackage.active(), downloadPackage.id(),
 				utc(downloadPackage.createdAt()), utc(downloadPackage.updatedAt()));
 		response.setImageCount(downloadPackage.imageCount());

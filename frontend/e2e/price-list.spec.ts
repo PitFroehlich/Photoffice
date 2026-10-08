@@ -19,7 +19,14 @@ test('shows the seeded price list of studio A', async ({ page }) => {
     prints.getByRole('row', { name: /Fine Art 30 × 45 cm 24,90 € Inaktiv/ }),
   ).toBeVisible();
   await expect(
-    page.getByRole('table', { name: 'Downloads' }).getByText('Volle Auflösung'),
+    page
+      .getByRole('table', { name: 'Downloads' })
+      .getByRole('row', { name: /Web 2048 px max\. 2\.048 px 4,90 €/ }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('table', { name: 'Downloads' })
+      .getByRole('row', { name: /Original Original 9,90 €/ }),
   ).toBeVisible();
   await expect(
     page.getByRole('table', { name: 'Download-Pakete' }).getByText('10 Bilder'),
@@ -97,11 +104,9 @@ test('create and delete a download package and a shipping method', async ({ page
   await page.getByRole('button', { name: 'Speichern' }).click();
   await expect(page.getByText(`„Galerie ${id}“ wurde angelegt.`)).toBeVisible();
   await expect(
-    page
-      .getByRole('table', { name: 'Download-Pakete' })
-      .getByRole('row', {
-        name: new RegExp(`Galerie ${id} Ganze Galerie Volle Auflösung 199,00 €`),
-      }),
+    page.getByRole('table', { name: 'Download-Pakete' }).getByRole('row', {
+      name: new RegExp(`Galerie ${id} Ganze Galerie Original 199,00 €`),
+    }),
   ).toBeVisible();
 
   await page.getByRole('link', { name: 'Versandart hinzufügen' }).click();
@@ -157,4 +162,34 @@ test('studio B does not see the price list of studio A', async ({ page }) => {
   await page.goto('/studio/preisliste/produkte/e1000000-0000-4000-8000-000000000003');
   await expect(page.getByText('Das Produkt wurde nicht gefunden.')).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Preisliste');
+});
+
+test('download variants: create freely named sizes, variants in use cannot be deleted', async ({
+  page,
+}) => {
+  const id = unique();
+  await openPriceList(page);
+
+  await page.getByRole('link', { name: 'Download hinzufügen' }).click();
+  await page.getByLabel('Name der Variante').fill(`Druck ${id}`);
+  await page.getByLabel('Maximale Kantenlänge').fill('100');
+  await expect(page.getByText('Mindestens 200')).toBeVisible();
+  await page.getByLabel('Maximale Kantenlänge').fill('4000');
+  await page.getByLabel('Preis je Bild').fill('14,90');
+  await page.getByRole('button', { name: 'Speichern' }).click();
+  await expect(page.getByText(`„Download Druck ${id}“ wurde angelegt.`)).toBeVisible();
+  await expect(
+    page
+      .getByRole('table', { name: 'Downloads' })
+      .getByRole('row', { name: new RegExp(`Druck ${id} max\\. 4\\.000 px 14,90 €`) }),
+  ).toBeVisible();
+
+  // "Original" is used by the packages of the dev data
+  await page.getByRole('button', { name: 'Download Original löschen' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Löschen' }).click();
+  await expect(page.getByText(/wird vom Paket „10 Downloads“ verwendet/)).toBeVisible();
+
+  await page.getByRole('button', { name: `Download Druck ${id} löschen` }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Löschen' }).click();
+  await expect(page.getByText(`„Download Druck ${id}“ wurde gelöscht.`)).toBeVisible();
 });

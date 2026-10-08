@@ -34,7 +34,7 @@ const priceList = (): PriceList => ({
     {
       id: 'p3',
       type: 'DOWNLOAD',
-      resolution: 'FULL',
+      downloadName: 'Original',
       priceCents: 990,
       active: true,
       ...timestamps,
@@ -46,7 +46,7 @@ const priceList = (): PriceList => ({
       name: '10 Downloads',
       kind: 'IMAGE_COUNT',
       imageCount: 10,
-      resolution: 'FULL',
+      downloadProductId: 'p3',
       priceCents: 6900,
       active: true,
       ...timestamps,
@@ -96,7 +96,8 @@ describe('PriceListPage', () => {
     expect(prints.textContent).toContain('2,90 €');
     expect(prints.textContent).toContain('24,90 €');
     expect(prints.textContent).toContain('Inaktiv');
-    expect(table(element, 'Downloads')?.textContent).toContain('Volle Auflösung');
+    expect(table(element, 'Downloads')?.textContent).toContain('Original');
+    expect(table(element, 'Download-Pakete')?.textContent).toContain('Original');
     expect(table(element, 'Download-Pakete')?.textContent).toContain('10 Bilder');
     expect(element.textContent).toContain('Noch keine Versandarten');
   });
@@ -150,27 +151,27 @@ describe('PriceListPage', () => {
     confirm.mockResolvedValue(false);
 
     (
-      element.querySelector(
-        'button[aria-label="Download Volle Auflösung löschen"]',
-      ) as HTMLButtonElement
+      element.querySelector('button[aria-label="Download Original löschen"]') as HTMLButtonElement
     ).click();
     await settle(fixture);
 
     httpTesting.expectNone({ method: 'DELETE' });
   });
 
-  it('hides "add download" when every resolution has a price', async () => {
+  it('always offers to add more download variants', async () => {
     const list = priceList();
     list.products.push({
       id: 'p4',
       type: 'DOWNLOAD',
-      resolution: 'WEB',
+      downloadName: 'Web 2048 px',
+      maxEdgePx: 2048,
       priceCents: 490,
       active: true,
       ...timestamps,
     });
     const { element } = await render('STUDIO_ADMIN', list);
 
-    expect(element.textContent).not.toContain('Download hinzufügen');
+    expect(element.textContent).toContain('Download hinzufügen');
+    expect(table(element, 'Downloads')?.textContent).toContain('max. 2.048 px');
   });
 });
