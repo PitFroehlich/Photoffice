@@ -27,10 +27,13 @@ must live in this repository or on GitHub.
 ### At the start of a session
 1. `git fetch --all --prune` and `git pull` on the current branch.
 2. `gh issue list` – check what is open and what is `in-progress` (someone else is on it – don't touch).
+   The pinned **Roadmap issue (#21)** shows the order of work. Only pick an issue whose
+   *Blockiert durch* issues are all closed; issues with the same `stufe:N` label can be worked on in parallel.
 3. Read the latest entries in `docs/journal/` and any ADRs relevant to your task.
 
 ### While working
-1. Every task has a GitHub Issue. Create one if missing (`gh issue create`).
+1. Every task has a GitHub Issue. Create one if missing (`gh issue create`). For new issues, set
+   GitHub dependencies ("blocked by"), add the *Abhängigkeiten* section and update the Roadmap issue.
 2. Claim it: `gh issue edit <nr> --add-label in-progress --add-assignee @me` and comment which
    machine/agent is working on it (`gh issue comment <nr> --body "..."`).
 3. Work on a branch `feature/<nr>-short-title` (or `fix/...`, `chore/...`) created from `main`.

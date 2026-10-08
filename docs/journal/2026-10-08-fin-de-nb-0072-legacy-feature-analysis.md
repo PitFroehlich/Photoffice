@@ -16,6 +16,7 @@ Bestehende Features der Legacy-App erfassen, für eine Neuentwicklung priorisier
 
 - `docs/decisions/0003-tech-stack.md`: Java + Spring Boot/Modulith, Angular, PostgreSQL mit RLS, S3 Object Storage, imgproxy (OSS) + Wasserzeichen-Vorschau per libvips (vips-ffm) im Backend, Keycloak, Bezahlung anbieter-agnostisch, EU-Cloud mit Containern.
 - GitHub-Labels `prio:P0–P2`, `area:backend/frontend/infra`, `adr` angelegt; Issues #4–#20 für P0–P2 erstellt (mit Abhängigkeiten). P3-Features (F9-PDF, F10, F12-EXIF, F20) noch ohne Issue.
+- Abhängigkeiten der Issues als native GitHub-"blocked by"-Beziehungen gesetzt, Labels `stufe:1–10` (frühester Start, gleiche Stufe = parallel), Abschnitt *Abhängigkeiten* in jedem Issue, angepinntes Roadmap-Issue #21 mit Mermaid-Graph. Regel in AGENTS.md ergänzt.
 
 ## Open / Next steps
 - Start mit #4 (Projekt-Grundgerüst), dann #5/#6 (P0).
@@ -24,6 +25,7 @@ Bestehende Features der Legacy-App erfassen, für eine Neuentwicklung priorisier
 - `AGENTS.md` um Setup/Konventionen des Neubaus ergänzen, sobald Code existiert.
 
 ## Pitfalls
+- `gh pr edit` scheitert mit Fehler zu Projects (classic) → PR per `gh api -X PATCH repos/.../pulls/<nr>` bearbeiten.
 - imgproxy OSS kann nur ein global konfiguriertes Wasserzeichen; `watermark_url`/`watermark_text` sind Pro-Features → Grund für Backend-Rendering der Wasserzeichen-Vorschau.
 - Kundenbereich der Legacy-App ist nicht lauffähig: 7 Controller referenzieren gelöschte Behavior-Klassen (Commits b3060e9, 68849f8).
 - Die Analyse ist statisch; die App wurde nicht im Docker-Container gestartet.
