@@ -1,0 +1,10 @@
+<main class="start">
+  <h1>Photoffice</h1>
+  <p>Neubau – Grundgerüst</p>
+  @if (systemInfo(); as info) {
+    <p class="system-info">Backend: {{ info.name }} {{ info.version }}</p>
+  } @else if (backendError()) {
+    <p class="system-info error">Backend nicht erreichbar</p>
+  }
+</main>
+<router-outlet />

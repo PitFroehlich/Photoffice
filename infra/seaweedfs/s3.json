@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "photoffice-dev",
+      "credentials": [{ "accessKey": "photoffice", "secretKey": "photoffice-dev-secret" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}
