@@ -4,8 +4,8 @@ import { authProvider, fakeAuthService, iconTesting } from '../../testing/test-p
 import { PublicShell } from './public-shell';
 
 describe('PublicShell', () => {
-  async function render(loggedIn: boolean) {
-    const auth = fakeAuthService(loggedIn);
+  async function render(loggedIn: boolean, roles?: string[]) {
+    const auth = fakeAuthService(loggedIn, roles);
     await TestBed.configureTestingModule({
       imports: [PublicShell, iconTesting],
       providers: [provideRouter([]), authProvider(auth)],
@@ -27,7 +27,26 @@ describe('PublicShell', () => {
   it('links to the studio area when logged in', async () => {
     const { element } = await render(true);
 
-    expect(element.querySelector('mat-toolbar a[href="/studio"]')?.textContent).toContain('Zum Studio-Bereich');
+    expect(element.querySelector('mat-toolbar a[href="/studio"]')?.textContent).toContain(
+      'Zum Studio-Bereich',
+    );
+  });
+
+  it('offers the platform login when logged out', async () => {
+    const { element } = await render(false);
+
+    expect(element.querySelector('mat-toolbar a[href="/plattform"]')?.textContent).toContain(
+      'Plattform-Login',
+    );
+  });
+
+  it('links the platform operator to the platform area', async () => {
+    const { element } = await render(true, ['platform-admin']);
+
+    expect(element.querySelector('mat-toolbar a[href="/plattform"]')?.textContent).toContain(
+      'Zur Plattform-Verwaltung',
+    );
+    expect(element.querySelector('mat-toolbar a[href="/studio"]')).toBeNull();
   });
 
   it('has a skip link to the main content', async () => {

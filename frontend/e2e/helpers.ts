@@ -11,7 +11,8 @@ export async function loginAs(page: Page, username: string, password = username)
   await page.locator('#kc-login').click();
   await page.locator('#password').fill(password);
   await page.locator('#kc-login').click();
-  await expect(page).toHaveURL(/\/studio/);
+  // Studio users land in the studio area, the platform operator in the platform area (#35)
+  await expect(page).toHaveURL(/\/(studio|plattform)/);
 }
 
 export async function logout(page: Page): Promise<void> {

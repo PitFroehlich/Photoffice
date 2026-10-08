@@ -1,5 +1,6 @@
 package de.photoffice.identity;
 
+import jakarta.servlet.DispatcherType;
 import java.util.function.Supplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
+import org.springframework.security.web.firewall.RequestRejectedHandler;
 
 /**
  * Access rules of the API. Everything not explicitly allowed is denied.
@@ -28,6 +30,9 @@ class SecurityConfiguration {
 	SecurityFilterChain apiSecurity(HttpSecurity http, StudioMembership studioMembership) throws Exception {
 		AuthorizationManager<RequestAuthorizationContext> studioMember = activeStudioMember(studioMembership);
 		http.authorizeHttpRequests(requests -> requests
+			// Error dispatches render the error of the original request (which was already authorized) –
+			// denying them turned every error into an empty 401
+			.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
 			.requestMatchers("/actuator/health/**", "/actuator/info", "/api/system/info").permitAll()
 			.requestMatchers("/api/platform/**").hasRole(Roles.PLATFORM_ADMIN)
 			// Price list (#13): every studio member reads, only studio administrators change prices
@@ -44,6 +49,15 @@ class SecurityConfiguration {
 			.logout(logout -> logout.disable())
 			.headers(Customizer.withDefaults());
 		return http.build();
+	}
+
+	/**
+	 * URLs rejected by Spring Security's firewall (e.g. {@code /api/platform/tenants//suspend}) get a 400 problem
+	 * detail instead of the container's error page.
+	 */
+	@Bean
+	RequestRejectedHandler requestRejectedHandler() {
+		return new ProblemDetailRequestRejectedHandler();
 	}
 
 	/**

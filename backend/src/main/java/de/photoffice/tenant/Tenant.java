@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -15,6 +16,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "tenant")
 public class Tenant {
+
+	static final int MAX_ERROR_LENGTH = 1000;
 
 	@Id
 	private UUID id;
@@ -35,6 +38,13 @@ public class Tenant {
 	/** Set once the identity provider is set up for the studio; {@code null} while onboarding is pending. */
 	@Column(name = "onboarded_at")
 	private Instant onboardedAt;
+
+	/** Reason of the last failed onboarding attempt (German, shown to the platform operator); cleared on success. */
+	@Column(name = "onboarding_error")
+	private String onboardingError;
+
+	@Column(name = "onboarding_failed_at")
+	private Instant onboardingFailedAt;
 
 	protected Tenant() {
 	}
@@ -71,6 +81,14 @@ public class Tenant {
 		return onboardedAt != null;
 	}
 
+	public Optional<String> onboardingError() {
+		return Optional.ofNullable(onboardingError);
+	}
+
+	public Optional<Instant> onboardingFailedAt() {
+		return Optional.ofNullable(onboardingFailedAt);
+	}
+
 	/**
 	 * @return {@code true} if the status changed
 	 */
@@ -86,6 +104,17 @@ public class Tenant {
 		if (onboardedAt == null) {
 			onboardedAt = at;
 		}
+		onboardingError = null;
+		onboardingFailedAt = null;
+	}
+
+	/** Ignored once onboarding is complete (a late failure report of a duplicate delivery). */
+	void recordOnboardingFailure(String reason, Instant at) {
+		if (onboardedAt != null) {
+			return;
+		}
+		onboardingError = reason.length() > MAX_ERROR_LENGTH ? reason.substring(0, MAX_ERROR_LENGTH - 1) + "…" : reason;
+		onboardingFailedAt = at;
 	}
 
 }

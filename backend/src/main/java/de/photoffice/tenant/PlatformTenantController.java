@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Studio administration for the platform operator (access restricted in {@code SecurityConfiguration}).
@@ -45,6 +46,11 @@ class PlatformTenantController implements PlatformApi {
 	}
 
 	@Override
+	public ResponseEntity<TenantResponse> retryTenantOnboarding(UUID tenantId) {
+		return ResponseEntity.accepted().body(toResponse(tenantManagement.retryOnboarding(TenantId.of(tenantId))));
+	}
+
+	@Override
 	public ResponseEntity<List<TenantResponse>> listTenants() {
 		return ResponseEntity.ok(tenantManagement.findAll().stream().map(PlatformTenantController::toResponse).toList());
 	}
@@ -59,6 +65,13 @@ class PlatformTenantController implements PlatformApi {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
 	}
 
+	/** Path variable that is no UUID, e.g. {@code /api/platform/tenants/abc/suspend}. */
+	@ExceptionHandler
+	ProblemDetail onInvalidId(MethodArgumentTypeMismatchException ex) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+				"Ungültige Studio-ID „" + ex.getValue() + "“ – erwartet wird eine UUID.");
+	}
+
 	@ExceptionHandler
 	ProblemDetail onInvalidInput(IllegalArgumentException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
@@ -69,7 +82,9 @@ class PlatformTenantController implements PlatformApi {
 				TenantResponse.StatusEnum.fromValue(tenant.status().name()),
 				tenant.onboarded() ? TenantResponse.OnboardingStatusEnum.COMPLETED
 						: TenantResponse.OnboardingStatusEnum.PENDING,
-				tenant.createdAt().atOffset(ZoneOffset.UTC));
+				tenant.createdAt().atOffset(ZoneOffset.UTC))
+			.onboardingError(tenant.onboardingError().orElse(null))
+			.onboardingFailedAt(tenant.onboardingFailedAt().map(at -> at.atOffset(ZoneOffset.UTC)).orElse(null));
 	}
 
 }

@@ -1,13 +1,17 @@
 package de.photoffice.tenant;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.modulith.events.FailedEventPublications;
+import org.springframework.modulith.events.ResubmissionOptions;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -24,11 +28,15 @@ public class TenantManagement {
 
 	private final ApplicationEventPublisher events;
 
+	private final FailedEventPublications failedPublications;
+
 	private final Clock clock;
 
-	TenantManagement(TenantRepository tenants, ApplicationEventPublisher events, Optional<Clock> clock) {
+	TenantManagement(TenantRepository tenants, ApplicationEventPublisher events,
+			FailedEventPublications failedPublications, Optional<Clock> clock) {
 		this.tenants = tenants;
 		this.events = events;
+		this.failedPublications = failedPublications;
 		this.clock = clock.orElse(Clock.systemUTC());
 	}
 
@@ -37,7 +45,8 @@ public class TenantManagement {
 	 */
 	public Tenant register(String slug, String name, InitialStudioAdmin admin) {
 		if (!SLUG_FORMAT.matcher(slug).matches()) {
-			throw new IllegalArgumentException("Invalid slug: " + slug);
+			throw new IllegalArgumentException("Ungültiges Kürzel „" + slug + "“: nur Kleinbuchstaben, Ziffern und Bindestriche, "
+					+ "3 bis 63 Zeichen, nicht mit Bindestrich am Anfang oder Ende.");
 		}
 		if (tenants.existsBySlug(slug)) {
 			throw new DuplicateTenantSlugException(slug);
@@ -56,10 +65,37 @@ public class TenantManagement {
 	}
 
 	/**
-	 * Records that the studio's onboarding is complete. Repeated calls keep the first timestamp.
+	 * Records that the studio's onboarding is complete and clears a recorded failure. Repeated calls keep the first
+	 * timestamp.
 	 */
 	public void markOnboarded(TenantId id) {
 		require(id).markOnboarded(now());
+	}
+
+	/**
+	 * Records why the onboarding failed, in its own transaction: the caller's transaction (the onboarding listener)
+	 * is rolled back afterwards because the failure is rethrown so that the event publication is retried.
+	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void recordOnboardingFailure(TenantId id, String reason) {
+		require(id).recordOnboardingFailure(reason, now());
+	}
+
+	/**
+	 * Delivers the failed {@link TenantRegistered} publication of this studio again right away instead of waiting for
+	 * the periodic resubmission. Does nothing if there is no failed publication (e.g. already onboarded or a delivery
+	 * still running). Runs without transaction: the listener completes the publication in its own transaction.
+	 */
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	public Tenant retryOnboarding(TenantId id) {
+		Tenant tenant = require(id);
+		if (!tenant.onboarded()) {
+			failedPublications.resubmit(ResubmissionOptions.defaults()
+				.withMinAge(Duration.ZERO)
+				.withFilter(publication -> publication.getEvent() instanceof TenantRegistered registered
+						&& registered.tenantId().equals(id)));
+		}
+		return tenant;
 	}
 
 	@Transactional(readOnly = true)

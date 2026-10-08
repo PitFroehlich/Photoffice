@@ -617,6 +617,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TenantResponse'
+        '400':
+          description: Ungültige Studio-ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '401':
           description: Nicht angemeldet
         '403':
@@ -641,6 +647,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TenantResponse'
+        '400':
+          description: Ungültige Studio-ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Nicht angemeldet
+        '403':
+          description: Keine Berechtigung (nur Plattform-Betreiber)
+        '404':
+          description: Studio nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /platform/tenants/{tenantId}/onboarding/retry:
+    post:
+      tags: [platform]
+      operationId: retryTenantOnboarding
+      summary: Fehlgeschlagenes Onboarding sofort erneut versuchen (statt auf die automatische Wiederholung zu warten)
+      description: |
+        Stellt die fehlgeschlagene Zustellung des Registrierungs-Events für dieses Studio erneut zu. Das Onboarding
+        läuft im Hintergrund; das Ergebnis steht danach in onboardingStatus bzw. onboardingError.
+        Ohne fehlgeschlagenen Versuch (z. B. bereits abgeschlossen) passiert nichts.
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '202':
+          description: Erneuter Versuch angestoßen (bzw. nichts zu tun)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '400':
+          description: Ungültige Studio-ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '401':
           description: Nicht angemeldet
         '403':
@@ -991,6 +1037,15 @@ components:
             PENDING: Keycloak-Organisation und erster Studio-Admin werden noch angelegt (bei Fehlern automatisch wiederholt).
             COMPLETED: Organisation angelegt, Einladung an den Studio-Admin verschickt.
           enum: [PENDING, COMPLETED]
+        onboardingError:
+          type: string
+          description: |
+            Grund des letzten fehlgeschlagenen Onboarding-Versuchs (deutsch, für den Betreiber), z. B. eine E-Mail-Adresse,
+            die schon zu einem anderen Studio gehört. Fehlt, solange kein Versuch fehlgeschlagen ist und nach Erfolg.
+        onboardingFailedAt:
+          type: string
+          format: date-time
+          description: Zeitpunkt des letzten fehlgeschlagenen Onboarding-Versuchs (nur zusammen mit onboardingError)
         createdAt:
           type: string
           format: date-time
