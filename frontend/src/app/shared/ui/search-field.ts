@@ -13,14 +13,26 @@ import { debounceTime, distinctUntilChanged, map } from 'rxjs';
  */
 @Component({
   selector: 'app-search-field',
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule],
+  imports: [
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatButtonModule,
+  ],
   template: `
     <mat-form-field class="search">
       <mat-label>{{ label() }}</mat-label>
       <mat-icon matPrefix svgIcon="search" aria-hidden="true" />
       <input matInput type="search" [formControl]="term" autocomplete="off" />
       @if (term.value) {
-        <button matIconButton matSuffix type="button" aria-label="Suche leeren" (click)="term.setValue('')">
+        <button
+          matIconButton
+          matSuffix
+          type="button"
+          aria-label="Suche leeren"
+          (click)="term.setValue('')"
+        >
           <mat-icon svgIcon="close" />
         </button>
       }

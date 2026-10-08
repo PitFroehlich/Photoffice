@@ -8,12 +8,18 @@ describe('validationMessage', () => {
     expect(validationMessage(null)).toBeNull();
     expect(validationMessage({ required: true })).toBe('Pflichtfeld');
     expect(validationMessage({ email: true })).toContain('E-Mail');
-    expect(validationMessage({ maxlength: { requiredLength: 100, actualLength: 101 } })).toBe('Höchstens 100 Zeichen');
-    expect(validationMessage({ minlength: { requiredLength: 3, actualLength: 1 } })).toBe('Mindestens 3 Zeichen');
+    expect(validationMessage({ maxlength: { requiredLength: 100, actualLength: 101 } })).toBe(
+      'Höchstens 100 Zeichen',
+    );
+    expect(validationMessage({ minlength: { requiredLength: 3, actualLength: 1 } })).toBe(
+      'Mindestens 3 Zeichen',
+    );
   });
 
   it('shows server-side messages', () => {
-    expect(validationMessage({ server: 'E-Mail bereits vergeben' })).toBe('E-Mail bereits vergeben');
+    expect(validationMessage({ server: 'E-Mail bereits vergeben' })).toBe(
+      'E-Mail bereits vergeben',
+    );
   });
 });
 

@@ -1,0 +1,41 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 48rem) minmax(16rem, 22rem);
+  gap: 1.5rem;
+  align-items: start;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.full,
+.date-field {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.date-field {
+  max-width: 16rem;
+}
+
+.option-detail {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  margin-left: 0.5rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.detail {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.delete-button {
+  --mat-button-outlined-label-text-color: var(--mat-sys-error);
+}

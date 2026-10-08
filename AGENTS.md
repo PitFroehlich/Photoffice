@@ -333,6 +333,11 @@ Copy the structure of the customer feature for new business features:
   | `MarkdownView` (`[markdown]`) | Markdown written by studios (legal texts) – raw HTML shown as text, sanitised (ADR 0009) |
 - **Reference page:** `/studio/ui-bausteine` (dev builds only, `studio/ui-showcase/`) shows all blocks in a
   realistic list + form – copy from there.
+- **Pitfall:** `MatChipsModule` (and some other Material modules) provide their own default `ErrorStateMatcher`, which
+  overrides the studio default "errors while typing". Components importing them add
+  `providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }]` (see `gallery-form.ts`).
+- **Dates:** `MatDatepicker` with `GermanDateAdapter` (studio defaults) – typed `TT.MM.JJJJ`; convert with
+  `toApiDate`/`fromApiDate` (never `toISOString`, it shifts the day) and display with `formatApiDate`.
 - **Accessibility:** skip link, visible focus, labels on icon buttons, `aria-label` on landmarks; check keyboard use.
 - **Bundle:** keep heavy Material modules out of public pages (they are lazy via the studio route); the
   production build warns above 500 kB initial.

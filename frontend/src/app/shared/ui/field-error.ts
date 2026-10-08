@@ -4,7 +4,10 @@ import { AbstractControl, ValidationErrors } from '@angular/forms';
 import { map, startWith, switchMap } from 'rxjs';
 
 /** German message for the first validation error of a control. */
-export function validationMessage(errors: ValidationErrors | null, patternHint?: string): string | null {
+export function validationMessage(
+  errors: ValidationErrors | null,
+  patternHint?: string,
+): string | null {
   if (!errors) {
     return null;
   }
@@ -32,6 +35,12 @@ export function validationMessage(errors: ValidationErrors | null, patternHint?:
   if (errors['pattern']) {
     return patternHint ?? 'Ungültiges Format';
   }
+  if (errors['matDatepickerParse']) {
+    return 'Bitte ein Datum im Format TT.MM.JJJJ eingeben';
+  }
+  if (errors['matDatepickerMin']) {
+    return 'Das Datum darf nicht in der Vergangenheit liegen';
+  }
   if (errors['server']) {
     return String(errors['server']);
   }
@@ -55,7 +64,12 @@ export class FieldError {
   // Follows every validity change of the control (the component is only re-rendered on signal changes)
   private readonly errors = toSignal(
     toObservable(this.control).pipe(
-      switchMap((control) => control.statusChanges.pipe(startWith(control.status), map(() => control.errors))),
+      switchMap((control) =>
+        control.statusChanges.pipe(
+          startWith(control.status),
+          map(() => control.errors),
+        ),
+      ),
     ),
     { initialValue: null },
   );

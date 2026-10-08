@@ -1,0 +1,141 @@
+<app-page-header
+  [title]="title()"
+  [subtitle]="gallery() ? 'Galerie bearbeiten' : 'Neue Galerie anlegen'"
+>
+  @if (gallery()) {
+    <button matButton="outlined" type="button" class="delete-button" actions (click)="remove()">
+      <mat-icon svgIcon="delete" />
+      Löschen
+    </button>
+  }
+</app-page-header>
+
+@if (loading()) {
+  <app-loading-indicator />
+} @else {
+  <div class="layout">
+    <mat-card appearance="outlined" class="card">
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+          <mat-form-field class="full">
+            <mat-label>Name der Galerie</mat-label>
+            <input
+              matInput
+              formControlName="name"
+              autocomplete="off"
+              placeholder="z. B. Hochzeit Becker"
+            />
+            <mat-error
+              ><app-field-error [control]="form.controls.name" [patternHint]="hints.name"
+            /></mat-error>
+          </mat-form-field>
+
+          <mat-form-field class="full">
+            <mat-label>Begrüßungstext für Kunden (optional)</mat-label>
+            <textarea matInput formControlName="description" rows="3"></textarea>
+            <mat-error><app-field-error [control]="form.controls.description" /></mat-error>
+          </mat-form-field>
+
+          <mat-form-field class="date-field">
+            <mat-label>Erreichbar bis (optional)</mat-label>
+            <input
+              matInput
+              [matDatepicker]="picker"
+              [min]="today"
+              formControlName="expiresOn"
+              (blur)="form.controls.expiresOn.markAsDirty()"
+              placeholder="TT.MM.JJJJ"
+              autocomplete="off"
+            />
+            <mat-datepicker-toggle matIconSuffix [for]="picker" />
+            <mat-datepicker #picker />
+            <mat-hint>Leer lassen für unbegrenzt</mat-hint>
+            <mat-error><app-field-error [control]="form.controls.expiresOn" /></mat-error>
+          </mat-form-field>
+
+          <mat-form-field class="full">
+            <mat-label>Kunden</mat-label>
+            <mat-chip-grid #chipGrid aria-label="Zugeordnete Kunden">
+              @for (customer of customers(); track customer.id) {
+                <mat-chip-row (removed)="removeCustomer(customer)">
+                  {{ customerLabel(customer) }}
+                  <button matChipRemove [attr.aria-label]="customerLabel(customer) + ' entfernen'">
+                    <mat-icon svgIcon="cancel" />
+                  </button>
+                </mat-chip-row>
+              }
+              <input
+                placeholder="Kunden suchen (Name, E-Mail, Ort)"
+                [formControl]="customerSearch"
+                [matChipInputFor]="chipGrid"
+                [matAutocomplete]="customerAuto"
+              />
+            </mat-chip-grid>
+            <mat-autocomplete
+              #customerAuto="matAutocomplete"
+              (optionSelected)="addCustomer($event)"
+            >
+              @for (customer of suggestions(); track customer.id) {
+                <mat-option [value]="customer">
+                  {{ customerLabel(customer) }}
+                  <span class="option-detail">{{ customer.email }}</span>
+                </mat-option>
+              }
+            </mat-autocomplete>
+            <mat-hint>Mindestens 2 Zeichen eingeben; Kunden legen Sie unter „Kunden“ an</mat-hint>
+          </mat-form-field>
+
+          <div class="form-actions">
+            <a matButton routerLink="/studio/galerien">Zurück zur Liste</a>
+            <button matButton="filled" type="submit" [disabled]="saving()">Speichern</button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    @if (gallery(); as current) {
+      <mat-card appearance="outlined" class="card status-card">
+        <mat-card-header>
+          <mat-card-title>Sichtbarkeit</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>
+            Status:
+            <span [class]="'state ' + stateClass()" data-testid="gallery-state">{{
+              stateLabel()
+            }}</span>
+          </p>
+          @if (current.expiresOn) {
+            <p class="detail">Erreichbar bis {{ formatDate(current.expiresOn) }}</p>
+          }
+          @switch (current.status) {
+            @case ('ONLINE') {
+              <p class="detail">
+                @if (current.expired) {
+                  Das Ablaufdatum ist überschritten – Kunden haben keinen Zugriff mehr. Verlängern
+                  Sie das Datum, um die Galerie wieder zugänglich zu machen.
+                } @else {
+                  Kunden können die Galerie aufrufen.
+                }
+              </p>
+              <button matButton="outlined" type="button" (click)="unpublish()">
+                <mat-icon svgIcon="visibility_off" />
+                Offline nehmen
+              </button>
+            }
+            @default {
+              <p class="detail">
+                Kunden sehen die Galerie erst nach der Veröffentlichung. Voraussetzungen: nicht
+                abgelaufen und aktive Preise in der Preisliste.
+              </p>
+              <button matButton="filled" type="button" (click)="publish()">
+                <mat-icon svgIcon="public" />
+                Veröffentlichen
+              </button>
+            }
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+}

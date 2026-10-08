@@ -5,6 +5,8 @@ import de.photoffice.tenant.TenantId;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,6 +50,12 @@ public class CustomerManagement {
 	@Transactional(readOnly = true)
 	public Customer get(UUID id) {
 		return customers.findById(id).orElseThrow(() -> new CustomerNotFoundException(id));
+	}
+
+	/** Customers of the current studio with the given ids; ids of other studios are simply not found (RLS). */
+	@Transactional(readOnly = true)
+	public List<Customer> findAllById(Collection<UUID> ids) {
+		return ids.isEmpty() ? List.of() : customers.findAllById(ids);
 	}
 
 	public Customer create(CustomerData data) {

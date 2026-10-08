@@ -87,6 +87,21 @@ export const routes: Routes = [
         title: 'Rechtstexte',
         loadComponent: () => import('./studio-profile/legal-texts-page').then((m) => m.LegalTextsPage),
       },
+      {
+        path: 'galerien',
+        title: 'Galerien',
+        loadComponent: () => import('./galleries/gallery-list').then((m) => m.GalleryList),
+      },
+      {
+        path: 'galerien/neu',
+        title: 'Neue Galerie',
+        loadComponent: () => import('./galleries/gallery-form').then((m) => m.GalleryForm),
+      },
+      {
+        path: 'galerien/:id',
+        title: 'Galerie',
+        loadComponent: () => import('./galleries/gallery-form').then((m) => m.GalleryForm),
+      },
       ...(isDevMode()
         ? [
             {

@@ -1,6 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  TestRequest,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { provideRouter } from '@angular/router';
 import { CustomerPage } from '../api/models';
@@ -50,7 +54,9 @@ describe('CustomerList', () => {
   afterEach(() => httpTesting.verify());
 
   const expectList = (): TestRequest =>
-    httpTesting.expectOne((request) => request.url === '/api/studio/customers' && request.method === 'GET');
+    httpTesting.expectOne(
+      (request) => request.url === '/api/studio/customers' && request.method === 'GET',
+    );
 
   async function render(first: CustomerPage) {
     const fixture = TestBed.createComponent(CustomerList);
@@ -96,9 +102,13 @@ describe('CustomerList', () => {
     const { fixture, element } = await render(page(2));
     confirm.mockResolvedValue(true);
 
-    (element.querySelector('button[aria-label="Nachname0, Vorname0 löschen"]') as HTMLButtonElement).click();
+    (
+      element.querySelector('button[aria-label="Nachname0, Vorname0 löschen"]') as HTMLButtonElement
+    ).click();
     await settle(fixture);
-    httpTesting.expectOne({ method: 'DELETE', url: '/api/studio/customers/id-0' }).flush(null, { status: 204, statusText: 'No Content' });
+    httpTesting
+      .expectOne({ method: 'DELETE', url: '/api/studio/customers/id-0' })
+      .flush(null, { status: 204, statusText: 'No Content' });
     await settle(fixture);
     expectList().flush(page(1));
     await settle(fixture);
@@ -111,7 +121,9 @@ describe('CustomerList', () => {
     const { fixture, element } = await render(page(2));
     confirm.mockResolvedValue(false);
 
-    (element.querySelector('button[aria-label="Nachname0, Vorname0 löschen"]') as HTMLButtonElement).click();
+    (
+      element.querySelector('button[aria-label="Nachname0, Vorname0 löschen"]') as HTMLButtonElement
+    ).click();
     await settle(fixture);
 
     httpTesting.expectNone({ method: 'DELETE' });

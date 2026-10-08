@@ -76,6 +76,13 @@ public class PriceListManagement {
 				shippingMethods.findAllOrdered().stream().filter(ShippingMethod::active).toList());
 	}
 
+	/** Whether customers could buy anything at all – a gallery is only published with an active offer (#8). */
+	@Transactional(readOnly = true)
+	public boolean hasActiveOffer() {
+		PriceOffer offer = offer();
+		return !offer.prints().isEmpty() || !offer.downloads().isEmpty() || !offer.downloadPackages().isEmpty();
+	}
+
 	// --- settings ---
 
 	public PriceListSettings changeVatRate(BigDecimal vatRatePercent) {

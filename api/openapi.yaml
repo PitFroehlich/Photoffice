@@ -20,6 +20,8 @@ tags:
     description: Preisliste des Studios – Produkte, Download-Pakete, Versandarten (Mandant aus dem Login)
   - name: studio-profile
     description: Studio-Profil (Stammdaten) und Rechtstexte des Studios (Mandant aus dem Login)
+  - name: galleries
+    description: Galerien des Studios mit Kunden-Zuordnung und Veröffentlichung (Mandant aus dem Login)
   - name: platform
     description: Verwaltung der Studios (Mandanten) durch den Plattform-Betreiber
 paths:
@@ -650,6 +652,202 @@ paths:
         '403':
           description: Nur Studio-Administratoren dürfen Rechtstexte ändern
   # --- end studio profile ---
+  # --- galleries (#8) ---
+  /studio/galleries:
+    get:
+      tags: [galleries]
+      operationId: listGalleries
+      summary: Galerien des Studios, gefiltert und seitenweise, neueste zuerst
+      parameters:
+        - name: search
+          in: query
+          description: Sucht im Namen der Galerie (Groß-/Kleinschreibung egal)
+          schema:
+            type: string
+            maxLength: 100
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/GalleryStatus'
+        - name: customerId
+          in: query
+          description: Nur Galerien dieses Kunden
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalleryPage'
+    post:
+      tags: [galleries]
+      operationId: createGallery
+      summary: Galerie anlegen (Status Entwurf)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryInput'
+      responses:
+        '201':
+          description: Angelegt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gallery'
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /studio/galleries/{galleryId}:
+    parameters:
+      - name: galleryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [galleries]
+      operationId: getGallery
+      summary: Einzelne Galerie lesen
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gallery'
+        '404':
+          description: Nicht gefunden (auch für Galerien anderer Studios)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    put:
+      tags: [galleries]
+      operationId: updateGallery
+      summary: Galerie ändern (Name, Beschreibung, Ablaufdatum, Kunden)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryInput'
+      responses:
+        '200':
+          description: Geändert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gallery'
+        '400':
+          description: Ungültige Eingabe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      tags: [galleries]
+      operationId: deleteGallery
+      summary: Galerie löschen (inkl. Zuordnungen; Bilder ab #9)
+      responses:
+        '204':
+          description: Gelöscht
+        '404':
+          description: Nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /studio/galleries/{galleryId}/publish:
+    parameters:
+      - name: galleryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [galleries]
+      operationId: publishGallery
+      summary: Galerie veröffentlichen (online schalten)
+      responses:
+        '200':
+          description: Veröffentlicht
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gallery'
+        '404':
+          description: Nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Kann nicht veröffentlicht werden (abgelaufen, keine aktiven Preise, bereits online)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /studio/galleries/{galleryId}/unpublish:
+    parameters:
+      - name: galleryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [galleries]
+      operationId: unpublishGallery
+      summary: Galerie offline nehmen
+      responses:
+        '200':
+          description: Offline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gallery'
+        '404':
+          description: Nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Galerie ist nicht online
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  # --- end galleries ---
   /platform/tenants:
     get:
       tags: [platform]
@@ -1149,6 +1347,97 @@ components:
           type: string
           format: date-time
     # --- end studio profile ---
+    # --- galleries (#8) ---
+    GalleryStatus:
+      description: DRAFT = Entwurf (noch nie online), ONLINE = für Kunden sichtbar, OFFLINE = vorübergehend nicht sichtbar
+      type: string
+      enum: [DRAFT, ONLINE, OFFLINE]
+    GalleryInput:
+      type: object
+      required: [name, customerIds]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Hochzeit Becker
+        description:
+          description: Begrüßungstext für den Kunden
+          type: string
+          maxLength: 1000
+        expiresOn:
+          description: Bis einschließlich diesem Tag ist die Galerie für Kunden erreichbar; leer = unbegrenzt
+          type: string
+          format: date
+        customerIds:
+          description: Zugeordnete Kunden des Studios (auch leer möglich)
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            format: uuid
+    GalleryCustomer:
+      type: object
+      required: [id, firstName, lastName, email]
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+    Gallery:
+      type: object
+      required: [id, name, status, expired, customers, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/GalleryStatus'
+        expiresOn:
+          type: string
+          format: date
+        expired:
+          description: Ablaufdatum überschritten – Kunden haben keinen Zugriff mehr, auch wenn der Status ONLINE ist
+          type: boolean
+        publishedAt:
+          description: Zeitpunkt der letzten Veröffentlichung
+          type: string
+          format: date-time
+        customers:
+          type: array
+          items:
+            $ref: '#/components/schemas/GalleryCustomer'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    GalleryPage:
+      type: object
+      required: [items, page, size, totalElements]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Gallery'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+    # --- end galleries ---
     CurrentStudioUser:
       type: object
       required: [username, roles, studio]

@@ -3,6 +3,7 @@ export { apiErrorMessage } from './api-error';
 export { ConfirmService, type ConfirmOptions } from './confirm-dialog';
 export { EmptyState } from './empty-state';
 export { FieldError, validationMessage } from './field-error';
+export { GermanDateAdapter, formatApiDate, fromApiDate, toApiDate } from './german-date-adapter';
 export { LoadingIndicator } from './loading-indicator';
 export { renderMarkdown } from './markdown';
 export { MarkdownView } from './markdown-view';
