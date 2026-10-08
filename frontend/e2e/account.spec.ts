@@ -2,7 +2,7 @@ import { APIRequestContext, Page, expect, test } from '@playwright/test';
 import { loginAs, logout } from './helpers';
 
 /**
- * Own account (issue #46, ADR 0011): "Profil bearbeiten" and "Passwort ändern" in the user menu lead to the Keycloak
+ * Own account (issue #46, ADR 0013): "Profil bearbeiten" and "Passwort ändern" in the user menu lead to the Keycloak
  * pages (application-initiated actions) and back to the page the user came from; the Keycloak account console is off.
  * Uses freshly created Keycloak users (bootstrap admin admin/admin), so the dev users stay unchanged.
  * Requires the local stack (docker compose, backend with profile "dev", npm start).

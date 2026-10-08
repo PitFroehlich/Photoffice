@@ -35,7 +35,7 @@
       },
       {
         "name": "default-roles-photoffice",
-        "description": "Standardrollen – ohne Rollen der Keycloak-Kontoverwaltung (Client account), siehe ADR 0011"
+        "description": "Standardrollen – ohne Rollen der Keycloak-Kontoverwaltung (Client account), siehe ADR 0013"
       }
     ],
     "client": {
@@ -185,7 +185,7 @@
     {
       "clientId": "account",
       "name": "${client_account}",
-      "description": "Keycloak-Kontoverwaltung (REST-API) – abgeschaltet: Profil und Passwort ändert man über das Benutzermenü der App (ADR 0011)",
+      "description": "Keycloak-Kontoverwaltung (REST-API) – abgeschaltet: Profil und Passwort ändert man über das Benutzermenü der App (ADR 0013)",
       "enabled": false,
       "publicClient": true,
       "standardFlowEnabled": false,
@@ -199,7 +199,7 @@
     {
       "clientId": "account-console",
       "name": "${client_account-console}",
-      "description": "Keycloak-Kontoverwaltung (Oberfläche) – abgeschaltet, siehe Client account (ADR 0011)",
+      "description": "Keycloak-Kontoverwaltung (Oberfläche) – abgeschaltet, siehe Client account (ADR 0013)",
       "enabled": false,
       "publicClient": true,
       "standardFlowEnabled": false,

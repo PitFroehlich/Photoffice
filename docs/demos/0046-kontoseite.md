@@ -12,7 +12,7 @@
 - Benutzer dürfen nur **Vor- und Nachnamen** ändern. Die **E-Mail-Adresse** (= Anmeldung, mit dem Studio verbunden)
   wird schreibgeschützt mit Hinweis angezeigt; ändern kann sie nur ein Admin.
 - Die **Keycloak-Kontoverwaltung** (`/realms/photoffice/account`) ist abgeschaltet – Oberfläche und REST-API.
-- Entscheidung: ADR 0011.
+- Entscheidung: ADR 0013.
 
 ## Vorbereitung
 1. `docker compose up -d --force-recreate keycloak` (lädt den geänderten Realm), danach `docker compose up -d`
@@ -92,7 +92,7 @@ nicht mehr. Mailpit wird nicht gebraucht.
 ## Noch offen / Einschränkungen
 - E-Mail-Adresse ändern geht nur über einen Admin (Keycloak-Admin-Konsole); eine Funktion dafür in der App wäre ein
   eigenes Issue.
-- Weitere Selbstbedienung (2FA, Sitzungen) gibt es bewusst nicht mehr über Keycloak (ADR 0011).
+- Weitere Selbstbedienung (2FA, Sitzungen) gibt es bewusst nicht mehr über Keycloak (ADR 0013).
 
 ## Aufräumen
 `docker compose down`, Backend und Frontend beenden.

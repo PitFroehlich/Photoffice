@@ -32,7 +32,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * End-to-end check of the Keycloak realm in {@code infra/keycloak/photoffice-realm.json} against the backend:
  * real tokens (organization claim, realm roles, audience) must lead to the right studio; the login pages use the
  * German Photoffice theme (issue #36); the Keycloak account console is switched off and users may change their name
- * but not their e-mail address (issue #46, ADR 0011).
+ * but not their e-mail address (issue #46, ADR 0013).
  */
 @SpringBootTest
 @AutoConfigureMockMvc

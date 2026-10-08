@@ -9,7 +9,7 @@ const successMessages: Record<AccountAction, string> = {
 };
 
 /**
- * "Profil bearbeiten" and "Passwort ändern" in the user menu of the studio and platform shell (issue #46, ADR 0011):
+ * "Profil bearbeiten" and "Passwort ändern" in the user menu of the studio and platform shell (issue #46, ADR 0013):
  * opens the Keycloak page for the action and confirms the result after returning. Call in an injection context.
  */
 export function accountActions() {

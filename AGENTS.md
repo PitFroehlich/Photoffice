@@ -243,7 +243,7 @@ Never edit generated code.
 - Upgrading Keycloak: compare the copied `info.ftl` with the new `base/login/info.ftl` and walk through the demo
   `docs/demos/0036-keycloak-deutsch.md` once.
 - Deployment (#28): the theme directory must be shipped with Keycloak (mount or copy to `/opt/keycloak/themes/photoffice`).
-- **Own account (issue #46, ADR 0011):** the Keycloak account console is off (clients `account`/`account-console`
+- **Own account (issue #46, ADR 0013):** the Keycloak account console is off (clients `account`/`account-console`
   disabled in the realm, no `account` roles in `default-roles-photoffice`) – don't link to `/realms/photoffice/account`.
   Users change name and password via the user menu of the shells: `AuthService.startAccountAction('UPDATE_PROFILE' |
   'UPDATE_PASSWORD', returnUrl)` starts the code flow with `kc_action`; Keycloak returns (also on cancel) with

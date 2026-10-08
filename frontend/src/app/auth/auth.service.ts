@@ -23,7 +23,7 @@ interface AccessTokenClaims {
 
 /**
  * Wraps the OIDC client: login state, roles and name of the logged-in user, login and logout, and the account actions
- * (change password, edit profile) that replace the Keycloak account console (ADR 0011).
+ * (change password, edit profile) that replace the Keycloak account console (ADR 0013).
  * Roles only decide where the UI leads the user – the backend checks them on every call.
  */
 @Injectable({ providedIn: 'root' })

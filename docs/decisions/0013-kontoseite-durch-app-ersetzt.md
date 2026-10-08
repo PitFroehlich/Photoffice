@@ -1,4 +1,4 @@
-# 0011: Keycloak-Kontoverwaltung abgeschaltet – Profil und Passwort über das Benutzermenü der App
+# 0013: Keycloak-Kontoverwaltung abgeschaltet – Profil und Passwort über das Benutzermenü der App
 
 - **Status:** Accepted
 - **Date:** 2026-10-09

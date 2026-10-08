@@ -7,7 +7,7 @@
 
 ## Goal
 Keycloak-Kontoseite nicht mehr anbieten; Passwort und Name ändert man über das Benutzermenü der App (Entscheidung
-des Nutzers, ADR 0011). E-Mail-Adresse (= Anmeldung) darf der Benutzer nicht ändern.
+des Nutzers, ADR 0013). E-Mail-Adresse (= Anmeldung) darf der Benutzer nicht ändern.
 
 ## Done
 - Realm `infra/keycloak/photoffice-realm.json`: Clients `account` und `account-console` ausdrücklich angelegt und
@@ -22,7 +22,7 @@ des Nutzers, ADR 0011). E-Mail-Adresse (= Anmeldung) darf der Benutzer nicht än
 - Tests: `KeycloakIntegrationTests` (+3: Kontoverwaltung 404 auch mit `admin-cli`-Token, Standardrollen, User
   Profile), `DevKeycloakContainer` Startup-Timeout 3 min; Vitest (AuthService, beide Shells); Playwright
   `e2e/account.spec.ts` mit frisch angelegten Benutzern.
-- ADR 0011, Demo `docs/demos/0046-kontoseite.md`, AGENTS.md-Abschnitt "Keycloak theme" ergänzt.
+- ADR 0013, Demo `docs/demos/0046-kontoseite.md`, AGENTS.md-Abschnitt "Keycloak theme" ergänzt.
 - Geprüft: `./mvnw verify` grün (289 Tests), `npm test` (127) und `npm run build` grün (Initial 495,5 kB). AIA-Seiten
   per Screenshot (Desktop/Mobil). Eigener Stack (Keycloak 8191, Postgres 5446, Backend 8092, `ng serve` 4246 mit
   Wegwerf-Konfiguration): alle E2E-Specs außer `studio-onboarding.spec.ts` (fest auf 8180/8025/8080) grün, inkl.
