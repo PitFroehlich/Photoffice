@@ -5,6 +5,7 @@ import de.photoffice.api.model.CreateTenantRequest;
 import de.photoffice.api.model.TenantResponse;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +28,20 @@ class PlatformTenantController implements PlatformApi {
 
 	@Override
 	public ResponseEntity<TenantResponse> createTenant(CreateTenantRequest request) {
-		Tenant tenant = tenantManagement.register(request.getSlug(), request.getName());
+		var admin = new InitialStudioAdmin(request.getAdminEmail(), request.getAdminFirstName(),
+				request.getAdminLastName());
+		Tenant tenant = tenantManagement.register(request.getSlug(), request.getName(), admin);
 		return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(tenant));
+	}
+
+	@Override
+	public ResponseEntity<TenantResponse> suspendTenant(UUID tenantId) {
+		return ResponseEntity.ok(toResponse(tenantManagement.suspend(TenantId.of(tenantId))));
+	}
+
+	@Override
+	public ResponseEntity<TenantResponse> reactivateTenant(UUID tenantId) {
+		return ResponseEntity.ok(toResponse(tenantManagement.reactivate(TenantId.of(tenantId))));
 	}
 
 	@Override
@@ -42,6 +55,11 @@ class PlatformTenantController implements PlatformApi {
 	}
 
 	@ExceptionHandler
+	ProblemDetail onUnknownTenant(TenantNotFoundException ex) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+	}
+
+	@ExceptionHandler
 	ProblemDetail onInvalidInput(IllegalArgumentException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
 	}
@@ -49,6 +67,8 @@ class PlatformTenantController implements PlatformApi {
 	private static TenantResponse toResponse(Tenant tenant) {
 		return new TenantResponse(tenant.id().value(), tenant.slug(), tenant.name(),
 				TenantResponse.StatusEnum.fromValue(tenant.status().name()),
+				tenant.onboarded() ? TenantResponse.OnboardingStatusEnum.COMPLETED
+						: TenantResponse.OnboardingStatusEnum.PENDING,
 				tenant.createdAt().atOffset(ZoneOffset.UTC));
 	}
 

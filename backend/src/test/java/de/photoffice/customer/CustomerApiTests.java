@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import de.photoffice.TestcontainersConfiguration;
+import de.photoffice.tenant.InitialStudioAdmin;
 import de.photoffice.tenant.TenantManagement;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,8 @@ import org.springframework.test.web.servlet.ResultActions;
 @Import(TestcontainersConfiguration.class)
 class CustomerApiTests {
 
+	private static final InitialStudioAdmin STUDIO_ADMIN = new InitialStudioAdmin("admin@example.test", null, null);
+
 	@Autowired
 	private MockMvc mockMvc;
 
@@ -46,7 +49,8 @@ class CustomerApiTests {
 
 	@BeforeEach
 	void registerStudio() {
-		studio = tenantManagement.register("studio-" + UUID.randomUUID().toString().substring(0, 8), "Studio").slug();
+		studio = tenantManagement.register("studio-" + UUID.randomUUID().toString().substring(0, 8), "Studio", STUDIO_ADMIN)
+			.slug();
 	}
 
 	@Test

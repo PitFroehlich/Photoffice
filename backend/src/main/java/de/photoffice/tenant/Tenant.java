@@ -32,6 +32,10 @@ public class Tenant {
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
+	/** Set once the identity provider is set up for the studio; {@code null} while onboarding is pending. */
+	@Column(name = "onboarded_at")
+	private Instant onboardedAt;
+
 	protected Tenant() {
 	}
 
@@ -61,6 +65,27 @@ public class Tenant {
 
 	public Instant createdAt() {
 		return createdAt;
+	}
+
+	public boolean onboarded() {
+		return onboardedAt != null;
+	}
+
+	/**
+	 * @return {@code true} if the status changed
+	 */
+	boolean changeStatus(TenantStatus newStatus) {
+		if (status == newStatus) {
+			return false;
+		}
+		status = newStatus;
+		return true;
+	}
+
+	void markOnboarded(Instant at) {
+		if (onboardedAt == null) {
+			onboardedAt = at;
+		}
 	}
 
 }

@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import de.photoffice.TestcontainersConfiguration;
+import de.photoffice.tenant.InitialStudioAdmin;
 import de.photoffice.tenant.TenantManagement;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestcontainersConfiguration.class)
 class CustomerIsolationTests {
 
+	private static final InitialStudioAdmin STUDIO_ADMIN = new InitialStudioAdmin("admin@example.test", null, null);
+
 	@Autowired
 	private MockMvc mockMvc;
 
@@ -43,8 +46,8 @@ class CustomerIsolationTests {
 
 	@BeforeEach
 	void createCustomerInStudioA() throws Exception {
-		studioA = tenantManagement.register(uniqueSlug(), "Studio A").slug();
-		studioB = tenantManagement.register(uniqueSlug(), "Studio B").slug();
+		studioA = tenantManagement.register(uniqueSlug(), "Studio A", STUDIO_ADMIN).slug();
+		studioB = tenantManagement.register(uniqueSlug(), "Studio B", STUDIO_ADMIN).slug();
 		String body = mockMvc
 			.perform(post("/api/studio/customers").with(studioAdmin(studioA))
 				.contentType(MediaType.APPLICATION_JSON)

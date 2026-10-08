@@ -30,6 +30,32 @@ spring:
         # Schema kommt ausschließlich aus Liquibase (db/changelog)
         schema-initialization:
           enabled: false
+      # Hängengebliebene Zustellungen gelten nach dieser Zeit als fehlgeschlagen und werden erneut zugestellt
+      # (EventResubmission); Listener müssen idempotent sein
+      staleness:
+        check-interval: PT1M
+        published: PT10M
+        processing: PT10M
+        resubmitted: PT10M
+
+photoffice:
+  onboarding:
+    # Studio-Onboarding in Keycloak (Issue #24); in Tests ohne Keycloak abgeschaltet
+    enabled: true
+  keycloak:
+    # Service-Account für die Keycloak Admin API; Standardwerte passen zu docker-compose.yml (nur Entwicklung)
+    server-url: ${KEYCLOAK_URL:http://localhost:8180}
+    realm: ${KEYCLOAK_REALM:photoffice}
+    client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:photoffice-backend}
+    client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:photoffice-backend-dev-secret}
+    invitation:
+      client-id: photoffice-frontend
+      redirect-uri: ${FRONTEND_URL:http://localhost:4200}/
+      lifespan: 72h
+  events:
+    resubmission:
+      interval: PT5M
+      min-age: PT1M
 
 management:
   endpoints:
