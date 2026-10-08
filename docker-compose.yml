@@ -53,6 +53,15 @@ services:
       - "8180:8080"
     volumes:
       - ./infra/keycloak/photoffice-realm.json:/opt/keycloak/data/import/photoffice-realm.json:ro
+    depends_on:
+      - mailpit
+
+  # Fängt alle E-Mails ab (z. B. Keycloak-Einladung "Passwort setzen"); Web-UI http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "8025:8025"   # Web-UI und API
+      - "1025:1025"   # SMTP
 
   imgproxy:
     image: darthsim/imgproxy:v3

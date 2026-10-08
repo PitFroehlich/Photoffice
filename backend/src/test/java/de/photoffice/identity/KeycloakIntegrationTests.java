@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import de.photoffice.TestcontainersConfiguration;
+import de.photoffice.tenant.InitialStudioAdmin;
 import de.photoffice.tenant.TenantManagement;
 import java.nio.file.Path;
 import java.util.Map;
@@ -61,7 +62,7 @@ class KeycloakIntegrationTests {
 	void registerStudiosOfTheDevRealm() {
 		for (String slug : new String[] { "studio-a", "studio-b" }) {
 			if (tenantManagement.findBySlug(slug).isEmpty()) {
-				tenantManagement.register(slug, slug.toUpperCase());
+				tenantManagement.register(slug, slug.toUpperCase(), new InitialStudioAdmin("admin@" + slug + ".test", null, null));
 			}
 		}
 	}

@@ -1,10 +1,12 @@
 package de.photoffice.tenant;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,22 +22,44 @@ public class TenantManagement {
 
 	private final TenantRepository tenants;
 
+	private final ApplicationEventPublisher events;
+
 	private final Clock clock;
 
-	TenantManagement(TenantRepository tenants, Optional<Clock> clock) {
+	TenantManagement(TenantRepository tenants, ApplicationEventPublisher events, Optional<Clock> clock) {
 		this.tenants = tenants;
+		this.events = events;
 		this.clock = clock.orElse(Clock.systemUTC());
 	}
 
-	public Tenant register(String slug, String name) {
+	/**
+	 * Registers a studio and publishes {@link TenantRegistered}; the studio is set up asynchronously (onboarding).
+	 */
+	public Tenant register(String slug, String name, InitialStudioAdmin admin) {
 		if (!SLUG_FORMAT.matcher(slug).matches()) {
 			throw new IllegalArgumentException("Invalid slug: " + slug);
 		}
 		if (tenants.existsBySlug(slug)) {
 			throw new DuplicateTenantSlugException(slug);
 		}
-		// PostgreSQL stores microseconds – truncate so the returned value matches the persisted one
-		return tenants.save(new Tenant(slug, name.strip(), clock.instant().truncatedTo(ChronoUnit.MICROS)));
+		Tenant tenant = tenants.save(new Tenant(slug, name.strip(), now()));
+		events.publishEvent(new TenantRegistered(tenant.id(), tenant.slug(), tenant.name(), admin));
+		return tenant;
+	}
+
+	public Tenant suspend(TenantId id) {
+		return changeStatus(id, TenantStatus.SUSPENDED);
+	}
+
+	public Tenant reactivate(TenantId id) {
+		return changeStatus(id, TenantStatus.ACTIVE);
+	}
+
+	/**
+	 * Records that the studio's onboarding is complete. Repeated calls keep the first timestamp.
+	 */
+	public void markOnboarded(TenantId id) {
+		require(id).markOnboarded(now());
 	}
 
 	@Transactional(readOnly = true)
@@ -51,6 +75,23 @@ public class TenantManagement {
 	@Transactional(readOnly = true)
 	public Optional<Tenant> findById(TenantId id) {
 		return tenants.findById(id.value());
+	}
+
+	private Tenant changeStatus(TenantId id, TenantStatus status) {
+		Tenant tenant = require(id);
+		if (tenant.changeStatus(status)) {
+			events.publishEvent(new TenantStatusChanged(tenant.id(), tenant.slug(), status));
+		}
+		return tenant;
+	}
+
+	private Tenant require(TenantId id) {
+		return tenants.findById(id.value()).orElseThrow(() -> new TenantNotFoundException(id));
+	}
+
+	/** PostgreSQL stores microseconds – truncate so returned values match the persisted ones. */
+	private Instant now() {
+		return clock.instant().truncatedTo(ChronoUnit.MICROS);
 	}
 
 }

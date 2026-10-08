@@ -231,7 +231,63 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+  /platform/tenants/{tenantId}/suspend:
+    post:
+      tags: [platform]
+      operationId: suspendTenant
+      summary: Studio sperren – Studio-Benutzer haben danach keinen Zugriff mehr
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Studio gesperrt (auch wenn es bereits gesperrt war)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '401':
+          description: Nicht angemeldet
+        '403':
+          description: Keine Berechtigung (nur Plattform-Betreiber)
+        '404':
+          description: Studio nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /platform/tenants/{tenantId}/reactivate:
+    post:
+      tags: [platform]
+      operationId: reactivateTenant
+      summary: Gesperrtes Studio wieder freischalten
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Studio aktiv (auch wenn es bereits aktiv war)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '401':
+          description: Nicht angemeldet
+        '403':
+          description: Keine Berechtigung (nur Plattform-Betreiber)
+        '404':
+          description: Studio nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 components:
+  parameters:
+    TenantId:
+      name: tenantId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
   securitySchemes:
     bearerAuth:
       type: http
@@ -331,7 +387,7 @@ components:
           type: string
     CreateTenantRequest:
       type: object
-      required: [slug, name]
+      required: [slug, name, adminEmail]
       properties:
         slug:
           type: string
@@ -343,9 +399,23 @@ components:
           minLength: 1
           maxLength: 200
           example: Fotostudio Müller
+        adminEmail:
+          type: string
+          format: email
+          maxLength: 254
+          description: E-Mail des ersten Studio-Admins; erhält eine Einladung zum Setzen des Passworts
+          example: inhaber@studio-mueller.de
+        adminFirstName:
+          type: string
+          maxLength: 100
+          example: Maria
+        adminLastName:
+          type: string
+          maxLength: 100
+          example: Müller
     TenantResponse:
       type: object
-      required: [id, slug, name, status, createdAt]
+      required: [id, slug, name, status, onboardingStatus, createdAt]
       properties:
         id:
           type: string
@@ -357,6 +427,12 @@ components:
         status:
           type: string
           enum: [ACTIVE, SUSPENDED]
+        onboardingStatus:
+          type: string
+          description: |
+            PENDING: Keycloak-Organisation und erster Studio-Admin werden noch angelegt (bei Fehlern automatisch wiederholt).
+            COMPLETED: Organisation angelegt, Einladung an den Studio-Admin verschickt.
+          enum: [PENDING, COMPLETED]
         createdAt:
           type: string
           format: date-time

@@ -8,6 +8,12 @@
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "sslRequired": "external",
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "noreply@photoffice.test",
+    "fromDisplayName": "Photoffice"
+  },
   "roles": {
     "realm": [
       {
@@ -102,6 +108,19 @@
         }
       ],
       "fullScopeAllowed": false
+    },
+    {
+      "clientId": "photoffice-backend",
+      "name": "Photoffice Backend (Service-Account für Studio-Onboarding)",
+      "description": "Legt Organisationen und Studio-Admins an (Issue #24). Secret nur für Entwicklung.",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "photoffice-backend-dev-secret",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "fullScopeAllowed": false
     }
   ],
   "scopeMappings": [
@@ -122,6 +141,19 @@
       ]
     }
   ],
+  "clientScopeMappings": {
+    "realm-management": [
+      {
+        "client": "photoffice-backend",
+        "roles": [
+          "manage-users",
+          "view-users",
+          "query-users",
+          "manage-realm"
+        ]
+      }
+    ]
+  },
   "users": [
     {
       "username": "operator",
@@ -198,6 +230,19 @@
         "default-roles-photoffice",
         "studio-admin"
       ]
+    },
+    {
+      "username": "service-account-photoffice-backend",
+      "enabled": true,
+      "serviceAccountClientId": "photoffice-backend",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "query-users",
+          "manage-realm"
+        ]
+      }
     }
   ],
   "organizations": [

@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import de.photoffice.TestcontainersConfiguration;
+import de.photoffice.tenant.InitialStudioAdmin;
 import de.photoffice.tenant.TenantManagement;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
@@ -26,14 +26,13 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestcontainersConfiguration.class)
 class SecurityRulesTests {
 
+	private static final InitialStudioAdmin ADMIN = new InitialStudioAdmin("admin@example.test", null, null);
+
 	@Autowired
 	private MockMvc mockMvc;
 
 	@Autowired
 	private TenantManagement tenantManagement;
-
-	@Autowired
-	private JdbcTemplate jdbc;
 
 	private String studioA;
 
@@ -41,8 +40,8 @@ class SecurityRulesTests {
 
 	@BeforeEach
 	void registerStudios() {
-		studioA = tenantManagement.register(uniqueSlug(), "Studio A").slug();
-		studioB = tenantManagement.register(uniqueSlug(), "Studio B").slug();
+		studioA = tenantManagement.register(uniqueSlug(), "Studio A", ADMIN).slug();
+		studioB = tenantManagement.register(uniqueSlug(), "Studio B", ADMIN).slug();
 	}
 
 	@Test
@@ -88,7 +87,7 @@ class SecurityRulesTests {
 
 	@Test
 	void suspendedStudioIsRejected() throws Exception {
-		jdbc.update("UPDATE tenant SET status = 'SUSPENDED' WHERE slug = ?", studioA);
+		tenantManagement.suspend(tenantManagement.findBySlug(studioA).orElseThrow().id());
 
 		mockMvc.perform(get("/api/studio/me").with(studioAdmin(studioA))).andExpect(status().isForbidden());
 	}
