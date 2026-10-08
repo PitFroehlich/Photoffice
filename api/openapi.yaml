@@ -1,0 +1,37 @@
+openapi: 3.0.3
+info:
+  title: Photoffice API
+  description: |
+    REST-API des Photoffice-Backends. Diese Datei ist die Quelle der Wahrheit (API-first):
+    Das Backend generiert daraus Java-Interfaces, das Frontend einen Angular-Client.
+  version: 0.1.0
+servers:
+  - url: /api
+tags:
+  - name: system
+    description: Technische Informationen über die laufende Anwendung
+paths:
+  /system/info:
+    get:
+      tags: [system]
+      operationId: getSystemInfo
+      summary: Name und Version der laufenden Anwendung
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemInfo'
+components:
+  schemas:
+    SystemInfo:
+      type: object
+      required: [name, version]
+      properties:
+        name:
+          type: string
+          example: photoffice-backend
+        version:
+          type: string
+          example: 0.0.1-SNAPSHOT

@@ -21,13 +21,13 @@ Anforderungen aus der [Feature-Analyse](../analysis/legacy-features.md):
 | API | REST, beschrieben per **OpenAPI**; Frontend-Client wird daraus generiert. |
 | Frontend | **Angular + TypeScript** als SPA. Zwei Oberflächen: Studio-Backoffice und Kunden-Galerie. |
 | Datenbank | **PostgreSQL**; Mandant per `tenant_id`-Spalte, zusätzlich abgesichert durch **Row-Level Security**. Schema-Migrationen mit Flyway. |
-| Bildspeicher | **S3-kompatibler Object Storage** (z. B. Hetzner Object Storage; lokal MinIO). Präfix pro Mandant für Verbrauchsmessung. Zugriff nur über signierte, zeitlich begrenzte URLs. |
+| Bildspeicher | **S3-kompatibler Object Storage** (z. B. Hetzner Object Storage; lokal SeaweedFS, siehe ADR 0004). Präfix pro Mandant für Verbrauchsmessung. Zugriff nur über signierte, zeitlich begrenzte URLs. |
 | Bildverarbeitung | **imgproxy (Open-Source-Version, MIT)** für alle Ableitungen (Größen, Thumbnails, Formate), on-the-fly mit Cache. Das **studiospezifische Wasserzeichen** wird beim Upload einmalig vom Backend mit **libvips (vips-ffm)** in eine Vorschau-Datei gerendert; imgproxy skaliert diese weiter. EXIF-Auslesen ebenfalls im Backend beim Upload. |
 | Authentifizierung | **Keycloak** (selbst gehostet), Feature *Organizations* für Studios, Rollen pro Studio. Backend als OAuth2 Resource Server. Der **Galerie-Link mit Code** für Endkunden ist eine eigene Implementierung im Backend (kein Keycloak-Login). |
 | Bezahlung | **Bewusst offen.** Zahlungen (Studio-Abos und Endkunden-Bestellungen) laufen ausschließlich über eine eigene Schnittstelle (Port); der Anbieter wird in einem späteren ADR gewählt. |
 | Hintergrundverarbeitung | Asynchrone Event-Listener von Spring Modulith (Upload-Nachbearbeitung, Mails, Druckaufträge); dedizierte Queue erst bei Bedarf. |
 | Hosting/Betrieb | **EU-Cloud** (Hetzner oder IONOS), alle Komponenten als Container. Orchestrierung (k3s vs. managed Kubernetes) in einem eigenen ADR. |
-| Tests/CI | JUnit + **Testcontainers** (PostgreSQL, MinIO, Keycloak), Spring-Modulith-Modultests, **Playwright** für E2E, GitHub Actions. |
+| Tests/CI | JUnit + **Testcontainers** (PostgreSQL, S3, Keycloak), Spring-Modulith-Modultests, **Playwright** für E2E, GitHub Actions. |
 
 ### Verworfene Alternativen
 - **Kotlin** statt Java – Team bevorzugt Java.
