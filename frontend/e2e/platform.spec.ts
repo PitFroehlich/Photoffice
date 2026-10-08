@@ -111,3 +111,54 @@ test('failed onboarding is shown with its reason and can be retried', async ({ p
   await expect(page.getByText('Das Onboarding von „Konflikt-Studio“ wird erneut versucht.')).toBeVisible();
   await expect(row(page, slug)).toContainText('Fehlgeschlagen');
 });
+
+test('correct the admin of a failed onboarding, rename the studio, then only the name is editable', async ({
+  page,
+}) => {
+  const slug = `studio-korrektur-${Date.now()}`;
+  await loginAsOperator(page);
+
+  await register(page, 'Korrektur-Studio', slug, 'admin@studio-a.test');
+  await expect(row(page, slug)).toContainText('Fehlgeschlagen', { timeout: 30_000 });
+
+  // Issue #42: straight from the failure message to the form
+  await row(page, slug).getByRole('link', { name: 'Daten korrigieren' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Korrektur-Studio bearbeiten');
+  await expect(page.getByRole('status')).toContainText('gehört bereits zu Studio „Studio A“');
+  await expect(page.getByLabel('Kürzel')).toBeDisabled();
+  await expect(page.getByLabel('Kürzel')).toHaveValue(slug);
+  await expect(page.getByLabel('E-Mail')).toHaveValue('admin@studio-a.test');
+  await expect(page.getByLabel('Vorname')).toHaveValue('Maria');
+
+  await page.getByLabel('E-Mail').fill('kein-gueltiger-wert');
+  await expect(page.getByText('Bitte eine gültige E-Mail-Adresse eingeben')).toBeVisible();
+  await page.getByLabel('E-Mail').fill(`inhaber@${slug}.test`);
+  await page.getByLabel('Name', { exact: true }).fill('Korrektur-Studio Neu');
+  await page.getByRole('button', { name: 'Speichern' }).click();
+
+  await expect(page).toHaveURL(/\/plattform\/studios$/);
+  await expect(
+    page.getByText(
+      '„Korrektur-Studio Neu“ wurde gespeichert. Das Onboarding wird mit den neuen Daten erneut versucht.',
+    ),
+  ).toBeVisible();
+  await expect(row(page, slug)).toContainText('Abgeschlossen', { timeout: 30_000 });
+  await expect(row(page, slug)).toContainText('Korrektur-Studio Neu');
+
+  // After onboarding the admin data is gone; the name can still be changed
+  await row(page, slug).getByRole('link', { name: 'Korrektur-Studio Neu bearbeiten' }).click();
+  await expect(page.getByText('Das Onboarding ist abgeschlossen')).toBeVisible();
+  await expect(page.getByLabel('E-Mail')).toHaveCount(0);
+  await page.getByLabel('Name', { exact: true }).fill('Korrektur-Studio Final');
+  await page.getByRole('button', { name: 'Speichern' }).click();
+  await expect(page.getByText('„Korrektur-Studio Final“ wurde gespeichert.')).toBeVisible();
+  await expect(row(page, slug)).toContainText('Korrektur-Studio Final');
+});
+
+test('unknown studio id in the edit url leads back to the list', async ({ page }) => {
+  await loginAsOperator(page);
+
+  await page.goto('/plattform/studios/00000000-0000-4000-8000-000000000000');
+  await expect(page).toHaveURL(/\/plattform\/studios$/);
+  await expect(page.getByText(/Kein Studio mit der ID/)).toBeVisible();
+});

@@ -1,6 +1,6 @@
 # 0010: Plattform-Bereich im Frontend und sichtbare Onboarding-Fehler
 
-- **Status:** Accepted
+- **Status:** Accepted – teilweise geändert durch [0012](0012-studio-bearbeiten-admin-daten.md)
 - **Date:** 2026-10-08
 
 ## Context
@@ -30,6 +30,8 @@ Datenbank.
   statt auf den 5-Minuten-Takt zu warten. Ohne transaktionalen Kontext, damit der asynchrone Listener die
   Zustellung selbst abschließen kann. Gibt es keine fehlgeschlagene Zustellung, passiert nichts (202). Eine
   Wiederholung über die gespeicherte Zustellung ist nötig, weil nur das Event die Admin-Daten enthält.
+  **Geändert durch 0012:** Die Admin-Daten stehen jetzt am Studio und sind korrigierbar; die Zustellung wird
+  weiterhin wiederholt, das Onboarding liest aber die aktuellen Daten aus der Datenbank.
 - **Leere/ungültige Studio-ID:** Die Ursache des leeren 401 war Spring Securitys `StrictHttpFirewall`: Sie lehnt
   `//` ab, der Standard-Handler setzt nur den Status 400 per `sendError`, und die anschließende Fehlerseite
   (`/error`, Dispatcher-Typ `ERROR`) lief ohne Authentifizierung in `denyAll` → 401 ohne Body. Jetzt antwortet ein

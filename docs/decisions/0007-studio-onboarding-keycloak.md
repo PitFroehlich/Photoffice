@@ -1,6 +1,6 @@
 # 0007: Studio-Onboarding in Keycloak über Events und Service-Account
 
-- **Status:** Accepted
+- **Status:** Accepted – teilweise geändert durch [0012](0012-studio-bearbeiten-admin-daten.md)
 - **Date:** 2026-10-08
 
 ## Context
@@ -11,7 +11,8 @@ nicht erreichbar sein. Passwörter dürfen nicht per E-Mail verschickt werden (I
 
 ## Decision
 - **Event statt direktem Aufruf:** `TenantManagement.register` speichert das Studio und veröffentlicht
-  `TenantRegistered` (mit E-Mail und Name des ersten Admins). `StudioOnboarding` im Modul `identity` reagiert darauf
+  `TenantRegistered` (mit E-Mail und Name des ersten Admins – **Geändert durch 0012:** die Admin-Daten stehen am
+  Studio, neue Events enthalten sie nicht mehr). `StudioOnboarding` im Modul `identity` reagiert darauf
   als `@ApplicationModuleListener`, also asynchron und erst nach dem Commit. Spring Modulith speichert jede Zustellung
   in `event_publication`.
 - **Idempotent und wiederholbar:** Jeder Schritt prüft zuerst, was schon existiert: Organisation (Suche per
@@ -27,6 +28,7 @@ nicht erreichbar sein. Passwörter dürfen nicht per E-Mail verschickt werden (I
   Der Studioname steht deshalb in der Beschreibung der Organisation.
 - **Ein Benutzer, ein Studio:** Gehört die E-Mail schon einem Mitglied eines anderen Studios, schlägt das Onboarding
   fehl (Log-Meldung, Status bleibt `PENDING`) und wird wiederholt, bis der Konflikt gelöst ist.
+  **Geändert durch 0012:** Der Betreiber kann die Admin-E-Mail korrigieren; die Wiederholung nutzt die neuen Daten.
 - **Sperren:** `POST /api/platform/tenants/{id}/suspend` bzw. `/reactivate` ändern den Status und veröffentlichen
   `TenantStatusChanged`. Das Backend lehnt gesperrte Studios ohnehin ab (#6). Zusätzlich wird die Organisation in
   Keycloak deaktiviert: Neue Tokens enthalten dann kein `organization`-Claim mehr.

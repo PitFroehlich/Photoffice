@@ -53,10 +53,17 @@ code {
   color: var(--mat-sys-on-surface-variant);
 }
 
+.correct-link {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-primary);
+}
+
 .actions-cell {
   text-align: right;
   white-space: nowrap;
-  width: 6rem;
+  width: 9rem;
 }
 
 .suspend-button {

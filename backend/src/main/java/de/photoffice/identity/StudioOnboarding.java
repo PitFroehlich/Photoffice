@@ -5,8 +5,10 @@ import de.photoffice.tenant.Tenant;
 import de.photoffice.tenant.TenantManagement;
 import de.photoffice.tenant.TenantRegistered;
 import de.photoffice.tenant.TenantStatus;
+import de.photoffice.tenant.TenantRenamed;
 import de.photoffice.tenant.TenantStatusChanged;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,13 +74,21 @@ class StudioOnboarding {
 		}
 		boolean active = tenant.status() == TenantStatus.ACTIVE;
 
+		// Current data from the studio: the platform operator may have corrected it after a failed attempt.
+		// Publications from before issue #42 carry the data in the event (fallback if it was not taken over).
+		InitialStudioAdmin initialAdmin = tenant.initialAdmin()
+			.or(() -> Optional.ofNullable(event.admin()))
+			.orElseThrow(() -> new OnboardingFailedException(
+					"Für das Studio ist kein erster Studio-Admin hinterlegt. Bitte die E-Mail-Adresse im Studio ergänzen."));
+
 		String organizationId = keycloak.findOrganization(tenant.slug())
 			.map(KeycloakAdminClient.Organization::id)
 			.orElseGet(() -> keycloak.createOrganization(tenant.slug(), tenant.name(), active));
-		// The studio may have been suspended in the meantime
+		// The studio may have been suspended or renamed in the meantime
 		keycloak.setOrganizationEnabled(organizationId, active);
+		keycloak.setOrganizationDescription(organizationId, tenant.name());
 
-		KeycloakAdminClient.User admin = studioAdmin(event.admin(), tenant.slug());
+		KeycloakAdminClient.User admin = studioAdmin(initialAdmin, tenant.slug());
 		keycloak.assignRealmRole(admin.id(), STUDIO_ADMIN_ROLE);
 		keycloak.addMember(organizationId, admin.id());
 		if (admin.hasRequiredAction(UPDATE_PASSWORD)) {
@@ -96,6 +106,14 @@ class StudioOnboarding {
 		keycloak.findOrganization(event.slug())
 			.ifPresent(organization -> keycloak.setOrganizationEnabled(organization.id(),
 					event.status() == TenantStatus.ACTIVE));
+	}
+
+	/** Keeps the organization's description (= studio name) up to date; before onboarding there is no organization. */
+	@ApplicationModuleListener
+	void on(TenantRenamed event) {
+		String name = tenantManagement.findById(event.tenantId()).map(Tenant::name).orElse(event.name());
+		keycloak.findOrganization(event.slug())
+			.ifPresent(organization -> keycloak.setOrganizationDescription(organization.id(), name));
 	}
 
 	/**

@@ -126,6 +126,20 @@ describe('StudioList', () => {
     expect(row(element, 'studio-f').textContent).toContain('Abgeschlossen');
   });
 
+  it('links every studio to its edit page, failed onboardings also from the message', async () => {
+    const { element } = await render([studio(), failed]);
+
+    const edit = row(element, 'studio-a').querySelector(
+      'a[aria-label="Studio A bearbeiten"]',
+    ) as HTMLAnchorElement;
+    expect(edit.getAttribute('href')).toBe('/id-a');
+    expect(row(element, 'studio-a').querySelector('.correct-link')).toBeNull();
+
+    const correct = row(element, 'studio-f').querySelector('.correct-link') as HTMLAnchorElement;
+    expect(correct.textContent).toContain('Daten korrigieren');
+    expect(correct.getAttribute('href')).toBe('/id-f');
+  });
+
   it('shows a running onboarding and reloads until it is complete', async () => {
     // Fake timers that still advance in real time, so that settle() keeps working
     vi.useFakeTimers({ shouldAdvanceTime: true });

@@ -895,6 +895,84 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+  # --- edit studio (#42) ---
+  /platform/tenants/{tenantId}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      tags: [platform]
+      operationId: getTenant
+      summary: Einzelnes Studio lesen
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '400':
+          description: Ungültige Studio-ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Nicht angemeldet
+        '403':
+          description: Keine Berechtigung (nur Plattform-Betreiber)
+        '404':
+          description: Studio nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    patch:
+      tags: [platform]
+      operationId: updateTenant
+      summary: Studio ändern – Name jederzeit, Daten des ersten Admins nur vor Abschluss des Onboardings
+      description: |
+        Der Name wird auch in die Beschreibung der Keycloak-Organisation übernommen (im Hintergrund).
+        Das Kürzel lässt sich nicht ändern.
+        Fehlt adminEmail, bleiben die Admin-Daten unverändert; sonst werden E-Mail, Vor- und Nachname zusammen
+        ersetzt (fehlender Vor-/Nachname = leer). Ist das Onboarding schon abgeschlossen, liefert eine Änderung der
+        Admin-Daten 409. Ist das Onboarding fehlgeschlagen, wird es nach geänderten Admin-Daten sofort mit den neuen
+        Daten erneut versucht.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTenantRequest'
+      responses:
+        '200':
+          description: Geändert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantResponse'
+        '400':
+          description: Ungültige Eingabe oder Studio-ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Nicht angemeldet
+        '403':
+          description: Keine Berechtigung (nur Plattform-Betreiber)
+        '404':
+          description: Studio nicht gefunden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Onboarding bereits abgeschlossen (Admin-Daten nicht mehr änderbar) oder Studio zwischenzeitlich geändert
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  # --- end edit studio ---
   /platform/tenants/{tenantId}/suspend:
     post:
       tags: [platform]
@@ -962,7 +1040,8 @@ paths:
       summary: Fehlgeschlagenes Onboarding sofort erneut versuchen (statt auf die automatische Wiederholung zu warten)
       description: |
         Stellt die fehlgeschlagene Zustellung des Registrierungs-Events für dieses Studio erneut zu. Das Onboarding
-        läuft im Hintergrund; das Ergebnis steht danach in onboardingStatus bzw. onboardingError.
+        läuft im Hintergrund mit den aktuellen Admin-Daten des Studios (#42); das Ergebnis steht danach in
+        onboardingStatus bzw. onboardingError.
         Ohne fehlgeschlagenen Versuch (z. B. bereits abgeschlossen) passiert nichts.
       parameters:
         - $ref: '#/components/parameters/TenantId'
@@ -1523,9 +1602,44 @@ components:
           type: string
           format: date-time
           description: Zeitpunkt des letzten fehlgeschlagenen Onboarding-Versuchs (nur zusammen mit onboardingError)
+        adminEmail:
+          type: string
+          description: |
+            E-Mail des ersten Studio-Admins (#42). Nur solange das Onboarding nicht abgeschlossen ist; danach gelöscht
+            (Datensparsamkeit).
+        adminFirstName:
+          type: string
+          description: Vorname des ersten Studio-Admins (nur vor Abschluss des Onboardings)
+        adminLastName:
+          type: string
+          description: Nachname des ersten Studio-Admins (nur vor Abschluss des Onboardings)
         createdAt:
           type: string
           format: date-time
+    # --- edit studio (#42) ---
+    UpdateTenantRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Fotostudio Müller
+        adminEmail:
+          type: string
+          format: email
+          maxLength: 254
+          description: Neue E-Mail des ersten Studio-Admins (nur vor Abschluss des Onboardings); fehlt = unverändert
+        adminFirstName:
+          type: string
+          maxLength: 100
+          description: Nur zusammen mit adminEmail
+        adminLastName:
+          type: string
+          maxLength: 100
+          description: Nur zusammen mit adminEmail
+    # --- end edit studio ---
     ProblemDetail:
       description: Fehlerbeschreibung nach RFC 9457
       type: object

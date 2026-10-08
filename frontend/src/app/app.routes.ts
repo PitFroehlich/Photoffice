@@ -131,6 +131,11 @@ export const routes: Routes = [
         title: 'Studio registrieren',
         loadComponent: () => import('./platform/studio-form').then((m) => m.StudioForm),
       },
+      {
+        path: 'studios/:id',
+        title: 'Studio bearbeiten',
+        loadComponent: () => import('./platform/studio-form').then((m) => m.StudioForm),
+      },
     ],
   },
   // --- end platform area ---

@@ -65,6 +65,9 @@
                 Letzter Versuch {{ dateTime(studio.onboardingFailedAt) }} Uhr – wird automatisch
                 wiederholt.
               </p>
+              <a class="correct-link" [routerLink]="studio.id"
+                >Daten korrigieren<span class="cdk-visually-hidden">: {{ studio.name }}</span></a
+              >
             } @else {
               <span class="badge pending"
                 ><mat-icon svgIcon="hourglass_empty" aria-hidden="true" />Läuft</span
@@ -95,6 +98,14 @@
                 <mat-icon svgIcon="replay" />
               </button>
             }
+            <a
+              matIconButton
+              [routerLink]="studio.id"
+              [attr.aria-label]="studio.name + ' bearbeiten'"
+              matTooltip="Bearbeiten"
+            >
+              <mat-icon svgIcon="edit" />
+            </a>
             @if (studio.status === 'ACTIVE') {
               <button
                 matIconButton
