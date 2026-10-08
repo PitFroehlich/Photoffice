@@ -1,6 +1,6 @@
 # Demo #42: Studio bearbeiten und Onboarding mit korrigierten Admin-Daten wiederholen
 
-- **Issue / PR:** #42 / (PR folgt)
+- **Issue / PR:** #42 / #47
 - **Datum:** 2026-10-09
 - **Agent / Maschine:** Claude Code / fin-de-nb-0061
 

@@ -2,7 +2,7 @@
 
 - **Date:** 2026-10-09
 - **Machine / Agent:** fin-de-nb-0061 / Claude Code (Worktree, parallel zu #46)
-- **Issue / PR:** #42 / (PR folgt)
+- **Issue / PR:** #42 / #47
 - **Branch:** feature/42-studio-bearbeiten
 
 ## Goal
