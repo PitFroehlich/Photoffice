@@ -2,7 +2,7 @@
 
 - **Date:** 2026-10-08
 - **Machine / Agent:** fin-de-nb-0072 / Claude Code (zweite Session, eigener Worktree)
-- **Issue / PR:** #20 / siehe Issue
+- **Issue / PR:** #20 / #40
 - **Branch:** feature/20-studio-profil
 
 ## Goal

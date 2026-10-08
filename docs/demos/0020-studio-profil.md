@@ -1,6 +1,6 @@
 # Demo #20: Studio-Profil und Rechtstexte
 
-- **Issue / PR:** #20 / PR siehe Issue
+- **Issue / PR:** #20 / #40
 - **Datum:** 2026-10-08
 - **Agent / Maschine:** Claude Code (zweite Session) / fin-de-nb-0072
 
