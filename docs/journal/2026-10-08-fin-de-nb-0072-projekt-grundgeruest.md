@@ -21,7 +21,7 @@ Verifiziert lokal: Backend 4/4 Tests, Frontend 2/2 Tests + Build, Backend gegen 
 
 ## Open / Next steps
 - #5 Mandanten-Modell kann starten.
-- Konvention "Code-Bezeichner auf Englisch" in AGENTS.md vom Nutzer bestätigen lassen.
+- Konvention "Code-Bezeichner auf Englisch" vom Nutzer bestätigt; Lizenz des Neubaus wird später entschieden.
 - Playwright (E2E) wird mit der ersten echten Oberfläche eingerichtet.
 
 ## Pitfalls
