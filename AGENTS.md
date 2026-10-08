@@ -100,7 +100,7 @@ no screenshots**:
 | `docs/` | Analysis, ADRs, journal, demos |
 | `legacy/` | Old PHP 5.6 application – reference only, see `legacy/AGENTS.md` |
 
-Decisions behind the stack: `docs/decisions/0003-tech-stack.md`, `0004-local-s3-seaweedfs.md`, `0005-ui-angular-material.md`, `0006-liquibase.md`, `0007-studio-onboarding-keycloak.md`; domain model decisions: `0008-preismodell.md` (price list), `0009-rechtstexte-markdown.md` (studio profile, legal texts as Markdown).
+Decisions behind the stack: `docs/decisions/0003-tech-stack.md`, `0004-local-s3-seaweedfs.md`, `0005-ui-angular-material.md`, `0006-liquibase.md`, `0007-studio-onboarding-keycloak.md`; domain model decisions: `0008-preismodell.md` (price list), `0009-keycloak-theme.md` (login pages and e-mails), `0010-plattform-bereich-onboarding-fehler.md` (platform area), `0011-rechtstexte-markdown.md` (studio profile, legal texts as Markdown).
 
 ---
 
@@ -266,7 +266,7 @@ Copy the structure of the customer feature for new business features:
 6. **Frontend tests:** unit tests with `HttpTestingController`; Playwright spec in `frontend/e2e/` incl. a
    cross-studio check; then the guided demo.
 
-### Studio profile and legal texts (module `studioprofile`, issue #20, ADR 0009)
+### Studio profile and legal texts (module `studioprofile`, issue #20, ADR 0011)
 - `StudioProfileManagement` is the read model for other modules: `profile()` (empty profile with the studio name if
   none was saved), `legalTexts()` / `legalText(kind)` (Markdown, empty if not written yet).
 - Customer-facing pages (#12, #14) render legal texts only with `MarkdownView` – never bind the Markdown or
@@ -284,7 +284,7 @@ Copy the structure of the customer feature for new business features:
 - Tests run with `photoffice.onboarding.enabled=false` (`src/test/resources/application.properties`);
   `StudioOnboardingIntegrationTests` switches it on against Keycloak + Mailpit containers.
 
-### Platform area (issue #35, ADR 0008)
+### Platform area (issue #35, ADR 0010)
 - Frontend `/plattform` (German URL segments): `platformGuard` (realm role `platform-admin`), `PlatformShell`
   (same frame as the studio area), pages in `src/app/platform/`. New platform page = child route under `plattform`
   in `app.routes.ts` + entry in `layout/platform-navigation.ts`.
@@ -330,9 +330,14 @@ Copy the structure of the customer feature for new business features:
   | `ConfirmService.confirm({...destructive: true})` | Before deleting or other irreversible actions |
   | `NotificationService.success()/error(err)` | Feedback after actions; `error()` shows the backend's problem detail |
   | `apiErrorMessage(err)` | German message for a failed API call |
-  | `MarkdownView` (`[markdown]`) | Markdown written by studios (legal texts) – raw HTML shown as text, sanitised (ADR 0009) |
+  | `MarkdownView` (`[markdown]`) | Markdown written by studios (legal texts) – raw HTML shown as text, sanitised (ADR 0011) |
 - **Reference page:** `/studio/ui-bausteine` (dev builds only, `studio/ui-showcase/`) shows all blocks in a
   realistic list + form – copy from there.
+- **Pitfall:** `MatChipsModule` (and some other Material modules) provide their own default `ErrorStateMatcher`, which
+  overrides the studio default "errors while typing". Components importing them add
+  `providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }]` (see `gallery-form.ts`).
+- **Dates:** `MatDatepicker` with `GermanDateAdapter` (studio defaults) – typed `TT.MM.JJJJ`; convert with
+  `toApiDate`/`fromApiDate` (never `toISOString`, it shifts the day) and display with `formatApiDate`.
 - **Accessibility:** skip link, visible focus, labels on icon buttons, `aria-label` on landmarks; check keyboard use.
 - **Bundle:** keep heavy Material modules out of public pages (they are lazy via the studio route); the
   production build warns above 500 kB initial.

@@ -19,7 +19,10 @@ describe('CustomerForm', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(id ? { id } : {}) } } },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: convertToParamMap(id ? { id } : {}) } },
+        },
         { provide: ConfirmService, useValue: { confirm: vi.fn().mockResolvedValue(true) } },
         { provide: NotificationService, useValue: notifications },
       ],
@@ -48,8 +51,17 @@ describe('CustomerForm', () => {
     await settle(fixture);
 
     const request = httpTesting.expectOne({ method: 'POST', url: '/api/studio/customers' });
-    expect(request.request.body).toEqual({ firstName: 'Julia', lastName: 'Becker', email: 'julia@example.test' });
-    request.flush({ id: 'new', firstName: 'Julia', lastName: 'Becker', email: 'julia@example.test' });
+    expect(request.request.body).toEqual({
+      firstName: 'Julia',
+      lastName: 'Becker',
+      email: 'julia@example.test',
+    });
+    request.flush({
+      id: 'new',
+      firstName: 'Julia',
+      lastName: 'Becker',
+      email: 'julia@example.test',
+    });
     await settle(fixture);
 
     expect(notifications.success).toHaveBeenCalledWith('„Julia Becker“ wurde angelegt.');
@@ -73,10 +85,15 @@ describe('CustomerForm', () => {
     (element.querySelector('button[type="submit"]') as HTMLButtonElement).click();
     await settle(fixture);
 
-    httpTesting.expectOne({ method: 'POST', url: '/api/studio/customers' }).flush(
-      { status: 409, detail: 'Ein Kunde mit der E-Mail-Adresse julia@example.test existiert bereits.' },
-      { status: 409, statusText: 'Conflict' },
-    );
+    httpTesting
+      .expectOne({ method: 'POST', url: '/api/studio/customers' })
+      .flush(
+        {
+          status: 409,
+          detail: 'Ein Kunde mit der E-Mail-Adresse julia@example.test existiert bereits.',
+        },
+        { status: 409, statusText: 'Conflict' },
+      );
     await settle(fixture);
 
     expect(element.querySelector('mat-error')?.textContent).toContain('existiert bereits');
@@ -95,7 +112,9 @@ describe('CustomerForm', () => {
     await settle(fixture);
 
     expect(element.querySelector('h1')?.textContent).toContain('Julia Becker');
-    expect((element.querySelector('[formcontrolname="city"]') as HTMLInputElement).value).toBe('Berlin');
+    expect((element.querySelector('[formcontrolname="city"]') as HTMLInputElement).value).toBe(
+      'Berlin',
+    );
 
     fill(element, 'city', 'Potsdam');
     (element.querySelector('button[type="submit"]') as HTMLButtonElement).click();
@@ -128,7 +147,11 @@ describe('CustomerForm validation rules', () => {
     return fixture;
   }
 
-  async function errorFor(fixture: Awaited<ReturnType<typeof renderNew>>, name: string, value: string) {
+  async function errorFor(
+    fixture: Awaited<ReturnType<typeof renderNew>>,
+    name: string,
+    value: string,
+  ) {
     const element = fixture.nativeElement as HTMLElement;
     const input = element.querySelector(`[formcontrolname="${name}"]`) as HTMLInputElement;
     input.value = value;

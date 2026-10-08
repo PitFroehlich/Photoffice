@@ -18,7 +18,7 @@
 - **Berechtigung:** Alle im Studio sehen Profil und Texte, nur Studio-Administratoren ändern sie.
 - **Studios getrennt:** Studio B sieht nichts von Studio A.
 - Noch nicht: Anzeige für Kunden (kommt mit #12/#14), Logo (#39).
-- Entscheidungen: ADR `docs/decisions/0009-rechtstexte-markdown.md`.
+- Entscheidungen: ADR `docs/decisions/0011-rechtstexte-markdown.md`.
 
 ## Vorbereitung
 1. `docker compose up -d`

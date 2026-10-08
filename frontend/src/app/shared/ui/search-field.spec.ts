@@ -7,7 +7,9 @@ describe('SearchField', () => {
 
   it('emits the trimmed term after a pause in typing', async () => {
     vi.useFakeTimers();
-    await TestBed.configureTestingModule({ imports: [SearchField, iconTesting] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [SearchField, iconTesting],
+    }).compileComponents();
     const fixture = TestBed.createComponent(SearchField);
     const emitted: string[] = [];
     fixture.componentInstance.search.subscribe((term) => emitted.push(term));

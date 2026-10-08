@@ -1,4 +1,4 @@
-# 0008: Plattform-Bereich im Frontend und sichtbare Onboarding-Fehler
+# 0010: Plattform-Bereich im Frontend und sichtbare Onboarding-Fehler
 
 - **Status:** Accepted
 - **Date:** 2026-10-08

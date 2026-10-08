@@ -1,13 +1,14 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Api } from '../api/api';
-import { deleteCustomer, listCustomers } from '../api/functions';
-import { Customer, CustomerPage } from '../api/models';
+import { deleteGallery, listGalleries } from '../api/functions';
+import { Gallery, GalleryPage, GalleryStatus } from '../api/models';
 import {
   ConfirmService,
   EmptyState,
@@ -15,16 +16,21 @@ import {
   NotificationService,
   PageHeader,
   SearchField,
+  formatApiDate,
 } from '../shared/ui';
+import { customerNames, galleryStateClass, galleryStateLabel } from './gallery-labels';
 
-/** Customers of the studio: server-side search and paging; state kept in the URL (?suche=&seite=&anzahl=). */
+type StatusFilter = GalleryStatus | 'ALL';
+
+/** Galleries of the studio: search, status filter, optional customer filter (?kunde=), state in the URL. */
 @Component({
-  selector: 'app-customer-list',
+  selector: 'app-gallery-list',
   imports: [
     RouterLink,
     MatTableModule,
     MatPaginatorModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatIconModule,
     MatTooltipModule,
     PageHeader,
@@ -32,44 +38,64 @@ import {
     EmptyState,
     LoadingIndicator,
   ],
-  templateUrl: './customer-list.html',
-  styleUrl: './customer-list.scss',
+  templateUrl: './gallery-list.html',
+  styleUrl: './gallery-list.scss',
 })
-export class CustomerList implements OnInit {
+export class GalleryList implements OnInit {
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly confirmService = inject(ConfirmService);
   private readonly notifications = inject(NotificationService);
 
-  protected readonly columns = ['name', 'email', 'phone', 'city', 'actions'];
+  protected readonly columns = ['name', 'customers', 'status', 'expiresOn', 'actions'];
   protected readonly search = signal('');
+  protected readonly status = signal<StatusFilter>('ALL');
+  protected readonly customerId = signal<string | undefined>(undefined);
   protected readonly pageIndex = signal(0);
   protected readonly pageSize = signal(25);
-  protected readonly result = signal<CustomerPage | undefined>(undefined);
+  protected readonly result = signal<GalleryPage | undefined>(undefined);
   protected readonly loading = signal(false);
 
+  protected readonly filtered = computed(
+    () => !!this.search() || this.status() !== 'ALL' || !!this.customerId(),
+  );
   protected readonly subtitle = computed(() => {
     const total = this.result()?.totalElements;
     if (total === undefined) {
       return '';
     }
-    if (this.search()) {
-      return `${total} ${total === 1 ? 'Treffer' : 'Treffer'} für „${this.search()}“`;
-    }
-    return `${total} ${total === 1 ? 'Kunde' : 'Kunden'}`;
+    return `${total} ${total === 1 ? 'Galerie' : 'Galerien'}${this.filtered() ? ' (gefiltert)' : ''}`;
   });
+
+  protected readonly stateLabel = galleryStateLabel;
+  protected readonly stateClass = galleryStateClass;
+  protected readonly customerNames = customerNames;
+  protected readonly formatDate = formatApiDate;
 
   ngOnInit(): void {
     const params = this.route.snapshot.queryParamMap;
     this.search.set(params.get('suche') ?? '');
+    this.status.set((params.get('status')?.toUpperCase() as StatusFilter) ?? 'ALL');
+    this.customerId.set(params.get('kunde') ?? undefined);
     this.pageIndex.set(Number(params.get('seite') ?? 0) || 0);
-    this.pageSize.set(Number(params.get('anzahl') ?? 25) || 25);
     void this.load();
   }
 
   protected onSearch(term: string): void {
     this.search.set(term);
+    this.pageIndex.set(0);
+    void this.load();
+  }
+
+  protected onStatus(status: StatusFilter): void {
+    this.status.set(status);
+    this.pageIndex.set(0);
+    void this.load();
+  }
+
+  protected clearCustomerFilter(): void {
+    this.customerId.set(undefined);
     this.pageIndex.set(0);
     void this.load();
   }
@@ -80,15 +106,10 @@ export class CustomerList implements OnInit {
     void this.load();
   }
 
-  protected fullName(customer: Customer): string {
-    return `${customer.lastName}, ${customer.firstName}`;
-  }
-
-  protected async remove(customer: Customer): Promise<void> {
-    const name = `${customer.firstName} ${customer.lastName}`;
+  protected async remove(gallery: Gallery): Promise<void> {
     const confirmed = await this.confirmService.confirm({
-      title: 'Kunden löschen?',
-      message: `„${name}“ wird endgültig gelöscht.`,
+      title: 'Galerie löschen?',
+      message: `„${gallery.name}“ wird mit allen Bildern endgültig gelöscht. Kunden haben danach keinen Zugriff mehr.`,
       confirmLabel: 'Löschen',
       destructive: true,
     });
@@ -96,9 +117,8 @@ export class CustomerList implements OnInit {
       return;
     }
     try {
-      await this.api.invoke(deleteCustomer, { customerId: customer.id });
-      this.notifications.success(`„${name}“ wurde gelöscht.`);
-      // Last entry of a later page deleted: go back one page
+      await this.api.invoke(deleteGallery, { galleryId: gallery.id });
+      this.notifications.success(`„${gallery.name}“ wurde gelöscht.`);
       if (this.result()?.items.length === 1 && this.pageIndex() > 0) {
         this.pageIndex.update((page) => page - 1);
       }
@@ -113,8 +133,10 @@ export class CustomerList implements OnInit {
     this.loading.set(true);
     try {
       this.result.set(
-        await this.api.invoke(listCustomers, {
+        await this.api.invoke(listGalleries, {
           search: this.search() || undefined,
+          status: this.status() === 'ALL' ? undefined : (this.status() as GalleryStatus),
+          customerId: this.customerId(),
           page: this.pageIndex(),
           size: this.pageSize(),
         }),
@@ -146,8 +168,9 @@ export class CustomerList implements OnInit {
   private urlState(): Record<string, string | null> {
     return {
       suche: this.search() || null,
+      status: this.status() === 'ALL' ? null : this.status().toLowerCase(),
+      kunde: this.customerId() ?? null,
       seite: this.pageIndex() ? String(this.pageIndex()) : null,
-      anzahl: this.pageSize() === 25 ? null : String(this.pageSize()),
     };
   }
 }

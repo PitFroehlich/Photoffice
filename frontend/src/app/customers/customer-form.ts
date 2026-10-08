@@ -53,9 +53,18 @@ export class CustomerForm implements OnInit {
   protected readonly title = signal('Neuer Kunde');
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    firstName: ['', [Validators.required, Validators.maxLength(100), trimmedPattern(customerPatterns.name)]],
-    lastName: ['', [Validators.required, Validators.maxLength(100), trimmedPattern(customerPatterns.name)]],
-    email: ['', [Validators.required, Validators.maxLength(254), trimmedPattern(customerPatterns.email)]],
+    firstName: [
+      '',
+      [Validators.required, Validators.maxLength(100), trimmedPattern(customerPatterns.name)],
+    ],
+    lastName: [
+      '',
+      [Validators.required, Validators.maxLength(100), trimmedPattern(customerPatterns.name)],
+    ],
+    email: [
+      '',
+      [Validators.required, Validators.maxLength(254), trimmedPattern(customerPatterns.email)],
+    ],
     phone: ['', [Validators.maxLength(30), trimmedPattern(customerPatterns.phone)]],
     street: ['', [Validators.maxLength(200), trimmedPattern(customerPatterns.street)]],
     postalCode: ['', [Validators.maxLength(5), trimmedPattern(customerPatterns.postalCode)]],

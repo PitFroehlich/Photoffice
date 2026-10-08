@@ -5,7 +5,11 @@
   </a>
 </app-page-header>
 
-<app-search-field label="Name, E-Mail oder Ort suchen" [initialValue]="search()" (search)="onSearch($event)" />
+<app-search-field
+  label="Name, E-Mail oder Ort suchen"
+  [initialValue]="search()"
+  (search)="onSearch($event)"
+/>
 
 @if (loading()) {
   <app-loading-indicator />
@@ -14,9 +18,17 @@
 @if (result(); as page) {
   @if (page.totalElements === 0) {
     @if (search()) {
-      <app-empty-state icon="person_search" title="Keine Treffer" message="Passen Sie den Suchbegriff an." />
+      <app-empty-state
+        icon="person_search"
+        title="Keine Treffer"
+        message="Passen Sie den Suchbegriff an."
+      />
     } @else {
-      <app-empty-state icon="group" title="Noch keine Kunden" message="Legen Sie Ihren ersten Kunden an.">
+      <app-empty-state
+        icon="group"
+        title="Noch keine Kunden"
+        message="Legen Sie Ihren ersten Kunden an."
+      >
         <a matButton="filled" routerLink="neu">Ersten Kunden anlegen</a>
       </app-empty-state>
     }
@@ -42,7 +54,9 @@
           <td mat-cell *matCellDef="let customer">{{ customer.city }}</td>
         </ng-container>
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef><span class="cdk-visually-hidden">Aktionen</span></th>
+          <th mat-header-cell *matHeaderCellDef>
+            <span class="cdk-visually-hidden">Aktionen</span>
+          </th>
           <td mat-cell *matCellDef="let customer" class="actions-cell">
             <a
               matIconButton

@@ -22,7 +22,7 @@ sicher gerenderten Text. Logo und Kundenanzeige sind ausgeklammert.
   mit Live-Vorschau, Gliederungsvorschläge, Impressum aus dem Profil), Navigation. Neuer Baustein
   `MarkdownView` + `renderMarkdown` in `shared/ui` (`marked`, rohes HTML als Text, Bilder als Alt-Text, danach
   Angular-Sanitizer).
-- ADR 0009, AGENTS.md (Abschnitt Studio-Profil, `MarkdownView`, Hinweis zu `DatePipe`), Demo
+- ADR 0011 (ursprünglich 0009, umnummeriert wegen Kollision mit dem Keycloak-Theme), AGENTS.md (Abschnitt Studio-Profil, `MarkdownView`, Hinweis zu `DatePipe`), Demo
   `docs/demos/0020-studio-profil.md`, E2E `frontend/e2e/studio-profile.spec.ts` (nicht ausgeführt – Ports gehören
   der Hauptsession).
 - Folge-Issue #39 „Studio-Logo hochladen“ (blockiert durch #9 und #20), Roadmap #21 ergänzt.

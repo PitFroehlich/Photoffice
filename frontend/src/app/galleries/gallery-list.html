@@ -1,0 +1,117 @@
+<app-page-header title="Galerien" [subtitle]="subtitle()">
+  <a matButton="filled" routerLink="neu" actions>
+    <mat-icon svgIcon="add_photo_alternate" />
+    Neue Galerie
+  </a>
+</app-page-header>
+
+<div class="filters">
+  <app-search-field
+    label="Name der Galerie suchen"
+    [initialValue]="search()"
+    (search)="onSearch($event)"
+  />
+  <mat-button-toggle-group
+    [value]="status()"
+    (change)="onStatus($event.value)"
+    aria-label="Nach Status filtern"
+    hideSingleSelectionIndicator
+  >
+    <mat-button-toggle value="ALL">Alle</mat-button-toggle>
+    <mat-button-toggle value="DRAFT">Entwurf</mat-button-toggle>
+    <mat-button-toggle value="ONLINE">Online</mat-button-toggle>
+    <mat-button-toggle value="OFFLINE">Offline</mat-button-toggle>
+  </mat-button-toggle-group>
+  @if (customerId()) {
+    <button matButton="tonal" type="button" (click)="clearCustomerFilter()" class="customer-filter">
+      <mat-icon svgIcon="close" />
+      Nur Galerien eines Kunden – Filter aufheben
+    </button>
+  }
+</div>
+
+@if (loading()) {
+  <app-loading-indicator />
+}
+
+@if (result(); as page) {
+  @if (page.totalElements === 0) {
+    @if (filtered()) {
+      <app-empty-state
+        icon="search_off"
+        title="Keine Treffer"
+        message="Passen Sie Suche oder Filter an."
+      />
+    } @else {
+      <app-empty-state
+        icon="photo_library"
+        title="Noch keine Galerien"
+        message="Legen Sie eine Galerie an und ordnen Sie ihr Kunden zu."
+      >
+        <a matButton="filled" routerLink="neu">Erste Galerie anlegen</a>
+      </app-empty-state>
+    }
+  } @else {
+    <div class="table-scroll">
+      <table mat-table [dataSource]="page.items" class="table" aria-label="Galerien">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let gallery">
+            <a [routerLink]="gallery.id" class="name-link">{{ gallery.name }}</a>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="customers">
+          <th mat-header-cell *matHeaderCellDef>Kunden</th>
+          <td mat-cell *matCellDef="let gallery">{{ customerNames(gallery) || '–' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let gallery">
+            <span class="state" [class]="'state ' + stateClass(gallery)">{{
+              stateLabel(gallery)
+            }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="expiresOn">
+          <th mat-header-cell *matHeaderCellDef>Erreichbar bis</th>
+          <td mat-cell *matCellDef="let gallery">
+            {{ formatDate(gallery.expiresOn) || 'unbegrenzt' }}
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>
+            <span class="cdk-visually-hidden">Aktionen</span>
+          </th>
+          <td mat-cell *matCellDef="let gallery" class="actions-cell">
+            <a
+              matIconButton
+              [routerLink]="gallery.id"
+              [attr.aria-label]="gallery.name + ' bearbeiten'"
+              matTooltip="Bearbeiten"
+            >
+              <mat-icon svgIcon="edit" />
+            </a>
+            <button
+              matIconButton
+              type="button"
+              [attr.aria-label]="gallery.name + ' löschen'"
+              matTooltip="Löschen"
+              (click)="remove(gallery)"
+            >
+              <mat-icon svgIcon="delete" />
+            </button>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      </table>
+    </div>
+    <mat-paginator
+      [length]="page.totalElements"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      (page)="onPage($event)"
+    />
+  }
+}
