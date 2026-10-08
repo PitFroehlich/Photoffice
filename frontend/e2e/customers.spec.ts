@@ -1,7 +1,11 @@
 import { expect, Page, test } from '@playwright/test';
 import { loginAs } from './helpers';
 
-const unique = () => Date.now().toString(36);
+/** Letters only – the id becomes part of the last name, and names must not contain digits. */
+const unique = () =>
+  Date.now()
+    .toString(36)
+    .replace(/\d/g, (digit) => 'abcdefghij'[Number(digit)]);
 
 async function openCustomers(page: Page, user = 'admin-a'): Promise<void> {
   await loginAs(page, user);
